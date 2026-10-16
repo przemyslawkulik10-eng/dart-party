@@ -1,3 +1,4 @@
+import { playSound, soundEnabled, toggleSound } from './sound.js';
 import { bullState } from './bull-off.js';
 import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch } from './engine.js';
 import { loadMatches, saveMatch } from './storage.js';
@@ -57,7 +58,7 @@ function renderContest() {
   <section class="panel bull-panel"><div class="eyebrow">${s.round===1?'PIERWSZA SERIA':`DOGRYWKA ${s.round-1} · TYLKO REMISUJĄCY`}</div><h2>${esc(contest.names[s.current])}${won?' zaczyna mecz!':' rzuca'}</h2>
   ${won?`<p>Kolejność: ${[contest.names[s.winner],...contest.names.filter((_,i)=>i!==s.winner)].map(esc).join(' → ')}</p><button class="primary" id="start-match">Rozpocznij ${contest.mode==='cricket'?'Cricket':contest.mode} →</button>`:`<div class="darts">${[0,1,2].map(i=>`<div class="dart-slot ${s.turn[i]!==undefined?'filled':''}"><small>LOTKA ${i+1}</small><strong>${s.turn[i]??'—'}</strong></div>`).join('')}</div><p>Po trzeciej lotce przechodzimy do kolejnego gracza. Remis oznacza nową serię trzech lotek.</p><div class="special-keys bull-keys"><button data-bull="0">POZA ŚRODKIEM / 0</button><button data-bull="25">BULL 25</button><button data-bull="50">BULL 50</button></div>`}
   <button id="undo-bull" ${contest.throws.length?'':'disabled'}>↶ Cofnij rzut</button></section>`;
-  document.querySelectorAll('[data-bull]').forEach(b=>b.onclick=()=>{contest.throws.push(Number(b.dataset.bull));saveContest();renderContest();const next=bullState(contest.names.length,contest.throws);if(next.winner===null && (next.current!==s.current || next.round!==s.round))announcePlayer(contest.names[next.current]);});
+  document.querySelectorAll('[data-bull]').forEach(b=>b.onclick=()=>{contest.throws.push(Number(b.dataset.bull));saveContest();renderContest();const next=bullState(contest.names.length,contest.throws);if(next.winner===null && (next.current!==s.current || next.round!==s.round))announcePlayer(contest.names[next.current]);else playSound('hit');});
   $('#undo-bull').onclick=()=>{contest.throws.pop();saveContest();renderContest();};
   $('#cancel-contest').onclick=()=>{names=contest.names;mode=contest.mode;doubleOut=contest.doubleOut;contest=null;saveContest();renderSetup();};
   if(won)$('#start-match').onclick=()=>{
@@ -90,12 +91,13 @@ function renderGame() {
   if($('#undo'))$('#undo').onclick=()=>update(undoDart(match));
   if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));announcePlayer();}catch(e){toast(e.message);}};
 }
-function announcePlayer(playerName=match.names[replay(match).current]) {
+function announcePlayer(playerName=match.names[replay(match).current], victory=false) {
+  playSound(victory?'win':'turn');
   const name=playerName.toLocaleUpperCase('pl-PL');
   const overlay=document.createElement('dialog');
   overlay.className='player-announcement';
-  overlay.setAttribute('aria-label',`Teraz rzuca ${name}`);
-  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — zaczynam rzucać"><span class="announcement-label">TERAZ RZUCA</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">ZA CHWILĘ TWOJA KOLEJ →</span></button>`;
+  overlay.setAttribute('aria-label',`${victory?'Wygrywa':'Teraz rzuca'} ${name}`);
+  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — ${victory?'zwycięzca meczu':'zaczynam rzucać'}"><span class="announcement-label">${victory?'WYGRYWA!':'TERAZ RZUCA'}</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">${victory?'BRAWO! ZA CHWILĘ WYNIK MECZU':'ZA CHWILĘ TWOJA KOLEJ →'}</span></button>`;
   document.body.append(overlay);
   let dismissTimer;
   overlay.addEventListener('close',()=>{clearTimeout(dismissTimer);window.removeEventListener('resize',fitName);overlay.remove();});
@@ -110,7 +112,7 @@ function announcePlayer(playerName=match.names[replay(match).current]) {
   fitName();window.addEventListener('resize',fitName);
   dismissTimer=setTimeout(()=>{if(overlay.open)overlay.close();},3000);
 }
-function hit(n,m) { try { update(recordDart(match,n,m)); if(navigator.vibrate) navigator.vibrate(15); }catch(e){toast(e.message);} }
+function hit(n,m) { try { update(recordDart(match,n,m)); const winner=replay(match).winner;if(winner!==null)announcePlayer(match.names[winner],true);else playSound('hit'); if(navigator.vibrate) navigator.vibrate(15); }catch(e){toast(e.message);} }
 function exportMatch() {
   const current=match||allMatches()[0]; if(!current){toast('Brak meczu do pobrania.');return;}
   const url=URL.createObjectURL(new Blob([JSON.stringify(current,null,2)],{type:'application/json'}));
@@ -138,3 +140,10 @@ try {
 if(contest)renderContest();else renderSetup();
 syncCloud().then(()=>{if(!contest&&!match&&!document.querySelector('[data-player-name]:focus'))renderSetup();});
 setInterval(()=>{if(!storageError)syncCloud();},60000);
+
+const soundButton=document.createElement('button');
+soundButton.id='sound-toggle';
+function renderSoundButton(){soundButton.textContent=soundEnabled()?'Dźwięk: WŁ.':'Dźwięk: WYŁ.';soundButton.setAttribute('aria-pressed',String(soundEnabled()));soundButton.setAttribute('aria-label',soundEnabled()?'Wyłącz dźwięk':'Włącz dźwięk');}
+renderSoundButton();
+soundButton.onclick=()=>{toggleSound();renderSoundButton();};
+document.querySelector('.top-actions').append(soundButton);
