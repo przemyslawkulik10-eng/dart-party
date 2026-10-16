@@ -145,3 +145,50 @@ body{text-transform:uppercase;font-size:16px}input,button,select,option{text-tra
 body[data-view=game] .cricket-layout.many-players .current-panel .cricket-board tr:last-child td:first-child{font-size:22px}
 @media(min-width:741px){body[data-view=game] .cricket-layout.many-players .current-panel .cricket-board th{font-size:clamp(16px,1.6vw,24px)}}
 @media(max-width:740px){body[data-view=game] .cricket-layout.many-players .current-panel .cricket-board tr:last-child td:first-child{font-size:14px}}
+
+/* Use the entire playing screen; no empty six-column strip in two-player X01. */
+@media(min-width:741px){
+ body:has(#app.x01-game) .topbar{height:56px;padding:6px 16px;max-width:none}
+ body:has(#app.x01-game) .brand{font-size:20px}body:has(#app.x01-game) .brand-icon{font-size:32px}
+ body:has(#app.x01-game) .brand small,body:has(#app.x01-game) #save-status,body:has(#app.x01-game) footer,#app.x01-game .recent{display:none}
+ body[data-view=game] #app.x01-game{max-width:none;width:100%;height:calc(100dvh - 56px);padding:8px 12px;display:flex;flex-direction:column;gap:10px}
+ body[data-view=game] #app.x01-game .game-title{margin:0;min-height:46px}.x01-game .game-title .eyebrow{display:none}
+ body[data-view=game] #app.x01-game .game-title h1{font-size:28px}.x01-game .game-meta{margin-top:4px}
+ body[data-view=game] #app.x01-game .scoreboard{grid-template-columns:repeat(var(--players),minmax(0,1fr));gap:10px;margin:0}
+ body[data-view=game] #app.x01-game .player-card{padding:10px 16px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px}
+ body[data-view=game] #app.x01-game .player-name{font-size:clamp(22px,2.2vw,40px);line-height:1.1}
+ body[data-view=game] #app.x01-game .player-score{grid-column:2;grid-row:1/4;font-size:clamp(48px,8vh,96px);line-height:1;margin:0;letter-spacing:-2px}
+ body[data-view=game] #app.x01-game .leg-score{margin:0;font-size:17px}.x01-game .leg-score strong{font-size:26px}
+ body[data-view=game] #app.x01-game .player-card .small{font-size:12px}
+ body[data-view=game] #app.x01-game .play-grid{flex:1;min-height:0;grid-template-columns:minmax(0,.95fr) minmax(0,1.2fr);gap:14px}
+ body[data-view=game] #app.x01-game .panel{padding:clamp(12px,1.5vw,24px);min-height:0}
+ body[data-view=game] #app.x01-game .turn-header h2{font-size:clamp(32px,4vw,66px);line-height:1.1}
+ .x01-game .turn-header .eyebrow{margin-bottom:6px;font-size:13px}
+ body[data-view=game] #app.x01-game .giant-score{font-size:clamp(112px,22vh,290px);line-height:1.05;margin:auto 0 0;letter-spacing:-6px}
+ body[data-view=game] #app.x01-game .score-caption{font-size:16px;margin:0 0 auto}
+ body[data-view=game] #app.x01-game .remaining-darts{height:clamp(30px,5vh,60px);margin:4px 0}.x01-game .remaining-dart{height:100%;width:100px;flex-basis:100px}
+ body[data-view=game] #app.x01-game .darts{margin-top:4px}
+ body[data-view=game] #app.x01-game .dart-slot{padding:8px 4px}.x01-game .dart-slot strong{font-size:clamp(24px,3vh,40px)}
+ body[data-view=game] #app.x01-game .turn-total{font-size:15px;padding-top:8px;gap:8px}
+ body[data-view=game] #app.x01-game .keypad-panel{display:flex;flex-direction:column}
+ body[data-view=game] #app.x01-game .keypad-head{margin-bottom:12px;gap:8px}.x01-game .keypad-head h2{font-size:clamp(18px,2vw,30px)}
+ .x01-game .multiplier button{font-size:clamp(20px,2.3vw,32px);min-height:48px;padding:8px 16px}
+ body[data-view=game] #app.x01-game .number-grid{flex:1;min-height:0;grid-template-rows:repeat(4,minmax(0,1fr));gap:8px}
+ body[data-view=game] #app.x01-game .number-grid button{min-height:44px;padding:4px;font-size:clamp(32px,4.5vh,64px);font-weight:800}
+ body[data-view=game] #app.x01-game .special-keys button{min-height:clamp(48px,6vh,74px);font-size:clamp(16px,1.7vw,26px)}
+ body[data-view=game] #app.x01-game .action-row{margin-top:10px}.x01-game .action-row button{min-height:clamp(48px,6.5vh,78px);font-size:clamp(17px,1.7vw,27px)}
+ body[data-view=game] #app.x01-game .scoreboard:has(.player-card:nth-child(4)) .player-card{display:block;padding:8px 10px}
+ body[data-view=game] #app.x01-game .scoreboard:has(.player-card:nth-child(4)) .player-name{font-size:clamp(16px,1.6vw,26px)}
+ body[data-view=game] #app.x01-game .scoreboard:has(.player-card:nth-child(4)) .player-score{font-size:clamp(36px,6vh,64px);margin:4px 0}
+ body[data-view=game] #app.x01-game .scoreboard:has(.player-card:nth-child(4)) .player-card .small{display:none}
+}
+@media(min-width:741px) and (orientation:portrait){
+ body[data-view=game] #app.x01-game .play-grid{grid-template-columns:1fr;grid-template-rows:minmax(0,.8fr) minmax(0,1.2fr)}
+ body[data-view=game] #app.x01-game .current-panel{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px}
+ .x01-game .turn-header{grid-column:1/3}
+ body[data-view=game] #app.x01-game .giant-score{font-size:clamp(100px,15vh,200px);grid-column:1;grid-row:2/5;margin:auto 0}
+ body[data-view=game] #app.x01-game .score-caption{display:none}
+ .x01-game .remaining-darts,.x01-game .darts{grid-column:2}
+ .x01-game .turn-total{grid-column:1/3}
+}
+@media(max-width:740px){body[data-view=game] #app.x01-game .scoreboard{grid-template-columns:repeat(2,minmax(0,1fr))}body[data-view=game] #app.x01-game .player-name{font-size:21px}body[data-view=game] #app.x01-game .player-score{font-size:48px}}

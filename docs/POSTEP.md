@@ -92,3 +92,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Mecze do 1/2/3 wygranych legów, bez setów. 301 domyślnie3. Kolejny leg resetuje punkty/pola, zachowuje wynik legów i rotuje start. Wygrana meczu dopiero przy wymaganej liczbie. Undo/JSON/cloud przechowują cały strumień zdarzeń; nie ma migracji bazy.
 - Link /#nowe-301 otwiera ustawienia nowego301 do3 legów ze składem ostatniego lokalnego meczu; stare wyniki zachowane. Nie potwierdzono zdalnego restartu użytkownikowej karty: bridge nie znalazł jej, dlatego przygotowany bezpośredni link.
 - 39 testów silnika PASS. Test przeglądarkowy legs-opening PASS. Dwaj agenci niezależnie: QA tabletu i QA legów PASS; poprawiono zgłoszone BULL. Głos rozróżnia leg od całego meczu.
+
+## 2026-10-16 — pełny ekran gry X01
+- Usunięto limit szerokości 1360px i puste kolumny wyników: liczba kolumn odpowiada liczbie graczy.
+- 301/501/201 wypełniają dostępną szerokość i wysokość. Wynik główny do290px, przyciski skalują się w wolnej przestrzeni, większe imiona/wyniki/legi. Historia pozostaje w zapisach, dolny pasek nie zajmuje miejsca podczas gry.
+- Test2/6 graczy: 1920x1080,1440x900,1180x820,1024x768,820x1180; brak scrolla, następny gracz w kadrze, scoring/undo PASS. Obejrzano screenshot1920.
