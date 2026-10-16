@@ -39,13 +39,13 @@ function speak(text, excited=false){
 }
 const fewPoints=n=>n%10>=2 && n%10<=4 && !(n%100>=12 && n%100<=14);
 const pointWord=n=>n===1?'punkt':fewPoints(n)?'punkty':'punktów';
-export function speakPlayer(playerName, victory=false, remaining=null){
+export function speakPlayer(playerName, victory=false, remaining=null, legOnly=false){
   const name=playerName.toLocaleLowerCase('pl-PL');
   let points='';
   if(!victory && Number.isInteger(remaining) && remaining>0){
     points=` Do zwycięstwa ${remaining===1?'został':fewPoints(remaining)?'zostały':'zostało'} ${remaining} ${pointWord(remaining)}.`;
   }
-  speak(`${victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}${points}`,victory);
+  speak(`${legOnly?'Leg wygrywa':victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}${points}`,victory);
 }
 export function speakTurn(playerName, points, bust=false, cutthroat=false){
   const name=playerName.toLocaleLowerCase('pl-PL');
@@ -54,7 +54,7 @@ export function speakTurn(playerName, points, bust=false, cutthroat=false){
 // Prime voice discovery before the first user-triggered announcement.
 try{window.speechSynthesis?.getVoices();}catch{}
 
-export function speakShanghai(playerName, number, points, cutthroat=false, bust=false, victory=false){
-  const outcome=victory?' I zwycięstwo!':bust?' Ale przekroczony wynik. Kolejka za zero.':cutthroat?` Rywalom dopisano łącznie ${points} ${pointWord(points)}!`:` ${points} ${pointWord(points)} w kolejce!`;
+export function speakShanghai(playerName, number, points, cutthroat=false, bust=false, victory=false, legOnly=false){
+  const outcome=legOnly?' I wygrany leg!':victory?' I zwycięstwo!':bust?' Ale przekroczony wynik. Kolejka za zero.':cutthroat?` Rywalom dopisano łącznie ${points} ${pointWord(points)}!`:` ${points} ${pointWord(points)} w kolejce!`;
   speak(`Szanghaj! ${playerName.toLocaleLowerCase('pl-PL')}! Ale petarda! Pojedyncza, podwójna i potrójna ${number}!${outcome}`,true);
 }

@@ -10,9 +10,10 @@ for(const count of [2,6]){
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  assert.equal(await page.locator('.cricket-controls .player-card').count(),count);
  const table=await page.locator('.current-panel').boundingBox(),score=await page.locator('.scoreboard').boundingBox(),keys=await page.locator('.keypad-panel').boundingBox();
- assert(score.y+score.height<=keys.y+1);
- if(width>740)assert(score.x>=table.x+table.width);
- const nameSize=await page.locator('.cricket-board th').nth(1).evaluate(el=>parseFloat(getComputedStyle(el).fontSize));assert(nameSize>=17);
+ if(width>height || width<=740)assert(score.y+score.height<=keys.y+1);else assert(score.x+score.width<=keys.x+1);
+ if(width>height && width>740)assert(score.x>=table.x+table.width);
+ if(width>740){assert(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1));assert(await page.locator('.cricket-board').evaluate(el=>el.scrollWidth<=el.clientWidth+1));}
+ const nameSize=await page.locator('.cricket-board th').nth(1).evaluate(el=>parseFloat(getComputedStyle(el).fontSize));assert(nameSize>=(count===6?11:17));
  await page.screenshot({path:`/private/tmp/cricket-layout-${count}-${width}.png`,fullPage:true});
  }
  assert.equal(await page.evaluate(()=>localStorage.getItem('dart-party-matches-v1')),saved);

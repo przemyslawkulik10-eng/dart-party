@@ -41,3 +41,9 @@ Przed nowym meczem Cricket wybierz **+ Dla siebie** albo **− Na przeciwników*
 Reguły Cut-Throat: [instrukcja Echowell, 2–16 graczy](https://www.echowell.com.tw/Product/Download/Dart_1016/1016_EN.pdf).
 
 Pojedyncza, podwójna i potrójna tego samego numeru 1–20 w jednej kolejce (dowolna kolejność) uruchamiają **SZANGHAJ!**, fanfarę i energiczną zapowiedź. Punktacja pozostaje zgodna z trybem: 17 × (3+1+2) to 102 w X01, a w Cricket nadmiar ponad zamknięcie pola. BUST nadal zeruje kolejkę; Szanghaj nie jest automatycznym zwycięstwem.
+
+### Niebieski widok, domowy Cricket i legi
+- 301 domyślnie do 3 wygranych legów, bez setów. Po legu przycisk NASTĘPNY LEG zeruje stan rozgrywki do wartości startowej i rotuje rozpoczynającego, zachowując wynik legów. W ustawieniach można wybrać pojedynczy leg lub do2/do3.
+- Nowe Cricket mają zaznaczone NASZE ZASADY: dwie różne potrójne 15–19 odblokowują20 osobno każdemu graczowi. Zamknięcie trzema pojedynczymi nie zalicza potrójnej. Bull służy do walki o start; brak dodatkowej blokady Bull.
+- Zachowana zgodność starych zapisów: brak nowych ustawień oznacza pojedynczy leg i standardowe otwarcie.
+- `/#nowe-301`: ekran przygotowania nowego301 do3 legów, zachowuje stare zapisy.

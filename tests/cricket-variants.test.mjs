@@ -28,3 +28,13 @@ test('Shanghai all six permutations, no duplicates/bull/mixed targets',()=>{
  for(const order of [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]])assert(isShanghai(order.map(multiplier=>({number:17,multiplier}))));
  for(const turn of [[{number:17,multiplier:1},{number:17,multiplier:1},{number:17,multiplier:3}], [{number:17,multiplier:1},{number:18,multiplier:2},{number:17,multiplier:3}], [1,2,3].map(multiplier=>({number:25,multiplier}))])assert(!isShanghai(turn));
 });
+test('house opening: two DISTINCT triples unlock 20 per player and undo relocks',()=>{
+ let m=createMatch(['A','B'],'cricket',false,'cutthroat','two-triples');assert.throws(()=>dart(m,20,3));
+ m=dart(m,16,3);m=dart(m,16,3);assert.throws(()=>dart(m,20));m=dart(m,15,3);assert.equal(replay(m).players[0].openingTriples.length,2);
+ assert.throws(()=>dart(undoDart(m),20));m=pass(m);assert.throws(()=>dart(m,20));m=pass(m);m=dart(m,20,3);assert.equal(replay(m).players[0].marks[20],3);
+ assert.deepEqual(replay(validateMatch(JSON.parse(JSON.stringify(m)))),replay(m));
+});
+test('singles close fields but do not satisfy house opening',()=>{
+ let m=createMatch(['A','B'],'cricket',false,'standard','two-triples');for(let i=0;i<3;i++)m=dart(m,16);m=pass(m);m=pass(m);for(let i=0;i<3;i++)m=dart(m,15);m=pass(m);m=pass(m);
+ assert.equal(replay(m).players[0].marks[16],3);assert.equal(replay(m).players[0].marks[15],3);assert.throws(()=>dart(m,20));
+});

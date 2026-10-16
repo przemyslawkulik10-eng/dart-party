@@ -84,3 +84,11 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Lewy panel powiększony: nagłówki tabeli 18–28 px zamiast 8 px, numery 22–32 px, znaki 32–46 px. Większe imię rzucającego, wyraźne kolumny i zielone zamknięcia.
 - Dla 4–6 graczy tabela przewijana poziomo, z automatycznym pokazaniem kolumny rzucającego i przypiętym numerem pola. Na telefonie panele jeden pod drugim.
 - Test Chrome: 2 i 6 graczy przy 1180/1024/820/390 px, pozycja wyników nad klawiaturą, brak poziomego wyjścia strony, nienaruszony zapis meczu, scoring i undo PASS. Screenshoty tabletowe obejrzane.
+
+## 2026-10-16 — niebieski styl, pełna tabela, zasady domowe i legi
+- Paleta inspirowana wzorcem MÓZG HALA: granat/niebieski/turkus/biel, większe napisy, CSS uppercase w całym UI.
+- Cricket: tabela wypełnia lewy panel w dostępnej wysokości, szczegóły lotek przeniesione na prawo; brak przewijania tabeli i całej strony w 1180x820,1024x768,820x1180 (2/6 graczy). Telefon zachowuje pionowy układ. BULL nie wychodzi z kolumny.
+- Opcja domowa domyślnie w nowych Cricket: 20 dopiero po dwóch różnych potrójnych 15–19, osobno dla gracza. Wczesne 20 wpisujemy jako pudło. Bull tylko walka o start, nie wymaga zamknięcia przed innymi. Stare mecze nie zmieniają zasad.
+- Mecze do 1/2/3 wygranych legów, bez setów. 301 domyślnie3. Kolejny leg resetuje punkty/pola, zachowuje wynik legów i rotuje start. Wygrana meczu dopiero przy wymaganej liczbie. Undo/JSON/cloud przechowują cały strumień zdarzeń; nie ma migracji bazy.
+- Link /#nowe-301 otwiera ustawienia nowego301 do3 legów ze składem ostatniego lokalnego meczu; stare wyniki zachowane. Nie potwierdzono zdalnego restartu użytkownikowej karty: bridge nie znalazł jej, dlatego przygotowany bezpośredni link.
+- 39 testów silnika PASS. Test przeglądarkowy legs-opening PASS. Dwaj agenci niezależnie: QA tabletu i QA legów PASS; poprawiono zgłoszone BULL. Głos rozróżnia leg od całego meczu.

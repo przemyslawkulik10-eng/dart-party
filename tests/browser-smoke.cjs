@@ -23,7 +23,7 @@ const assert = require('node:assert/strict');
  assert.equal(await page.locator('.player-card.active .player-score').innerText(),'421');
  assert.equal(await page.locator('.dart-slot.filled').count(),2);assert.equal(await page.locator('.remaining-dart.available').count(),1);
  await page.screenshot({path:'/private/tmp/dart-party-game.png',fullPage:true});
- await page.locator('#new-game').click();await page.locator('[data-mode="cricket"]').click();await page.locator('#start').click();for(const value of [50,0,0,...Array(15).fill(0)])await page.locator(`[data-bull="${value}"]`).click();await page.locator('#start-match').click();
+ await page.locator('#new-game').click();await page.locator('[data-mode="cricket"]').click();await page.locator('#cricket-opening').uncheck();await page.locator('#start').click();for(const value of [50,0,0,...Array(15).fill(0)])await page.locator(`[data-bull="${value}"]`).click();await page.locator('#start-match').click();
  await page.locator('[data-mult="3"]').click();await page.locator('[data-hit="20"]').click();
  await page.locator('[data-mult="3"]').click();await page.locator('[data-hit="20"]').click();
  assert.equal(await page.locator('.player-card.active .player-score').innerText(),'60');
