@@ -12,3 +12,14 @@ Autorska aplikacja dla 2–6 osób przy jednej tarczy. Polski interfejs; 501/301
 ## Trwa
 - Organizacja Supabase DART PARTY utworzona w planie Free; projekt i baza w przygotowaniu.
 - Publikacja GitHub/Vercel i test rzeczywistego zapisu chmurowego.
+
+## Potwierdzone po integracji
+- GitHub: https://github.com/przemyslawkulik10-eng/dart-party (main).
+- Supabase: organizacja DART PARTY `qvkkiqpnvsueqwfzmhla`, Free; projekt `ytljwejzcihyxfewrpej`, zdrowy.
+- Własna tabela `dart_matches`, RLS, 3 polityki właściciela, anonymous sign-ins włączone.
+- Test rzeczywistej bazy: zapis/odczyt PASS; odtworzenie po usunięciu lokalnej kopii PASS; drugi tablet nie może odczytać ani zmienić zapisu pierwszego PASS; brak sesji = odmowa API PASS; wpisywanie offline i ponowienie po powrocie sieci PASS.
+- Naprawiono przed publikacją wyścig komunikatu synchronizacji; teraz czeka na najnowszą wersję lokalną i wysyła tylko zmienione mecze.
+- Vercel: zgodnie z ostateczną decyzją użytkownika osobny projekt `dart-party` (`prj_rnhWM9JIVuxDURvdhmmAmenv8QSq`) w istniejącym zespole DostawaWarzyw. Nowego płatnego zespołu nie utworzono.
+- Sprawdzony tablet 1024×768: przycisk następnego gracza mieści się w widoku.
+
+Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. Wymagają Playwright (wyłącznie narzędzie QA, brak zależności runtime): ustaw `PLAYWRIGHT_MODULE` na zainstalowany moduł; opcjonalnie `CHROME_PATH` i `DART_TEST_URL`. Test chmury tworzy wyłącznie mecze testowych anonimowych sesji.

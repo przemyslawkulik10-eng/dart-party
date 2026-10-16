@@ -2,7 +2,8 @@ import { config } from './config.js';
 import { loadMatches, mergeRemote } from './storage.js';
 const AUTH_KEY = 'dart-party-auth-v1';
 const configured = !!config.supabaseUrl && !!config.supabaseKey;
-let running = false;
+let task = null;
+const synced = new Map();
 let again = false;
 let sessionPromise;
 let restored = false;
@@ -33,11 +34,14 @@ async function session() {
   if (!sessionPromise) sessionPromise = getSession().finally(() => { sessionPromise = null; });
   return sessionPromise;
 }
-export async function syncCloud() {
+export function syncCloud() {
+  if (task) { again = true; return task; }
+  task = runSync().finally(() => { task = null; });
+  return task;
+}
+async function runSync() {
   if (!configured) { listener('Zapis na tablecie'); return; }
-  if (running) { again = true; return; }
   if (!navigator.onLine) { listener('Zapis na tablecie · bez internetu'); return; }
-  running = true;
   try {
     listener('Zapis na tablecie · synchronizacja…');
     const auth = await session();
@@ -49,13 +53,18 @@ export async function syncCloud() {
     }
     do {
       again = false;
-      for (const match of loadMatches()) {
+      const batch = loadMatches();
+      const before = JSON.stringify(batch);
+      for (const match of batch) {
+        const fingerprint = JSON.stringify(match);
+        if (synced.get(match.id) === fingerprint) continue;
         await api('/rest/v1/dart_matches?on_conflict=id', { method: 'POST', token: auth.access_token, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: { id: match.id, owner_id: auth.user.id, state: match, updated_at: match.updatedAt } });
+        synced.set(match.id, fingerprint);
       }
+      if (JSON.stringify(loadMatches()) !== before) again = true;
     } while (again);
     listener('Zapisano na tablecie i w chmurze');
   } catch { listener('Zapis na tablecie · chmura niedostępna'); }
-  finally { running = false; }
 }
 addEventListener('online', syncCloud);
 addEventListener('offline', () => listener('Zapis na tablecie · bez internetu'));
