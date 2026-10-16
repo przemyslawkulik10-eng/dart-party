@@ -2,7 +2,7 @@ let context;
 let enabled=true;
 try { enabled=localStorage.getItem('dart-party-sound')!=='off'; } catch {}
 export const soundEnabled=()=>enabled;
-export function toggleSound(){enabled=!enabled;try{localStorage.setItem('dart-party-sound',enabled?'on':'off');}catch{}if(enabled)playSound('turn');return enabled;}
+export function toggleSound(){enabled=!enabled;try{localStorage.setItem('dart-party-sound',enabled?'on':'off');}catch{}if(enabled)playSound('turn');else {try{window.speechSynthesis?.cancel();}catch{}}return enabled;}
 export function playSound(kind){
   if(!enabled)return;
   try{
@@ -23,3 +23,22 @@ export function playSound(kind){
     if(context.state==='suspended')context.resume().then(play).catch(()=>{});else play();
   }catch{}
 }
+
+// Use the tablet's speech engine; never send player names to an app backend.
+export function speakPlayer(playerName, victory=false){
+  if(!enabled || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window))return;
+  try{
+    const speech=window.speechSynthesis;
+    speech.cancel();
+    const name=playerName.toLocaleLowerCase('pl-PL');
+    const phrase=new SpeechSynthesisUtterance(`${victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}`);
+    phrase.lang='pl-PL';phrase.rate=1;phrase.pitch=1;phrase.volume=1;
+    const voices=speech.getVoices();
+    const polish=voices.filter(voice=>/^pl(?:-|_)/i.test(voice.lang)||voice.lang==='pl');
+    const voice=polish.find(voice=>voice.localService)||polish[0];
+    if(voice)phrase.voice=voice;
+    speech.speak(phrase);
+  }catch{ /* Scoring and the visual announcement remain available. */ }
+}
+// Prime voice discovery before the first user-triggered announcement.
+try{window.speechSynthesis?.getVoices();}catch{}

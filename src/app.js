@@ -1,4 +1,4 @@
-import { playSound, soundEnabled, toggleSound } from './sound.js';
+import { playSound, soundEnabled, toggleSound, speakPlayer } from './sound.js';
 import { bullState } from './bull-off.js';
 import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch } from './engine.js';
 import { loadMatches, saveMatch } from './storage.js';
@@ -93,6 +93,7 @@ function renderGame() {
 }
 function announcePlayer(playerName=match.names[replay(match).current], victory=false) {
   playSound(victory?'win':'turn');
+  speakPlayer(playerName,victory);
   const name=playerName.toLocaleUpperCase('pl-PL');
   const overlay=document.createElement('dialog');
   overlay.className='player-announcement';

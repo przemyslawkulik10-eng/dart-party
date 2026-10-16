@@ -58,3 +58,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Wygrana przez rzut w X01/Cricket wyświetla pełnoekranowe imię z WYGRYWA!, po 3 s wraca do wyniku. Cofnięcie i ponowna wygrana ponownie uruchamia ekran.
 - Web Audio: sygnał rzutu, zmiany gracza także w kwalifikacji, czterotonowa fanfara. Przycisk Dźwięk WŁ./WYŁ. z lokalnym zapamiętaniem ustawienia.
 - Test przeglądarkowy 201 i Cricket: ekran, automatyczne zamknięcie, cztery oscylatory fanfary i wyciszenie PASS. Odsłuch fizycznego tabletu pozostaje po stronie użytkownika.
+
+## 2026-10-16 — polskie zapowiedzi głosowe
+- Przy zmianie gracza (również kwalifikacja) synteza mowy czyta „Teraz rzuca [imię]”; zwycięstwo: „Wygrywa [imię]! Brawo!”. Preferowany lokalny polski głos, język pl-PL.
+- Głos respektuje wspólny przełącznik dźwięku; wyciszenie przerywa mowę, nowa zapowiedź usuwa poprzednią z kolejki. Brak obsługi syntezy nie blokuje gry.
+- Test Chrome: zweryfikowane żądania polskiej mowy (mock speech engine), zwycięstwo 201/Cricket, wyciszenie i automatyczny powrót PASS. Rzeczywista barwa/wymowa zależą od głosów na urządzeniu; odsłuch na tablecie niesprawdzony.
