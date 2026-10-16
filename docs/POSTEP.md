@@ -30,3 +30,10 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Test interfejsu na publicznym adresie: PASS, bez błędów JavaScript.
 - Test chmury na publicznym adresie: PASS (zapis, odczyt, odtworzenie, izolacja tabletów, odmowa niezalogowanego API, offline/retry).
 - Supabase Security Advisor: 0 błędów. Ostrzeżenie o anonimowym dostępie wynika z celowego modelu anonimowych sesji z kontrolą właściciela (sprawdzone dwoma niezależnymi klientami). Ochrona przed wyciekłymi hasłami nie dotyczy aplikacji bez haseł. Publiczne wykonanie technicznego triggera automatycznego RLS ograniczono oddzielnie.
+
+## 2026-10-16 — walka o start i kolory
+- Przed każdym nowym meczem i rewanżem: 3 lotki na gracza, suma 0/25/50; remisujący liderzy grają od zera do jednego zwycięzcy.
+- Zwycięzca pierwszy, pozostali zachowują kolejność listy. Punkty kwalifikacji nie przechodzą do meczu.
+- Cofanie również przez granicę dogrywki; stan kwalifikacji zapisany lokalnie i przywracany po odświeżeniu.
+- Kolory zaakceptowane przez użytkownika: zielony, pomarańczowy, czerń.
+- 27 testów jednostkowych PASS; test przeglądarkowy kwalifikacji i regresja 501/Cricket PASS; widok 390 px sprawdzony wizualnie.
