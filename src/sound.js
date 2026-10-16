@@ -24,26 +24,32 @@ export function playSound(kind){
   }catch{}
 }
 
-// Use the tablet's speech engine; never send player names to an app backend.
-export function speakPlayer(playerName, victory=false, remaining=null){
+function speak(text){
   if(!enabled || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window))return;
   try{
     const speech=window.speechSynthesis;
     speech.cancel();
-    const name=playerName.toLocaleLowerCase('pl-PL');
-    let points='';
-    if(!victory && Number.isInteger(remaining) && remaining>0){
-      const few=remaining%10>=2 && remaining%10<=4 && !(remaining%100>=12 && remaining%100<=14);
-      points=remaining===1?' Do zwycięstwa został 1 punkt.':` Do zwycięstwa ${few?'zostały':'zostało'} ${remaining} ${few?'punkty':'punktów'}.`;
-    }
-    const phrase=new SpeechSynthesisUtterance(`${victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}${points}`);
+    const phrase=new SpeechSynthesisUtterance(text);
     phrase.lang='pl-PL';phrase.rate=1;phrase.pitch=1;phrase.volume=1;
-    const voices=speech.getVoices();
-    const polish=voices.filter(voice=>/^pl(?:-|_)/i.test(voice.lang)||voice.lang==='pl');
+    const polish=speech.getVoices().filter(voice=>/^pl(?:-|_)/i.test(voice.lang)||voice.lang==='pl');
     const voice=polish.find(voice=>voice.localService)||polish[0];
     if(voice)phrase.voice=voice;
     speech.speak(phrase);
-  }catch{ /* Scoring and the visual announcement remain available. */ }
+  }catch{ /* Speech must never block the game. */ }
+}
+const fewPoints=n=>n%10>=2 && n%10<=4 && !(n%100>=12 && n%100<=14);
+const pointWord=n=>n===1?'punkt':fewPoints(n)?'punkty':'punktów';
+export function speakPlayer(playerName, victory=false, remaining=null){
+  const name=playerName.toLocaleLowerCase('pl-PL');
+  let points='';
+  if(!victory && Number.isInteger(remaining) && remaining>0){
+    points=` Do zwycięstwa ${remaining===1?'został':fewPoints(remaining)?'zostały':'zostało'} ${remaining} ${pointWord(remaining)}.`;
+  }
+  speak(`${victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}${points}`);
+}
+export function speakTurn(playerName, points, bust=false){
+  const name=playerName.toLocaleLowerCase('pl-PL');
+  speak(bust?`${name}. Przekroczony wynik. Kolejka za zero punktów.`:`${name}. Wynik kolejki: ${points} ${pointWord(points)}.`);
 }
 // Prime voice discovery before the first user-triggered announcement.
 try{window.speechSynthesis?.getVoices();}catch{}

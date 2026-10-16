@@ -1,4 +1,4 @@
-import { playSound, soundEnabled, toggleSound, speakPlayer } from './sound.js';
+import { playSound, soundEnabled, toggleSound, speakPlayer, speakTurn } from './sound.js';
 import { bullState } from './bull-off.js';
 import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch } from './engine.js';
 import { loadMatches, saveMatch } from './storage.js';
@@ -114,7 +114,7 @@ function announcePlayer(playerName=match.names[replay(match).current], victory=f
   fitName();window.addEventListener('resize',fitName);
   dismissTimer=setTimeout(()=>{if(overlay.open)overlay.close();},3000);
 }
-function hit(n,m) { try { update(recordDart(match,n,m)); const winner=replay(match).winner;if(winner!==null)announcePlayer(match.names[winner],true);else playSound('hit'); if(navigator.vibrate) navigator.vibrate(15); }catch(e){toast(e.message);} }
+function hit(n,m) { try { update(recordDart(match,n,m)); const state=replay(match);if(state.winner!==null)announcePlayer(match.names[state.winner],true);else {playSound('hit');if(state.ready)speakTurn(match.names[state.current],state.turnPoints,state.bust);} if(navigator.vibrate) navigator.vibrate(15); }catch(e){toast(e.message);} }
 function exportMatch() {
   const current=match||allMatches()[0]; if(!current){toast('Brak meczu do pobrania.');return;}
   const url=URL.createObjectURL(new Blob([JSON.stringify(current,null,2)],{type:'application/json'}));

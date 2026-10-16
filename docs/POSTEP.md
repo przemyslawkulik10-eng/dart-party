@@ -67,3 +67,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-16 — głosowy wynik następnego gracza
 - Zapowiedź zmiany kolejki w 501/301/201 zawiera aktualny wynik następnego gracza do zera, z odmianą punkt/punkty/punktów. Cricket, kwalifikacja i zwycięstwo nie dodają punktów do zera.
 - Test przeglądarkowy: rzeczywista zmiana na Przemka z 226 punktami, automatyczny powrót, odmiany 1/2/12/22/101 i komunikaty bez wyniku PASS (sprawdzone żądania syntezy).
+
+## 2026-10-16 — głosowy wynik zakończonej kolejki
+- Po trzecim rzucie X01/Cricket: „[imię]. Wynik kolejki: [punkty]”. W Cricket podaje rzeczywiście zdobyte punkty, nie wartość zamykanych pól.
+- BUST także przed trzecią lotką ogłasza przekroczenie i kolejkę za zero. Zwycięstwo zachowuje pierwszeństwo. Wspólne wyciszanie działa.
+- Test przeglądarkowy: brak zapowiedzi po 1/2 lotkach; 180 X01, 120 Cricket, zero, wcześniejszy bust i mute PASS. Regresja zapowiedzi pozostałych punktów PASS.
