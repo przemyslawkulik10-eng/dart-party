@@ -41,3 +41,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-16 — graficzne pozostałe lotki
 - Pod punktami trzy ukośne lotki skierowane w prawo, znikające 3–2–1–0 po rzutach; cofanie przywraca ikonę, następny gracz otrzymuje trzy. BUST kończy kolejkę, więc pokazuje zero dostępnych lotek.
 - Test przeglądarkowy sprawdza wszystkie cztery stany, cofanie, przejście gracza i wznowienie; PASS. Sprawdzono wygląd tabletu.
+
+## 2026-10-16 — pełnoekranowe imię
+- Po zmianie kolejki pokazujemy imię następnego gracza wielkimi pomarańczowymi literami na prawie całą szerokość ekranu. Dotknięcie przechodzi do gry; Escape także zamyka ekran. Rozmiar dopasowuje się do imienia i obrotu urządzenia.
+- Sprawdzony ekran PRZEMEK w przeglądarce, kliknięcie i regresja rozgrywki PASS.

@@ -88,7 +88,25 @@ function renderGame() {
   document.querySelectorAll('[data-hit]').forEach(b=>b.onclick=()=>hit(Number(b.dataset.hit),multiplier));
   document.querySelectorAll('[data-special]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.special);hit(n===50?25:n,n===50?2:1);});
   if($('#undo'))$('#undo').onclick=()=>update(undoDart(match));
-  if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));}catch(e){toast(e.message);}};
+  if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));announcePlayer();}catch(e){toast(e.message);}};
+}
+function announcePlayer() {
+  const name=match.names[replay(match).current].toLocaleUpperCase('pl-PL');
+  const overlay=document.createElement('dialog');
+  overlay.className='player-announcement';
+  overlay.setAttribute('aria-label',`Teraz rzuca ${name}`);
+  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — zaczynam rzucać"><span class="announcement-label">TERAZ RZUCA</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">DOTKNIJ EKRANU, ABY GRAĆ →</span></button>`;
+  document.body.append(overlay);
+  overlay.addEventListener('close',()=>{window.removeEventListener('resize',fitName);overlay.remove();});
+  overlay.querySelector('button').onclick=()=>overlay.close();
+  overlay.showModal();
+  const title=overlay.querySelector('.announcement-name');
+  function fitName() {
+  let size=Math.min(window.innerWidth*.24,window.innerHeight*.46);
+  title.style.fontSize=`${size}px`;
+  while(title.scrollWidth>title.clientWidth && size>24){size-=2;title.style.fontSize=`${size}px`;}
+  }
+  fitName();window.addEventListener('resize',fitName);
 }
 function hit(n,m) { try { update(recordDart(match,n,m)); if(navigator.vibrate) navigator.vibrate(15); }catch(e){toast(e.message);} }
 function exportMatch() {
