@@ -15,7 +15,7 @@ const assert = require('node:assert/strict');
  assert.equal(await page.locator('.player-card.active .player-score').innerText(),'441');
  assert.equal(await page.locator('.remaining-dart.available').count(),2);
  await page.locator('[data-hit="20"]').click();assert.equal(await page.locator('.remaining-dart.available').count(),1);await page.locator('[data-special="0"]').click();assert.equal(await page.locator('.remaining-dart.available').count(),0);
- await page.locator('#next').click();assert.equal(await page.locator('.announcement-name').innerText(),'PRZEMEK');await page.screenshot({path:'/private/tmp/dart-player-announcement.png'});await page.locator('.announcement-continue').click();assert.equal(await page.locator('.remaining-dart.available').count(),3);
+ await page.locator('#next').click();assert.equal(await page.locator('.announcement-name').innerText(),'PRZEMEK');await page.screenshot({path:'/private/tmp/dart-player-announcement.png'});await page.locator('.player-announcement').waitFor({state:'detached',timeout:5000});assert.equal(await page.locator('.remaining-dart.available').count(),3);
  assert.equal(await page.locator('.player-card.active .player-name').innerText(),'PRZEMEK');
  await page.locator('#undo').click();assert.equal(await page.locator('.player-card.active .player-name').innerText(),'MACIEK');
  assert.equal(await page.locator('.dart-slot.filled').count(),2);assert.equal(await page.locator('.remaining-dart.available').count(),1);

@@ -95,9 +95,10 @@ function announcePlayer() {
   const overlay=document.createElement('dialog');
   overlay.className='player-announcement';
   overlay.setAttribute('aria-label',`Teraz rzuca ${name}`);
-  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — zaczynam rzucać"><span class="announcement-label">TERAZ RZUCA</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">DOTKNIJ EKRANU, ABY GRAĆ →</span></button>`;
+  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — zaczynam rzucać"><span class="announcement-label">TERAZ RZUCA</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">ZA CHWILĘ TWOJA KOLEJ →</span></button>`;
   document.body.append(overlay);
-  overlay.addEventListener('close',()=>{window.removeEventListener('resize',fitName);overlay.remove();});
+  let dismissTimer;
+  overlay.addEventListener('close',()=>{clearTimeout(dismissTimer);window.removeEventListener('resize',fitName);overlay.remove();});
   overlay.querySelector('button').onclick=()=>overlay.close();
   overlay.showModal();
   const title=overlay.querySelector('.announcement-name');
@@ -107,6 +108,7 @@ function announcePlayer() {
   while(title.scrollWidth>title.clientWidth && size>24){size-=2;title.style.fontSize=`${size}px`;}
   }
   fitName();window.addEventListener('resize',fitName);
+  dismissTimer=setTimeout(()=>{if(overlay.open)overlay.close();},3000);
 }
 function hit(n,m) { try { update(recordDart(match,n,m)); if(navigator.vibrate) navigator.vibrate(15); }catch(e){toast(e.message);} }
 function exportMatch() {
