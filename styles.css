@@ -16,3 +16,50 @@
 #sound-toggle{font-size:12px;padding:8px 12px;white-space:nowrap}@media(max-width:600px){.topbar{flex-wrap:wrap}.top-actions{flex-wrap:wrap;gap:8px}#sound-toggle{min-height:40px}}
 
 .cricket-scoring{display:flex;gap:10px;flex-wrap:wrap}.cricket-scoring button{flex:1}.turn-total strong{text-align:right}
+
+/* Cricket: give the marks board the left half and keep points beside the keypad. */
+#app.cricket-game{max-width:1600px}
+.cricket-layout{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
+.cricket-controls{min-width:0;display:grid;gap:16px}
+body[data-view=game] .cricket-controls .scoreboard{margin:0;grid-template-columns:repeat(3,minmax(0,1fr))}
+body[data-view=game] .cricket-controls .scoreboard.two-players{grid-template-columns:repeat(2,minmax(0,1fr))}
+body[data-view=game] .cricket-controls .player-name{font-size:clamp(17px,1.8vw,26px);white-space:normal;overflow-wrap:anywhere;letter-spacing:0;line-height:1.15}
+body[data-view=game] .cricket-controls .player-score{font-size:clamp(36px,4vw,60px);line-height:1.05;margin:8px 0}
+body[data-view=game] .cricket-controls .player-card .small{font-size:11px}
+body[data-view=game] .cricket-layout .current-panel{padding:20px;min-width:0}
+.cricket-layout .current-panel:before{display:none}
+.cricket-layout .turn-header h2{font-size:clamp(32px,3.3vw,48px);overflow-wrap:anywhere;line-height:1.1}
+.cricket-layout .turn-header{gap:10px}.cricket-layout .turn-header>div{min-width:0}
+body[data-view=game] .cricket-layout .current-panel .cricket-board{margin:16px 0 8px;border-radius:12px}
+.cricket-layout .cricket-board table{table-layout:fixed}
+body[data-view=game] .cricket-layout .current-panel .cricket-board th{font-size:clamp(18px,1.9vw,28px);padding:12px 6px;font-weight:800;color:var(--ink);overflow-wrap:anywhere;letter-spacing:0}
+body[data-view=game] .cricket-layout .current-panel .cricket-board th:first-child{width:22%;font-size:17px}
+body[data-view=game] .cricket-layout .current-panel .cricket-board td{font-size:clamp(32px,3.3vw,46px);padding:4px 6px;line-height:1.1;height:46px}
+body[data-view=game] .cricket-layout .current-panel .cricket-board td:first-child{font-size:clamp(22px,2.2vw,32px);font-weight:800}
+.cricket-layout .cricket-board td.closed{color:#63df99}
+.cricket-layout .cricket-board .current-col{background:#ff922b16}
+body[data-view=game] .cricket-layout .current-panel .cricket-board th.current-col{color:var(--orange)}
+.cricket-layout .cricket-board th+th,.cricket-layout .cricket-board td+td{border-left:1px solid var(--line)}
+body[data-view=game] .cricket-layout .remaining-darts{height:30px;margin:0 0 8px}.cricket-layout .remaining-dart{height:30px}
+body[data-view=game] .cricket-layout .dart-slot{padding:8px 4px}.cricket-layout .dart-slot strong{font-size:22px}
+body[data-view=game] .cricket-layout .turn-total{font-size:14px;gap:12px;padding-top:12px}
+.cricket-layout .keypad-head h2{font-size:21px}
+.cricket-layout.many-players .cricket-board table{min-width:620px}
+body[data-view=game] .cricket-layout.many-players .current-panel .cricket-board th{font-size:17px}
+body[data-view=game] .cricket-layout.many-players .current-panel .cricket-board th:first-child{width:64px}
+@media(min-width:741px) and (max-height:850px){
+ body[data-view=game] .cricket-layout .current-panel .cricket-board td{height:39px;font-size:32px;padding:2px 5px}
+ body[data-view=game] .cricket-layout .current-panel .cricket-board th{padding:9px 5px}
+ body[data-view=game] .cricket-layout .current-panel{padding:16px}
+ .cricket-layout .turn-header .eyebrow{margin-bottom:8px}
+}
+@media(max-width:740px){
+ .cricket-layout{grid-template-columns:minmax(0,1fr)}
+ .cricket-layout .turn-header h2{font-size:34px}
+ body[data-view=game] .cricket-controls .player-name{font-size:18px}
+ body[data-view=game] .cricket-controls .player-card{padding:12px 10px}
+ body[data-view=game] .cricket-controls .player-score{font-size:42px}
+ body[data-view=game] .cricket-layout .current-panel .cricket-board th{font-size:19px}
+}
+
+.cricket-layout.many-players .cricket-board th:first-child,.cricket-layout.many-players .cricket-board td:first-child{position:sticky;left:0;background:var(--panel);z-index:1}

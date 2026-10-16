@@ -78,3 +78,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Cutthroat: nadmiar pola daje punkty każdemu rywalowi z otwartym polem; zamknięte chronią; wygrywa zamknięcie wszystkich z najniższym/równym wynikiem. Podsumowanie i głos podają łączną sumę dopisaną rywalom.
 - Szanghaj S/D/T tego samego 1–20: pełny ekran, fanfara 6 tonów, żywsze tempo/ton głosu i „Ale petarda!”. Wynik zgodny z grą, BUST i wygrana uwzględnione.
 - 34 testy logiki PASS. Przeglądarka: wybór wariantu przez kwalifikację i reload, 6 graczy (T17/S17/D17 daje każdemu otwartemu rywalowi 51, łącznie 255), undo, zapis, klasyczny Cricket 51 oraz X01 102 PASS. Widoki sprawdzone; głos testowany przez żądania syntezy, barwa zależy od urządzenia.
+
+## 2026-10-16 — czytelna tabela Cricket
+- Punkty i imiona graczy przeniesione do prawego panelu nad klawiaturą, dwa szerokie kafelki przy 2 graczach, siatka 3 kolumn przy większym składzie.
+- Lewy panel powiększony: nagłówki tabeli 18–28 px zamiast 8 px, numery 22–32 px, znaki 32–46 px. Większe imię rzucającego, wyraźne kolumny i zielone zamknięcia.
+- Dla 4–6 graczy tabela przewijana poziomo, z automatycznym pokazaniem kolumny rzucającego i przypiętym numerem pola. Na telefonie panele jeden pod drugim.
+- Test Chrome: 2 i 6 graczy przy 1180/1024/820/390 px, pozycja wyników nad klawiaturą, brak poziomego wyjścia strony, nienaruszony zapis meczu, scoring i undo PASS. Screenshoty tabletowe obejrzane.
