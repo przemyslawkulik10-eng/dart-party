@@ -72,3 +72,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Po trzecim rzucie X01/Cricket: „[imię]. Wynik kolejki: [punkty]”. W Cricket podaje rzeczywiście zdobyte punkty, nie wartość zamykanych pól.
 - BUST także przed trzecią lotką ogłasza przekroczenie i kolejkę za zero. Zwycięstwo zachowuje pierwszeństwo. Wspólne wyciszanie działa.
 - Test przeglądarkowy: brak zapowiedzi po 1/2 lotkach; 180 X01, 120 Cricket, zero, wcześniejszy bust i mute PASS. Regresja zapowiedzi pozostałych punktów PASS.
+
+## 2026-10-16 — Szanghaj i Cricket na przeciwników
+- Wybór Cricket standard/cutthroat przed walką o start. Wariant przechodzi przez kwalifikację, rewanż, zapis JSON/chmurę bez zmiany schematu. Stare zapisy domyślnie standard.
+- Cutthroat: nadmiar pola daje punkty każdemu rywalowi z otwartym polem; zamknięte chronią; wygrywa zamknięcie wszystkich z najniższym/równym wynikiem. Podsumowanie i głos podają łączną sumę dopisaną rywalom.
+- Szanghaj S/D/T tego samego 1–20: pełny ekran, fanfara 6 tonów, żywsze tempo/ton głosu i „Ale petarda!”. Wynik zgodny z grą, BUST i wygrana uwzględnione.
+- 34 testy logiki PASS. Przeglądarka: wybór wariantu przez kwalifikację i reload, 6 graczy (T17/S17/D17 daje każdemu otwartemu rywalowi 51, łącznie 255), undo, zapis, klasyczny Cricket 51 oraz X01 102 PASS. Widoki sprawdzone; głos testowany przez żądania syntezy, barwa zależy od urządzenia.

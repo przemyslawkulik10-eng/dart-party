@@ -35,3 +35,9 @@ Skasowanie danych przeglądarki usuwa także anonimową sesję. Aby przenieść 
 ## Weryfikacja
 
 `npm test` obejmuje punktację, bust, Double Out, bull, sześciu graczy, Cricket, undo i odtwarzanie z JSON. Testy przeglądarkowe i stan publikacji opisuje `docs/POSTEP.md`.
+
+### Cricket + / − i Szanghaj
+Przed nowym meczem Cricket wybierz **+ Dla siebie** albo **− Na przeciwników** (Cut-Throat). W drugim wariancie każde nadmiarowe trafienie daje pełną wartość wszystkim przeciwnikom, którzy nie zamknęli pola. Wygrywa zamknięcie wszystkich pól z najniższym (również równym najniższemu) wynikiem. Podsumowanie kolejki pokazuje łączną sumę punktów dopisanych rywalom. Zapis, rewanż i eksport zachowują wariant; starsze zapisy bez wariantu pozostają standardowe.
+Reguły Cut-Throat: [instrukcja Echowell, 2–16 graczy](https://www.echowell.com.tw/Product/Download/Dart_1016/1016_EN.pdf).
+
+Pojedyncza, podwójna i potrójna tego samego numeru 1–20 w jednej kolejce (dowolna kolejność) uruchamiają **SZANGHAJ!**, fanfarę i energiczną zapowiedź. Punktacja pozostaje zgodna z trybem: 17 × (3+1+2) to 102 w X01, a w Cricket nadmiar ponad zamknięcie pola. BUST nadal zeruje kolejkę; Szanghaj nie jest automatycznym zwycięstwem.

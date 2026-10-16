@@ -10,11 +10,11 @@ export function playSound(kind){
     if(!Audio)return;
     context??=new Audio();
     const play=()=>{
-      const notes=kind==='win'?[523,659,784,1047]:kind==='turn'?[659,880]:[520];
+      const notes=kind==='shanghai'?[392,523,659,784,1047,1319]:kind==='win'?[523,659,784,1047]:kind==='turn'?[659,880]:[520];
       notes.forEach((frequency,i)=>{
-        const start=context.currentTime+i*.16, duration=kind==='hit'?.065:kind==='win'&&i===3?.5:.14;
+        const start=context.currentTime+i*(kind==='shanghai'?.11:.16), duration=kind==='hit'?.065:((kind==='win'&&i===3)||(kind==='shanghai'&&i===5))?.5:.14;
         const oscillator=context.createOscillator(),gain=context.createGain();
-        oscillator.frequency.value=frequency;oscillator.type='sine';
+        oscillator.frequency.value=frequency;oscillator.type=kind==='shanghai'?'triangle':'sine';
         gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.18,start+.012);gain.gain.exponentialRampToValueAtTime(.001,start+duration);
         oscillator.connect(gain);gain.connect(context.destination);oscillator.start(start);oscillator.stop(start+duration+.02);
         oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
@@ -24,13 +24,13 @@ export function playSound(kind){
   }catch{}
 }
 
-function speak(text){
+function speak(text, excited=false){
   if(!enabled || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window))return;
   try{
     const speech=window.speechSynthesis;
     speech.cancel();
     const phrase=new SpeechSynthesisUtterance(text);
-    phrase.lang='pl-PL';phrase.rate=1;phrase.pitch=1;phrase.volume=1;
+    phrase.lang='pl-PL';phrase.rate=excited?1.18:1.06;phrase.pitch=excited?1.22:1.05;phrase.volume=1;
     const polish=speech.getVoices().filter(voice=>/^pl(?:-|_)/i.test(voice.lang)||voice.lang==='pl');
     const voice=polish.find(voice=>voice.localService)||polish[0];
     if(voice)phrase.voice=voice;
@@ -45,11 +45,16 @@ export function speakPlayer(playerName, victory=false, remaining=null){
   if(!victory && Number.isInteger(remaining) && remaining>0){
     points=` Do zwycięstwa ${remaining===1?'został':fewPoints(remaining)?'zostały':'zostało'} ${remaining} ${pointWord(remaining)}.`;
   }
-  speak(`${victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}${points}`);
+  speak(`${victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}${points}`,victory);
 }
-export function speakTurn(playerName, points, bust=false){
+export function speakTurn(playerName, points, bust=false, cutthroat=false){
   const name=playerName.toLocaleLowerCase('pl-PL');
-  speak(bust?`${name}. Przekroczony wynik. Kolejka za zero punktów.`:`${name}. Wynik kolejki: ${points} ${pointWord(points)}.`);
+  speak(bust?`${name}. Przekroczony wynik. Kolejka za zero punktów.`:cutthroat?`${name}. Rywalom dopisano łącznie ${points} ${pointWord(points)}.`:`${name}. Wynik kolejki: ${points} ${pointWord(points)}.`);
 }
 // Prime voice discovery before the first user-triggered announcement.
 try{window.speechSynthesis?.getVoices();}catch{}
+
+export function speakShanghai(playerName, number, points, cutthroat=false, bust=false, victory=false){
+  const outcome=victory?' I zwycięstwo!':bust?' Ale przekroczony wynik. Kolejka za zero.':cutthroat?` Rywalom dopisano łącznie ${points} ${pointWord(points)}!`:` ${points} ${pointWord(points)} w kolejce!`;
+  speak(`Szanghaj! ${playerName.toLocaleLowerCase('pl-PL')}! Ale petarda! Pojedyncza, podwójna i potrójna ${number}!${outcome}`,true);
+}

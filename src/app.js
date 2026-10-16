@@ -1,6 +1,6 @@
-import { playSound, soundEnabled, toggleSound, speakPlayer, speakTurn } from './sound.js';
+import { playSound, soundEnabled, toggleSound, speakPlayer, speakTurn, speakShanghai } from './sound.js';
 import { bullState } from './bull-off.js';
-import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch } from './engine.js';
+import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch, isShanghai } from './engine.js';
 import { loadMatches, saveMatch } from './storage.js';
 import { syncCloud, onCloudStatus, cloudEnabled } from './cloud.js';
 const $ = s => document.querySelector(s);
@@ -8,6 +8,8 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 let names = [...DEFAULT_PLAYERS];
 let mode = '501';
 let doubleOut = false;
+let cricketScoring='standard';
+const cricketName=m=>m.cricketScoring==='cutthroat'?'Cricket − na przeciwników':'Cricket + dla siebie';
 let match = null;
 let contest = null;
 const contestKey = 'dart-party-bull-off';
@@ -29,25 +31,26 @@ function readNames() { names = [...document.querySelectorAll('[data-player-name]
 function renderSetup() {
   document.body.dataset.view = "setup";
   const latest = allMatches().find(m => replay(m).winner === null);
-  $('#app').innerHTML = `${latest ? `<div class="resume-banner"><div><strong>Wasz mecz czeka.</strong><p>${latest.mode === 'cricket' ? 'Cricket' : latest.mode} · ${latest.names.length} graczy · runda ${replay(latest).round}</p></div><button class="primary" id="resume">Wznów mecz ↗</button></div>` : ''}
+  $('#app').innerHTML = `${latest ? `<div class="resume-banner"><div><strong>Wasz mecz czeka.</strong><p>${latest.mode === 'cricket' ? cricketName(latest) : latest.mode} · ${latest.names.length} graczy · runda ${replay(latest).round}</p></div><button class="primary" id="resume">Wznów mecz ↗</button></div>` : ''}
     <section class="hero"><div><div class="eyebrow">WIECZÓR NA WASZYCH ZASADACH</div><h1>Dobra ekipa.<br><em>Celny wieczór.</em></h1><p>Wybierzcie grę, ustawcie skład. Resztę policzymy za Was.</p></div><div class="hero-badge"><strong>3</strong><span>lotki w dłoni.<br>Cała gra przed Wami.</span></div></section>
-    <div class="setup-grid"><section class="panel"><div class="section-heading"><div><div class="step">01 / WYBIERZ GRĘ</div><h2>W co dziś gramy?</h2></div><span class="pill">4 TRYBY</span></div><div class="mode-grid">${['501','301','201','cricket'].map(m => `<button class="mode ${mode===m?'selected':''}" data-mode="${m}" aria-pressed="${mode===m}"><strong>${m==='cricket'?'Cricket':m}</strong><span>${({501:'Klasyka dobrego wieczoru',301:'Krótsza droga do zera',201:'Szybka runda na rozgrzewkę',cricket:'Zamykaj pola. Zbieraj punkty.'})[m]}</span></button>`).join('')}</div><div class="rules-choice">${mode!=='cricket'?`<label class="switch"><input id="double-out" type="checkbox" ${doubleOut?'checked':''}> Zakończenie Double Out</label><span class="small muted">${doubleOut?'Ostatnia lotka ×2':'Dowolne trafienie'}</span>`:'<span class="small muted">Pola 15–20 + bull · standardowa punktacja</span>'}</div><p class="mode-description">${mode==='cricket'?'Traf pole 3 razy, aby je zamknąć. Kolejne trafienia dają punkty, dopóki ktoś z rywali ma to pole otwarte.':doubleOut?'Zejdź dokładnie do zera, kończąc podwójnym polem lub bull 50. Przekroczenie wyniku albo pozostawienie 1 cofa całą kolejkę.':'Zejdź dokładnie do zera. Możesz skończyć dowolnym trafieniem. Przekroczenie wyniku cofa punkty całej kolejki.'}</p></section>
+    <div class="setup-grid"><section class="panel"><div class="section-heading"><div><div class="step">01 / WYBIERZ GRĘ</div><h2>W co dziś gramy?</h2></div><span class="pill">4 TRYBY</span></div><div class="mode-grid">${['501','301','201','cricket'].map(m => `<button class="mode ${mode===m?'selected':''}" data-mode="${m}" aria-pressed="${mode===m}"><strong>${m==='cricket'?'Cricket':m}</strong><span>${({501:'Klasyka dobrego wieczoru',301:'Krótsza droga do zera',201:'Szybka runda na rozgrzewkę',cricket:'Zamykaj pola. Zbieraj punkty.'})[m]}</span></button>`).join('')}</div><div class="rules-choice">${mode!=='cricket'?`<label class="switch"><input id="double-out" type="checkbox" ${doubleOut?'checked':''}> Zakończenie Double Out</label><span class="small muted">${doubleOut?'Ostatnia lotka ×2':'Dowolne trafienie'}</span>`:`<div class="cricket-scoring" aria-label="Punktacja Cricket">${[['standard','+ Dla siebie'],['cutthroat','− Na przeciwników']].map(([v,label])=>`<button data-scoring="${v}" class="${cricketScoring===v?'primary':''}" aria-pressed="${cricketScoring===v}">${label}</button>`).join('')}</div>`}</div><p class="mode-description">${mode==='cricket'?(cricketScoring==='cutthroat'?'Zamknij pola 15–20 i bull. Nadmiarowe trafienia dopisują punkty każdemu rywalowi z otwartym polem. Wygrywa najniższy wynik przy zamkniętych polach.':'Zamknij pola 15–20 i bull. Nadmiarowe trafienia dodają punkty Tobie, dopóki rywal ma pole otwarte. Wygrywa najwyższy wynik przy zamkniętych polach.'):doubleOut?'Zejdź dokładnie do zera, kończąc podwójnym polem lub bull 50. Przekroczenie wyniku albo pozostawienie 1 cofa całą kolejkę.':'Zejdź dokładnie do zera. Możesz skończyć dowolnym trafieniem. Przekroczenie wyniku cofa punkty całej kolejki.'}</p></section>
     <section class="panel"><div class="section-heading"><div><div class="step">02 / WASZA EKIPA</div><h2>Kto staje przy tarczy?</h2></div><span class="pill">${names.length} / 6 GRACZY</span></div><div class="player-list">${names.map((name,i)=>`<div class="player-edit"><span class="avatar">0${i+1}</span><input data-player-name="${i}" aria-label="Imię gracza ${i+1}" maxlength="24" value="${esc(name)}"><button data-remove="${i}" aria-label="Usuń gracza ${i+1}" ${names.length<=2?'disabled':''}>−</button></div>`).join('')}</div><button id="add-player" class="add-player" ${names.length>=6?'disabled':''}>+ Dodaj gracza</button></section></div>
     <div class="setup-bottom"><p>Jeden tablet przy tarczy. Zapis po każdym rzucie.<br>Możecie wrócić do meczu w dowolnym momencie.</p><button id="start" class="primary start-button">Walka o start <span>↗</span></button></div>`;
   document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{readNames();mode=b.dataset.mode;renderSetup();});
   document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{readNames();names.splice(Number(b.dataset.remove),1);renderSetup();});
   $('#add-player').onclick=()=>{readNames(); if(names.length<6)names.push(''); renderSetup(); [...document.querySelectorAll('[data-player-name]')].at(-1)?.focus();};
+  document.querySelectorAll('[data-scoring]').forEach(b=>b.onclick=()=>{readNames();cricketScoring=b.dataset.scoring;renderSetup();});
   if($('#double-out'))$('#double-out').onchange=e=>{readNames();doubleOut=e.target.checked;renderSetup();};
   if($('#resume'))$('#resume').onclick=()=>{match=latest;multiplier=1;renderGame();};
-  $('#start').onclick=()=>{readNames();try{beginContest(names,mode,doubleOut);}catch(e){toast(e.message);}};
+  $('#start').onclick=()=>{readNames();try{beginContest(names,mode,doubleOut,cricketScoring);}catch(e){toast(e.message);}};
 }
 function saveContest() {
   try { if(contest)localStorage.setItem(contestKey,JSON.stringify(contest));else localStorage.removeItem(contestKey); }
   catch { toast('Nie udało się zapisać walki o start na tablecie.'); }
 }
-function beginContest(players, gameMode, out) {
-  const valid=createMatch(players,gameMode,out);
-  contest={names:valid.names,mode:valid.mode,doubleOut:valid.doubleOut,throws:[]};
+function beginContest(players, gameMode, out, scoring='standard') {
+  const valid=createMatch(players,gameMode,out,scoring);
+  contest={names:valid.names,mode:valid.mode,doubleOut:valid.doubleOut,cricketScoring:valid.cricketScoring,throws:[]};
   match=null;saveContest();renderContest();announcePlayer(contest.names[0]);
 }
 function renderContest() {
@@ -60,9 +63,9 @@ function renderContest() {
   <button id="undo-bull" ${contest.throws.length?'':'disabled'}>↶ Cofnij rzut</button></section>`;
   document.querySelectorAll('[data-bull]').forEach(b=>b.onclick=()=>{contest.throws.push(Number(b.dataset.bull));saveContest();renderContest();const next=bullState(contest.names.length,contest.throws);if(next.winner===null && (next.current!==s.current || next.round!==s.round))announcePlayer(contest.names[next.current]);else playSound('hit');});
   $('#undo-bull').onclick=()=>{contest.throws.pop();saveContest();renderContest();};
-  $('#cancel-contest').onclick=()=>{names=contest.names;mode=contest.mode;doubleOut=contest.doubleOut;contest=null;saveContest();renderSetup();};
+  $('#cancel-contest').onclick=()=>{names=contest.names;mode=contest.mode;doubleOut=contest.doubleOut;cricketScoring=contest.cricketScoring||'standard';contest=null;saveContest();renderSetup();};
   if(won)$('#start-match').onclick=()=>{
-    const next=createMatch([contest.names[s.winner],...contest.names.filter((_,i)=>i!==s.winner)],contest.mode,contest.doubleOut);
+    const next=createMatch([contest.names[s.winner],...contest.names.filter((_,i)=>i!==s.winner)],contest.mode,contest.doubleOut,contest.cricketScoring);
     contest=null;saveContest();update(next);
   };
 }
@@ -77,29 +80,29 @@ function renderGame() {
   document.body.dataset.view = "game";
   const state = replay(match), player = state.players[state.current], cricket = match.mode==='cricket', won = state.winner!==null, blocked = state.ready||won;
   const nextName = state.players[(state.current+1)%state.players.length].name;
-  $('#app').innerHTML = `<div class="game-title"><div><div class="eyebrow">NIECH LECI!</div><h1>${cricket?'Cricket':`Gramy <span>${match.mode}</span>`}</h1><div class="game-meta"><span class="pill">RUNDA ${state.round}</span><span>${state.players.length} graczy · ${cricket?'Standard':match.doubleOut?'Double Out':'Zwykłe zakończenie'}</span></div></div><button id="new-game" class="subtle">+ Nowy mecz</button></div>
+  $('#app').innerHTML = `<div class="game-title"><div><div class="eyebrow">NIECH LECI!</div><h1>${cricket?'Cricket':`Gramy <span>${match.mode}</span>`}</h1><div class="game-meta"><span class="pill">RUNDA ${state.round}</span><span>${state.players.length} graczy · ${cricket?cricketName(match):match.doubleOut?'Double Out':'Zwykłe zakończenie'}</span></div></div><button id="new-game" class="subtle">+ Nowy mecz</button></div>
     ${won?`<section class="victory"><div><div class="eyebrow">MAMY ZWYCIĘZCĘ!</div><h2>${esc(state.players[state.winner].name)} wygrywa.</h2><p>${cricket?'Wszystkie pola zamknięte. Najlepszy wynik.':'Ostatnia lotka. Dokładnie zero.'} Dobry mecz, ekipo!</p></div><div class="actions"><button class="primary" id="rematch">Gramy rewanż ↗</button><button id="undo-win">Cofnij ostatni rzut</button></div></section>`:''}
     <section class="scoreboard" aria-label="Wyniki graczy">${state.players.map((p,i)=>`<article class="player-card ${state.current===i?'active':''}" ${state.current===i?'aria-current="true"':''}><div class="player-name">${esc(p.name)}</div><div class="player-score">${p.score}</div><div class="small muted">${won&&i===state.winner?'ZWYCIĘZCA':i===state.current?'← TERAZ RZUCA':cricket?`${TARGETS.filter(n=>p.marks[n]===3).length}/7 PÓL ZAMKNIĘTYCH`:`ŚR. ${p.darts?(p.scored/p.darts*3).toFixed(1):'—'}`}</div></article>`).join('')}</section>
     ${cricket&&won?cricketTable(state):''}
-    ${!won?`<div class="play-grid"><section class="panel current-panel"><div class="turn-header"><div><div class="eyebrow">TERAZ PRZY TARCZY</div><h2>${esc(player.name)}</h2></div><span class="pill">${state.turn.length} / 3 LOTKI</span></div>${cricket?cricketTable(state):`<div class="giant-score">${player.score}</div><div class="score-caption">punktów do zwycięstwa</div>`}${remainingDarts(state)}${state.bust?'<div class="bust-label">Przekroczony wynik — kolejka za 0</div>':''}<div class="darts">${[0,1,2].map(i=>`<div class="dart-slot ${state.turn[i]?'filled':''}"><small>LOTKA ${i+1}</small><strong>${state.turn[i]?dartLabel(state.turn[i]):'—'}</strong></div>`).join('')}</div><div class="turn-total"><span>${state.ready?'Kolejka zakończona':'Wpisz trafienie na klawiaturze'}</span><strong>${state.turnPoints} pkt w kolejce</strong></div></section><section class="panel keypad-panel"><div class="keypad-head"><h2>Gdzie trafiła lotka?</h2><div class="multiplier" aria-label="Mnożnik">${[1,2,3].map(m=>`<button data-mult="${m}" aria-label="Mnożnik ${m}" aria-pressed="${m===multiplier}" class="${m===multiplier?'selected':''}" ${blocked?'disabled':''}>×${m}</button>`).join('')}</div></div><div class="number-grid ${cricket?'cricket-keys':''}">${(cricket?[20,19,18,17,16,15]:Array.from({length:20},(_,i)=>i+1)).map(n=>`<button data-hit="${n}" aria-label="Trafienie ${n}" ${blocked?'disabled':''}>${n}</button>`).join('')}</div><div class="special-keys"><button data-special="25" ${blocked?'disabled':''}>BULL 25</button><button data-special="50" ${blocked?'disabled':''}>BULL 50</button><button data-special="0" ${blocked?'disabled':''}>PUDŁO / 0</button></div><div class="action-row"><button id="undo" class="subtle" ${match.events.some(e=>e.type==='dart')?'':'disabled'}>↶ Cofnij rzut</button><button id="next" class="primary next-button" ${state.ready?'':'disabled'}>${state.ready?`${esc(nextName)} →`:'Następny gracz →'}</button></div></section></div>`:''}
-    <section class="recent"><h3>Ostatnie kolejki</h3><div class="recent-list">${state.visits.length?state.visits.slice(-6).reverse().map(v=>`<div class="recent-item"><strong>${esc(state.players[v.player].name)}</strong>${v.darts.map(dartLabel).join(' · ')}<b>${v.bust?'BUST':v.points+' pkt'}</b></div>`).join(''):'<p class="small">Pierwsza kolejka przed Wami. Powodzenia!</p>'}</div></section>`;
+    ${!won?`<div class="play-grid"><section class="panel current-panel"><div class="turn-header"><div><div class="eyebrow">TERAZ PRZY TARCZY</div><h2>${esc(player.name)}</h2></div><span class="pill">${state.turn.length} / 3 LOTKI</span></div>${cricket?cricketTable(state):`<div class="giant-score">${player.score}</div><div class="score-caption">punktów do zwycięstwa</div>`}${remainingDarts(state)}${state.bust?'<div class="bust-label">Przekroczony wynik — kolejka za 0</div>':''}<div class="darts">${[0,1,2].map(i=>`<div class="dart-slot ${state.turn[i]?'filled':''}"><small>LOTKA ${i+1}</small><strong>${state.turn[i]?dartLabel(state.turn[i]):'—'}</strong></div>`).join('')}</div><div class="turn-total"><span>${state.ready?'Kolejka zakończona':'Wpisz trafienie na klawiaturze'}</span><strong>${state.turnPoints} ${match.cricketScoring==='cutthroat'?'pkt dopisanych rywalom łącznie':'pkt w kolejce'}</strong></div></section><section class="panel keypad-panel"><div class="keypad-head"><h2>Gdzie trafiła lotka?</h2><div class="multiplier" aria-label="Mnożnik">${[1,2,3].map(m=>`<button data-mult="${m}" aria-label="Mnożnik ${m}" aria-pressed="${m===multiplier}" class="${m===multiplier?'selected':''}" ${blocked?'disabled':''}>×${m}</button>`).join('')}</div></div><div class="number-grid ${cricket?'cricket-keys':''}">${(cricket?[20,19,18,17,16,15]:Array.from({length:20},(_,i)=>i+1)).map(n=>`<button data-hit="${n}" aria-label="Trafienie ${n}" ${blocked?'disabled':''}>${n}</button>`).join('')}</div><div class="special-keys"><button data-special="25" ${blocked?'disabled':''}>BULL 25</button><button data-special="50" ${blocked?'disabled':''}>BULL 50</button><button data-special="0" ${blocked?'disabled':''}>PUDŁO / 0</button></div><div class="action-row"><button id="undo" class="subtle" ${match.events.some(e=>e.type==='dart')?'':'disabled'}>↶ Cofnij rzut</button><button id="next" class="primary next-button" ${state.ready?'':'disabled'}>${state.ready?`${esc(nextName)} →`:'Następny gracz →'}</button></div></section></div>`:''}
+    <section class="recent"><h3>Ostatnie kolejki</h3><div class="recent-list">${state.visits.length?state.visits.slice(-6).reverse().map(v=>`<div class="recent-item"><strong>${esc(state.players[v.player].name)}</strong>${v.darts.map(dartLabel).join(' · ')}<b>${v.bust?'BUST':v.points+(match.cricketScoring==='cutthroat'?' pkt rywalom łącznie':' pkt')}</b></div>`).join(''):'<p class="small">Pierwsza kolejka przed Wami. Powodzenia!</p>'}</div></section>`;
   $('#new-game').onclick=()=>{ match=null; renderSetup(); };
-  if(won){$('#rematch').onclick=()=>{beginContest(match.names,match.mode,match.doubleOut);};$('#undo-win').onclick=()=>update(undoDart(match));}
+  if(won){$('#rematch').onclick=()=>{beginContest(match.names,match.mode,match.doubleOut,match.cricketScoring);};$('#undo-win').onclick=()=>update(undoDart(match));}
   document.querySelectorAll('[data-mult]').forEach(b=>b.onclick=()=>{multiplier=Number(b.dataset.mult);renderGame();});
   document.querySelectorAll('[data-hit]').forEach(b=>b.onclick=()=>hit(Number(b.dataset.hit),multiplier));
   document.querySelectorAll('[data-special]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.special);hit(n===50?25:n,n===50?2:1);});
   if($('#undo'))$('#undo').onclick=()=>update(undoDart(match));
   if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));announcePlayer();}catch(e){toast(e.message);}};
 }
-function announcePlayer(playerName=match.names[replay(match).current], victory=false) {
-  playSound(victory?'win':'turn');
+function announcePlayer(playerName=match.names[replay(match).current], victory=false, shanghai=null) {
+  playSound(shanghai?'shanghai':victory?'win':'turn');
   const state=!victory && !contest && match && match.mode!=='cricket'?replay(match):null;
-  speakPlayer(playerName,victory,state?state.players[state.current].score:null);
+  if(shanghai)speakShanghai(playerName,shanghai.number,shanghai.points,shanghai.cutthroat,shanghai.bust,victory);else speakPlayer(playerName,victory,state?state.players[state.current].score:null);
   const name=playerName.toLocaleUpperCase('pl-PL');
   const overlay=document.createElement('dialog');
   overlay.className='player-announcement';
   overlay.setAttribute('aria-label',`${victory?'Wygrywa':'Teraz rzuca'} ${name}`);
-  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — ${victory?'zwycięzca meczu':'zaczynam rzucać'}"><span class="announcement-label">${victory?'WYGRYWA!':'TERAZ RZUCA'}</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">${victory?'BRAWO! ZA CHWILĘ WYNIK MECZU':'ZA CHWILĘ TWOJA KOLEJ →'}</span></button>`;
+  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — ${victory?'zwycięzca meczu':'zaczynam rzucać'}"><span class="announcement-label">${shanghai?'SZANGHAJ!':victory?'WYGRYWA!':'TERAZ RZUCA'}</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">${shanghai?`POJEDYNCZA · PODWÓJNA · POTRÓJNA ${shanghai.number}${victory?' · WYGRYWA!':''}`:victory?'BRAWO! ZA CHWILĘ WYNIK MECZU':'ZA CHWILĘ TWOJA KOLEJ →'}</span></button>`;
   document.body.append(overlay);
   let dismissTimer;
   overlay.addEventListener('close',()=>{clearTimeout(dismissTimer);window.removeEventListener('resize',fitName);overlay.remove();});
@@ -114,7 +117,16 @@ function announcePlayer(playerName=match.names[replay(match).current], victory=f
   fitName();window.addEventListener('resize',fitName);
   dismissTimer=setTimeout(()=>{if(overlay.open)overlay.close();},3000);
 }
-function hit(n,m) { try { update(recordDart(match,n,m)); const state=replay(match);if(state.winner!==null)announcePlayer(match.names[state.winner],true);else {playSound('hit');if(state.ready)speakTurn(match.names[state.current],state.turnPoints,state.bust);} if(navigator.vibrate) navigator.vibrate(15); }catch(e){toast(e.message);} }
+function hit(n,m) {
+  try {
+    update(recordDart(match,n,m));const state=replay(match);
+    const shanghai=isShanghai(state.turn)?{number:state.turn[0].number,points:state.turnPoints,cutthroat:match.cricketScoring==='cutthroat',bust:state.bust}:null;
+    if(state.winner!==null)announcePlayer(match.names[state.winner],true,state.winner===state.current?shanghai:null);
+    else if(shanghai)announcePlayer(match.names[state.current],false,shanghai);
+    else {playSound('hit');if(state.ready)speakTurn(match.names[state.current],state.turnPoints,state.bust,match.cricketScoring==='cutthroat');}
+    if(navigator.vibrate)navigator.vibrate(shanghai?[100,60,100,60,200]:15);
+  }catch(e){toast(e.message);}
+}
 function exportMatch() {
   const current=match||allMatches()[0]; if(!current){toast('Brak meczu do pobrania.');return;}
   const url=URL.createObjectURL(new Blob([JSON.stringify(current,null,2)],{type:'application/json'}));
@@ -122,7 +134,7 @@ function exportMatch() {
 }
 function showHistory() {
   const matches=allMatches();
-  openModal('Zapisane mecze',`${storageError?'<p class="error">Nie można odczytać pamięci tabletu. Nie nadpisujemy zapisów.</p>':''}<p class="small muted">Mecze zapisują się automatycznie po każdym rzucie. Kopia pliku pozwala przenieść mecz na inne urządzenie.</p>${matches.length?matches.slice(0,50).map(m=>{const s=replay(m);return `<div class="saved-match"><div><strong>${m.mode==='cricket'?'Cricket':m.mode} · ${s.winner!==null?'Wygrywa '+esc(m.names[s.winner]):'Runda '+s.round}</strong><p>${esc(m.names.join(' · '))}</p><p>${new Date(m.updatedAt).toLocaleString('pl-PL')}</p></div><button data-load="${m.id}" class="${s.winner===null?'primary':''}">${s.winner===null?'Wznów':'Wynik'} ↗</button></div>`;}).join(''):'<div class="empty-state"><p>Jeszcze nie rozegraliście meczu.</p></div>'}<div class="dialog-actions"><button id="export">Pobierz kopię meczu</button><button id="import">Wczytaj z pliku</button>${cloudEnabled()?'<button id="sync">Synchronizuj</button>':''}</div><input type="file" accept=".json,application/json" id="import-file" hidden>`);
+  openModal('Zapisane mecze',`${storageError?'<p class="error">Nie można odczytać pamięci tabletu. Nie nadpisujemy zapisów.</p>':''}<p class="small muted">Mecze zapisują się automatycznie po każdym rzucie. Kopia pliku pozwala przenieść mecz na inne urządzenie.</p>${matches.length?matches.slice(0,50).map(m=>{const s=replay(m);return `<div class="saved-match"><div><strong>${m.mode==='cricket'?cricketName(m):m.mode} · ${s.winner!==null?'Wygrywa '+esc(m.names[s.winner]):'Runda '+s.round}</strong><p>${esc(m.names.join(' · '))}</p><p>${new Date(m.updatedAt).toLocaleString('pl-PL')}</p></div><button data-load="${m.id}" class="${s.winner===null?'primary':''}">${s.winner===null?'Wznów':'Wynik'} ↗</button></div>`;}).join(''):'<div class="empty-state"><p>Jeszcze nie rozegraliście meczu.</p></div>'}<div class="dialog-actions"><button id="export">Pobierz kopię meczu</button><button id="import">Wczytaj z pliku</button>${cloudEnabled()?'<button id="sync">Synchronizuj</button>':''}</div><input type="file" accept=".json,application/json" id="import-file" hidden>`);
   document.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{contest=null;saveContest();match=matches.find(m=>m.id===b.dataset.load);multiplier=1;modal.close();renderGame();});
   $('#export').onclick=exportMatch;
   $('#import').onclick=()=>$('#import-file').click();
@@ -131,13 +143,13 @@ function showHistory() {
 }
 $('#history-button').onclick=showHistory;
 $('.brand').onclick=e=>{e.preventDefault();if(contest){renderContest();return;}match=null;renderSetup();};
-$('#rules-button').onclick=()=>openModal('Jak gramy?',`<div class="modal-copy"><h3>Walka o start</h3><p>Każdy rzuca trzy lotki. Bull to 25 lub 50 punktów, pozostałe pola to 0. Najwyższa suma daje start. Remisujący liderzy rozgrywają kolejną serię trzech lotek od zera, aż zostanie jeden zwycięzca. Pozostali grają w kolejności z listy.</p><h3>501 / 301 / 201</h3><p>Każdy zaczyna od wybranej liczby punktów. Trzy lotki w kolejce, potem „Następny gracz”. Wygrywa pierwszy wynik równy zero. Przekroczenie zera anuluje punkty całej kolejki.</p><p><strong>Double Out:</strong> ostatnia lotka musi trafić w podwójne pole lub bull 50. Wynik 1 oraz zejście do zera bez podwójnego pola także anulują kolejkę. Start jest zawsze dowolny (Straight In).</p><h3>Cricket</h3><p>Gramy na polach 15–20 i bull. Trzy trafienia zamykają pole. ×2 liczy się jako dwa, ×3 jako trzy. Nadmiar trafień daje punkty, jeśli choć jeden rywal ma pole otwarte. Zdobyte punkty nigdy nie znikają po zamknięciu pola przez innych.</p><p>Wygrywa gracz, który zamknie wszystkie pola i ma co najmniej tyle punktów co każdy przeciwnik. Bull 25 to jedno trafienie, bull 50 to dwa. Pozostałe pola wpisuj jako „PUDŁO / 0”.</p><h3>Wpisywanie i zapis</h3><p>Wybierz ×2 lub ×3, a następnie numer. Mnożnik wraca do ×1 po każdym rzucie. Przyciski BULL zawsze oznaczają 25 i 50, niezależnie od mnożnika. „Cofnij rzut” przywraca stan sprzed ostatniej lotki, także po zmianie gracza i zwycięstwie.</p><p>Zapis na tablecie działa bez konta. Nie czyść danych przeglądarki, jeśli chcesz zachować mecze i dostęp do kopii w chmurze. Pobraną kopię JSON możesz wczytać na innym urządzeniu.</p></div>`);
+$('#rules-button').onclick=()=>openModal('Jak gramy?',`<div class="modal-copy"><h3>Walka o start</h3><p>Każdy rzuca trzy lotki. Bull to 25 lub 50 punktów, pozostałe pola to 0. Najwyższa suma daje start. Remisujący liderzy rozgrywają kolejną serię trzech lotek od zera, aż zostanie jeden zwycięzca. Pozostali grają w kolejności z listy.</p><h3>501 / 301 / 201</h3><p>Każdy zaczyna od wybranej liczby punktów. Trzy lotki w kolejce, potem „Następny gracz”. Wygrywa pierwszy wynik równy zero. Przekroczenie zera anuluje punkty całej kolejki.</p><p><strong>Double Out:</strong> ostatnia lotka musi trafić w podwójne pole lub bull 50. Wynik 1 oraz zejście do zera bez podwójnego pola także anulują kolejkę. Start jest zawsze dowolny (Straight In).</p><h3>Cricket</h3><p>Gramy na polach 15–20 i bull. Trzy trafienia zamykają pole. ×2 liczy się jako dwa, ×3 jako trzy. Nadmiar trafień daje punkty, jeśli choć jeden rywal ma pole otwarte. Zdobyte punkty nigdy nie znikają po zamknięciu pola przez innych.</p><p>Wygrywa gracz, który zamknie wszystkie pola i ma co najmniej tyle punktów co każdy przeciwnik. Bull 25 to jedno trafienie, bull 50 to dwa. Pozostałe pola wpisuj jako „PUDŁO / 0”.</p><h3>Cricket − na przeciwników</h3><p>Nadmiarowe trafienia dopisują pełną wartość każdemu rywalowi, który nie zamknął tego pola. Gracz rzucający nie dostaje tych punktów. Wygrywa gracz z zamkniętymi wszystkimi polami i wynikiem nie wyższym od żadnego rywala. Podsumowanie kolejki pokazuje sumę punktów dopisanych wszystkim rywalom.</p><h3>Szanghaj</h3><p>Pojedyncza, podwójna i potrójna tego samego pola 1–20 w jednej kolejce, w dowolnej kolejności: okrzyk, fanfara i ekran celebracji. Punkty liczymy zgodnie z wybranym trybem.</p><h3>Wpisywanie i zapis</h3><p>Wybierz ×2 lub ×3, a następnie numer. Mnożnik wraca do ×1 po każdym rzucie. Przyciski BULL zawsze oznaczają 25 i 50, niezależnie od mnożnika. „Cofnij rzut” przywraca stan sprzed ostatniej lotki, także po zmianie gracza i zwycięstwie.</p><p>Zapis na tablecie działa bez konta. Nie czyść danych przeglądarki, jeśli chcesz zachować mecze i dostęp do kopii w chmurze. Pobraną kopię JSON możesz wczytać na innym urządzeniu.</p></div>`);
 $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('Pełny ekran nie jest dostępny w tej przeglądarce.');}};
 modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)modal.close();}});
 onCloudStatus(text=>{if(!storageError)$('#save-status').textContent=text;});
 try {
   const draft=JSON.parse(localStorage.getItem(contestKey));
-  if(draft){createMatch(draft.names,draft.mode,draft.doubleOut);bullState(draft.names.length,draft.throws);contest=draft;}
+  if(draft){createMatch(draft.names,draft.mode,draft.doubleOut,draft.cricketScoring);bullState(draft.names.length,draft.throws);contest=draft;}
 } catch {}
 if(contest)renderContest();else renderSetup();
 syncCloud().then(()=>{if(!contest&&!match&&!document.querySelector('[data-player-name]:focus'))renderSetup();});
