@@ -18,3 +18,10 @@ create policy "Read own games" on public.dart_matches for select to authenticate
 create policy "Create own games" on public.dart_matches for insert to authenticated with check ((select auth.uid()) = owner_id);
 create policy "Update own games" on public.dart_matches for update to authenticated using ((select auth.uid()) = owner_id) with check ((select auth.uid()) = owner_id);
 commit;
+
+-- Supabase's optional automatic-RLS event trigger is administrative only.
+do $$ begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    revoke execute on function public.rls_auto_enable() from public, anon, authenticated;
+  end if;
+end $$;

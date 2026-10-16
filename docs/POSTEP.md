@@ -23,3 +23,10 @@ Autorska aplikacja dla 2–6 osób przy jednej tarczy. Polski interfejs; 501/301
 - Sprawdzony tablet 1024×768: przycisk następnego gracza mieści się w widoku.
 
 Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. Wymagają Playwright (wyłącznie narzędzie QA, brak zależności runtime): ustaw `PLAYWRIGHT_MODULE` na zainstalowany moduł; opcjonalnie `CHROME_PATH` i `DART_TEST_URL`. Test chmury tworzy wyłącznie mecze testowych anonimowych sesji.
+
+## Publikacja
+- Vercel produkcja READY, commit aplikacji `2c3d9c9`.
+- Publiczny adres: https://dart-party-alpha.vercel.app
+- Test interfejsu na publicznym adresie: PASS, bez błędów JavaScript.
+- Test chmury na publicznym adresie: PASS (zapis, odczyt, odtworzenie, izolacja tabletów, odmowa niezalogowanego API, offline/retry).
+- Supabase Security Advisor: 0 błędów. Ostrzeżenie o anonimowym dostępie wynika z celowego modelu anonimowych sesji z kontrolą właściciela (sprawdzone dwoma niezależnymi klientami). Ochrona przed wyciekłymi hasłami nie dotyczy aplikacji bez haseł. Publiczne wykonanie technicznego triggera automatycznego RLS ograniczono oddzielnie.
