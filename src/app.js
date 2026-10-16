@@ -93,7 +93,8 @@ function renderGame() {
 }
 function announcePlayer(playerName=match.names[replay(match).current], victory=false) {
   playSound(victory?'win':'turn');
-  speakPlayer(playerName,victory);
+  const state=!victory && !contest && match && match.mode!=='cricket'?replay(match):null;
+  speakPlayer(playerName,victory,state?state.players[state.current].score:null);
   const name=playerName.toLocaleUpperCase('pl-PL');
   const overlay=document.createElement('dialog');
   overlay.className='player-announcement';

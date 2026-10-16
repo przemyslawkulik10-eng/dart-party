@@ -63,3 +63,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Przy zmianie gracza (również kwalifikacja) synteza mowy czyta „Teraz rzuca [imię]”; zwycięstwo: „Wygrywa [imię]! Brawo!”. Preferowany lokalny polski głos, język pl-PL.
 - Głos respektuje wspólny przełącznik dźwięku; wyciszenie przerywa mowę, nowa zapowiedź usuwa poprzednią z kolejki. Brak obsługi syntezy nie blokuje gry.
 - Test Chrome: zweryfikowane żądania polskiej mowy (mock speech engine), zwycięstwo 201/Cricket, wyciszenie i automatyczny powrót PASS. Rzeczywista barwa/wymowa zależą od głosów na urządzeniu; odsłuch na tablecie niesprawdzony.
+
+## 2026-10-16 — głosowy wynik następnego gracza
+- Zapowiedź zmiany kolejki w 501/301/201 zawiera aktualny wynik następnego gracza do zera, z odmianą punkt/punkty/punktów. Cricket, kwalifikacja i zwycięstwo nie dodają punktów do zera.
+- Test przeglądarkowy: rzeczywista zmiana na Przemka z 226 punktami, automatyczny powrót, odmiany 1/2/12/22/101 i komunikaty bez wyniku PASS (sprawdzone żądania syntezy).

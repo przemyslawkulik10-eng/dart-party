@@ -25,13 +25,18 @@ export function playSound(kind){
 }
 
 // Use the tablet's speech engine; never send player names to an app backend.
-export function speakPlayer(playerName, victory=false){
+export function speakPlayer(playerName, victory=false, remaining=null){
   if(!enabled || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window))return;
   try{
     const speech=window.speechSynthesis;
     speech.cancel();
     const name=playerName.toLocaleLowerCase('pl-PL');
-    const phrase=new SpeechSynthesisUtterance(`${victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}`);
+    let points='';
+    if(!victory && Number.isInteger(remaining) && remaining>0){
+      const few=remaining%10>=2 && remaining%10<=4 && !(remaining%100>=12 && remaining%100<=14);
+      points=remaining===1?' Do zwycięstwa został 1 punkt.':` Do zwycięstwa ${few?'zostały':'zostało'} ${remaining} ${few?'punkty':'punktów'}.`;
+    }
+    const phrase=new SpeechSynthesisUtterance(`${victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}${points}`);
     phrase.lang='pl-PL';phrase.rate=1;phrase.pitch=1;phrase.volume=1;
     const voices=speech.getVoices();
     const polish=voices.filter(voice=>/^pl(?:-|_)/i.test(voice.lang)||voice.lang==='pl');
