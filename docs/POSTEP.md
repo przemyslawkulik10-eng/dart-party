@@ -49,3 +49,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-16 — automatyczne zamykanie imienia
 - Ekran imienia zamyka się sam po 3000 ms. Nie wymaga dotykania; wcześniejsze zamknięcie czyści timer.
 - Test przeglądarkowy czeka na automatyczny powrót bez kliknięcia — PASS.
+
+## 2026-10-16 — imiona w walce o start
+- Ten sam trzysekundowy ekran imienia przed pierwszym graczem oraz po zmianie rzucającego w kwalifikacji i dogrywkach.
+- Test przeglądarkowy sześciu graczy, dogrywki, automatycznego zamykania, cofania i startu meczu PASS.
