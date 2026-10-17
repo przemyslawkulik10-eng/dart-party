@@ -377,3 +377,6 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 
 ## 2026-10-17 — komunikat FURA
 - Na prośbę użytkownika „Przekroczony wynik” zastąpiono „FURA” na ekranie i w lektorze, także przy Shanghai z przekroczeniem. Zasady punktacji bez zmian. Zaktualizowano oczekiwanie istniejącego testu przeglądarkowego; build i diff-check PASS. Test przeglądarkowy nieuruchomiony. Publikacja nadal zablokowana wcześniejszym błędem DNS GitHub.
+
+## 2026-10-17 — powrót z potrójnej na pojedynczą
+- Po prawidłowym wpisaniu lotki ×3 klawiatura X01/Cricket automatycznie wybiera ×1 przed ponownym renderem. Zapisana lotka nadal ma mnożnik ×3. Nie zmieniono zachowania ×2. Build i diff-check PASS; kliknięcie na urządzeniu do sprawdzenia podczas gry.

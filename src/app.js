@@ -194,7 +194,9 @@ function announcePlayer(playerName=match.names[replay(match).current], victory=f
 }
 function hit(n,m) {
   try {
-    update(recordDart(match,n,m));const state=replay(match);
+    const next=recordDart(match,n,m);
+    if(m===3)multiplier=1;
+    update(next);const state=replay(match);
     const triples=match.mode==='cricket' && isThreeTriples(state.turn);
     const shanghai=isShanghai(state.turn)?{number:state.turn[0].number,points:state.turnPoints,cutthroat:match.cricketScoring==='cutthroat',bust:state.bust}:null;
     if(state.legWinner!==null)announcePlayer(match.names[state.legWinner],true,state.legWinner===state.current?shanghai:null,state.winner===null,triples && state.legWinner===state.current);
