@@ -331,3 +331,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-17 — jawny zapis zerowej kolejki
 - Dodano przycisk „Żadna nie trafiła celu — zapisz 0 pkt”. Zapisuje wszystkie pozostałe lotki kolejki jako nietrafione cele o nieznanym polu i przechodzi dalej. Działa także przy wznowieniu częściowej kolejki; nie usuwa wcześniejszych zapisanych lotek.
 - Wspólna obsługa zatwierdzania zachowuje historię, cofnięcie, zapis i lektora. 89/89 testów PASS, build/składnia/diff-check PASS. Wizualny test urządzenia pozostaje do wykonania. Bez publikacji.
+
+## 2026-10-17 — pojedyncze pudło Shanghai
+- Przycisk „Pudło — jedna lotka” dodaje null do draftu, bez przechodzenia do kolejnego celu. Następne trafienie zapisuje się w kolejnym miejscu. Puste miejsca pokazują „Czeka na wpis”, wpisane pudło „Pudło — cel nietrafiony”. Zatwierdzanie i punktacja pozostają bez zmian.
+- Składnia, build i diff-check PASS. Do sprawdzenia na urządzeniu: pudło/S10/D10 i zatwierdzenie 30 pkt.
