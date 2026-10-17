@@ -3,6 +3,7 @@
 ## Decyzje użytkownika
 
 - Dwa tryby: TRENING i ZAWODY / SPARING.
+- Wirtualny trener jest dobrowolny: domyślnie wyłączony, możliwy trening samodzielny i zmiana wyboru w trakcie sesji.
 - TRENING: stopniowy rozwój, pomoc i objaśnienia, docelowo osobisty trener AI oparty na własnych wynikach.
 - Gracz nie dostaje od razu wielkiej biblioteki gier. Opanowanie umiejętności i awans odblokowują następne gry treningowe.
 - Krótkie sesje z końcem, nie trening do wyczerpania. 4 × 15 minut tygodniowo to przykład do testów, nie sztywna ustalona reguła.

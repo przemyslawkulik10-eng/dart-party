@@ -240,3 +240,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-17 — korekta: pomarańczowy licznik, nie kolumna
 - Użytkownik doprecyzował, że pomarańczowy ma być licznik punktów rzucającego. Usunięto pomarańczowe tło i symbole kolumny Cricket; wróciły wcześniejsze kolory tabeli. Aktywna karta wyniku (imię + punkty) jest teraz pomarańczowa z ciemnym tekstem. Wskazanie przechodzi za klasą active przy zmianie gracza.
 - Wyłącznie CSS; logika meczu i zapisy bez zmian. Build i diff-check PASS. Bez odświeżania trwającej gry użytkownika i bez publikacji.
+
+## 2026-10-17 — dobrowolny wirtualny trener
+- W formularzu i podczas treningu dodano checkbox „Wirtualny trener — chcę wskazówki”, domyślnie wyłączony. Bez zaznaczenia zostają cel ćwiczenia, wyniki i zapis; brak porad po rzucie. Można zmieniać wybór w trakcie sesji, jest zapisywany z treningiem. Starsze sesje bez flagi pozostają bez trenera.
+- Włączony trener pokazuje podstawowe wskazówki dla sektora 20 i podsumowanie ostatnich 3 lotek. UI jawnie informuje, że AI będzie dostępne później; nie podłączono modelu ani usług zewnętrznych.
+- 50/50 testów PASS, build, syntax i diff-check PASS. Nowy test: opt-in, stare zapisy, wyłączenie, seria 2/3 i JSON. Nie przeprowadzono jeszcze wizualnego QA nowego checkboxa. Bez publikacji.
