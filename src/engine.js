@@ -130,3 +130,12 @@ export function nextLeg(match){
 export function isThreeTriples(turn){
   return turn.length===3 && turn.every(d=>d.multiplier===3 && TARGETS.includes(d.number) && d.number!==25);
 }
+
+export function enableDoubleOut(match){
+  if(match.mode==='cricket')throw new Error('Double Out dotyczy gier 501, 301 i 201.');
+  if(match.doubleOut)return match;
+  const next={...match,doubleOut:true,updatedAt:new Date().toISOString()};
+  try{if(JSON.stringify(replay(match))!==JSON.stringify(replay(next)))throw new Error('changed');}
+  catch{throw new Error('Zmiana naruszyłaby wcześniejsze wyniki. Zachowano mecz — Double Out wybierz przy nowym meczu.');}
+  return next;
+}

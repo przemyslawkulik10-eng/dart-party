@@ -31,3 +31,12 @@ test('scoreboard shows waiting player 168 straight-out finish, active player use
  ctx.match.doubleOut=true;state.turn=[];assert.match(ctx.playerCheckout(state,1),/BRAK ZEJŚCIA/);
  state.legWinner=0;assert.equal(ctx.playerCheckout(state,1),'');
 });
+test('enable Double Out preserves existing scores and refuses to rewrite earlier scoring',async()=>{
+ const {enableDoubleOut}=await import('../src/engine.js');
+ let m=createMatch(['A','B'],'301');m=recordDart(m,20,3);m=recordDart(m,20,3);m=recordDart(m,1,1);
+ const next=enableDoubleOut(m);assert.equal(next.doubleOut,true);assert.deepEqual(replay(next),replay(m));assert.equal(m.doubleOut,false);
+ // A remaining score of one would retroactively make the visit a bust.
+ let one=createMatch(['A','B'],'201');one=recordDart(one,20,3);one=recordDart(one,20,3);
+ const {nextPlayer}=await import('../src/engine.js');one=recordDart(one,20,3);one=nextPlayer(one);one=recordDart(one,0,1);one=recordDart(one,0,1);one=recordDart(one,0,1);one=nextPlayer(one);one=recordDart(one,20,1);
+ assert.throws(()=>enableDoubleOut(one),/wcześniejsze wyniki/);assert.equal(one.doubleOut,false);
+});

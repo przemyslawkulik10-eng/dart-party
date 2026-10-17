@@ -6,14 +6,14 @@ import { mountTraining } from './training-ui.js';
 import { CHECKOUT_HINT_THRESHOLD, checkout, checkoutLabel, checkoutAdvice } from './checkout.js';
 import { playSound, soundEnabled, toggleSound, speakPlayer, speakTurn, speakShanghai, speakThreeTriples, speakCheckout } from './sound.js';
 import { bullState } from './bull-off.js';
-import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch, isShanghai, isThreeTriples, nextLeg } from './engine.js';
+import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch, isShanghai, isThreeTriples, nextLeg, enableDoubleOut } from './engine.js';
 import { loadMatches, saveMatch } from './storage.js';
 import { syncCloud, onCloudStatus, cloudEnabled } from './cloud.js';
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let names = [...DEFAULT_PLAYERS];
 let mode = '501';
-let doubleOut = false;
+let doubleOut = true;
 let cricketScoring='cutthroat';
 let cricketOpening='two-triples';
 let legsToWin=1;
@@ -146,7 +146,7 @@ function renderGame() {
   $('#app').classList.toggle('x01-game',!cricket&&!won);
   const twentyLocked=cricket && match.cricketOpening==='two-triples' && player.openingTriples.length<2;
   const nextName = state.players[(state.current+1)%state.players.length].name;
-  $('#app').innerHTML = `<div class="game-title"><div><div class="eyebrow">${competition()?'WSPÓLNA GRA':'NIECH LECI!'}</div><h1>${cricket?'Cricket':`Gramy <span>${match.mode}</span>`}</h1><div class="game-meta"><span class="pill">${(match.legsToWin||1)>1?`LEG ${state.leg} · DO ${match.legsToWin} WYGRANYCH · `:''}RUNDA ${state.round}</span><span>${state.players.length} graczy · ${cricket?cricketName(match):match.doubleOut?'Double Out':'Zwykłe zakończenie'}</span></div></div><button id="new-game" class="subtle">+ Nowy mecz</button></div>
+  $('#app').innerHTML = `<div class="game-title"><div><div class="eyebrow">${competition()?'WSPÓLNA GRA':'NIECH LECI!'}</div><h1>${cricket?'Cricket':`Gramy <span>${match.mode}</span>`}</h1><div class="game-meta"><span class="pill">${(match.legsToWin||1)>1?`LEG ${state.leg} · DO ${match.legsToWin} WYGRANYCH · `:''}RUNDA ${state.round}</span><span>${state.players.length} graczy · ${cricket?cricketName(match):match.doubleOut?'Double Out':'Zwykłe zakończenie'}</span></div></div><div>${!cricket&&!match.doubleOut&&!won?'<button id="enable-double-out" class="primary">Kończymy podwójną — włącz</button>':''}<button id="new-game" class="subtle">+ Nowy mecz</button></div></div>
     ${won?`<section class="victory"><div><div class="eyebrow">${state.winner!==null?'MAMY ZWYCIĘZCĘ MECZU!':'LEG ZAKOŃCZONY!'}</div><h2>${esc(state.players[state.legWinner].name)} wygrywa ${state.winner!==null?'mecz':'leg'}.</h2><p>${cricket?'Wszystkie pola zamknięte. Najlepszy wynik.':'Ostatnia lotka. Dokładnie zero.'} Dobry mecz, ekipo!</p></div><div class="actions">${state.winner!==null?'<button class="primary" id="rematch">Gramy rewanż ↗</button>':'<button class="primary" id="next-leg">Następny leg →</button>'}<button id="undo-win">Cofnij ostatni rzut</button></div></section>`:''}
     <section class="scoreboard" aria-label="Wyniki graczy">${state.players.map((p,i)=>`<article class="player-card ${state.current===i?'active':''}" ${state.current===i?'aria-current="true"':''}><div class="player-name">${esc(p.name)}</div><div class="player-score"><span>${p.score}</span>${playerCheckout(state,i)}</div>${(match.legsToWin||1)>1?`<div class="leg-score">LEGI <strong>${state.legWins[i]}</strong> / ${match.legsToWin}</div>`:''}<div class="small muted">${won&&i===state.winner?'ZWYCIĘZCA':i===state.current?'← TERAZ RZUCA':cricket?`${TARGETS.filter(n=>p.marks[n]===3).length}/7 PÓL ZAMKNIĘTYCH`:`ŚR. ${p.darts?(p.scored/p.darts*3).toFixed(1):'—'}`}</div></article>`).join('')}</section>
     ${cricket&&won?cricketTable(state):''}
@@ -166,6 +166,7 @@ function renderGame() {
 
 
   }
+  if($('#enable-double-out'))$('#enable-double-out').onclick=()=>{try{update(enableDoubleOut(match));doubleOut=true;toast('Double Out włączone. Kończymy podwójną.');}catch(e){toast(e.message);}};
   $('#new-game').onclick=()=>{ match=null; renderSetup(); };
   if(won){if($('#next-leg'))$('#next-leg').onclick=()=>{update(nextLeg(match));announcePlayer();};if($('#rematch'))$('#rematch').onclick=()=>{beginContest(match.names,match.mode,match.doubleOut,match.cricketScoring,match.cricketOpening,match.legsToWin,match.sessionType);};$('#undo-win').onclick=()=>update(undoDart(match));}
   document.querySelectorAll('[data-mult]').forEach(b=>b.onclick=()=>{multiplier=Number(b.dataset.mult);renderGame();});

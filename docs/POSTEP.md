@@ -390,3 +390,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Użytkownik wskazał kartę wyniku jako miejsce podpowiedzi. Dodano trasę obok wyniku każdego gracza od 170 do 1; oczekujący widzi trasę na 3 lotki, aktywny na faktycznie pozostałe. Po zakończeniu kolejki podgląd oznaczony „Na swoją kolejkę”. Po wygraniu lega i w Cricket ukryte.
 - Respektowane zwykłe zakończenie ze zrzutu: 168 = T20 → T20 → T16. W double-out 168 pokazuje brak zejścia. Powyżej 170 brak panelu. Istniejąca większa podpowiedź aktywnego gracza pozostaje.
 - 103/103 testów PASS, build i diff-check PASS. Test obejmuje kartę oczekującego, pozostałe lotki aktywnego i double-out. Układ na urządzeniu użytkownika do potwierdzenia po odświeżeniu. Zapis lokalny main, bez zdalnego pusha (wcześniejsza blokada DNS).
+
+## 2026-10-17 — korekta zasad: kończymy podwójną
+- Zrzut użytkownika pokazuje zwykłe zakończenie, użytkownik deklaruje Double Out. Nowe formularze domyślnie Double Out. Dla trwającego zwykłego meczu dodano przycisk „Kończymy podwójną — włącz” w nagłówku.
+- Przełączenie zapisuje doubleOut i przelicza podpowiedzi, tylko jeżeli replay zachowuje cały dotychczasowy stan. Gdy wcześniejsze rzuty zmieniłyby punktację/wygrane, operacja odmawia bez nadpisania. Nie zmodyfikowano bezpośrednio localStorage użytkownika.
+- 104/104 testów PASS, build i diff-check PASS. Test zachowania wyniku oraz odmowy przy pozostałym 1. Użytkownik musi odświeżyć i kliknąć przycisk w bieżącym meczu. Publikacja zdalna nadal zablokowana DNS.
