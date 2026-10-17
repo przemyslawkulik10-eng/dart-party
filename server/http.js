@@ -9,13 +9,13 @@ export function publicPath(pathname){
  if(!types[extname(pathname)])return null;
  return pathname.slice(1);
 }
-export function createHandler({root=resolve('.'),env=process.env,fetchImpl=fetch,now=Date.now}={}){
+export function createHandler({root=resolve('.'),env=process.env,fetchImpl=fetch,now=Date.now,allowedHosts=[]}={}){
  let busy=false,lastRequest=-Infinity;
  const send=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));};
  return async(req,res)=>{
   try{
    const host=req.headers.host||'';
-   if(!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host))return send(res,403,{error:'Serwer jest przeznaczony wyłącznie do lokalnego użytku.'});
+   if(!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host)&&!allowedHosts.includes(host))return send(res,403,{error:'Serwer jest przeznaczony wyłącznie do lokalnego użytku.'});
    const path=new URL(req.url,`http://${host}`).pathname;
    if(path.startsWith('/api/')){
     if((req.headers.origin!==`http://${host}` && !(req.method==='GET'&&!req.headers.origin))||req.headers['x-dart-party']!=='coach')return send(res,403,{error:'Nieprawidłowe źródło żądania.'});

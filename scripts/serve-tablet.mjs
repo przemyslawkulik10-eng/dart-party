@@ -1,0 +1,10 @@
+import http from 'node:http';
+import {networkInterfaces} from 'node:os';
+import {resolve} from 'node:path';
+import {createHandler} from '../server/http.js';
+const port=Number(process.env.PORT||4175);
+const addresses=Object.values(networkInterfaces()).flat().filter(x=>x.family==='IPv4'&&!x.internal&&/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(x.address)).map(x=>x.address);
+if(!addresses.length)throw new Error('Brak adresu w lokalnej sieci Wi-Fi.');
+const server=http.createServer(createHandler({root:resolve('.'),env:{},allowedHosts:addresses.map(ip=>`${ip}:${port}`)}));
+server.on('error',error=>{console.error(`Nie można uruchomić dostępu dla tabletu: ${error.code}`);process.exitCode=1;});
+server.listen(port,'0.0.0.0',()=>addresses.forEach(ip=>console.log(`DART PARTY TABLET: http://${ip}:${port}`)));

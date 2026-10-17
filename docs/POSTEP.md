@@ -446,3 +446,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Nowy formularz X01/Cricket domyślnie wybiera 3 wygrane legi, opisane jako jeden set. Nagłówek pokazuje SET 1 i numer lega. Zwycięstwo całego formatu nazwane wygraną seta. Silnik już kończy dopiero przy trzecim wygranym legu; nie dodano wielu setów.
 - Dla rozpoczętego, niezakończonego meczu z innym limitem dodano „1 set do 3 legów — włącz”. Zachowuje rzuty i legi. Nie zmienia automatycznie starych ukończonych meczów. Starszy format jednego lega nadal prawidłowo nazwany legiem.
 - 106/106 testów PASS (w tym koniec przy trzeciej wygranej, undo i JSON), build i składnia PASS. Lokalny main. Stałe kolory graczy i wybór najsłabszego na rewanż nadal nie wdrożone; nie traktować wcześniejszych ustaleń jako gotowej funkcji.
+
+## 2026-10-17 — Tablet Mai, dostęp Wi-Fi
+- Dodano scripts/serve-tablet.mjs: port 4175, jawna lista lokalnych adresów Host, bez konfiguracji sekretów trenera. Dotychczasowy port 4174 niezmieniony. Dodano UUID fallback dla przeglądarek HTTP w LAN.
+- Testy i build PASS. Próba uruchomienia: listen EPERM 0.0.0.0:4175 — środowisko blokuje nasłuch. Użytkownik musi wykonać node scripts/serve-tablet.mjs w Terminalu Maca. Adres wykryty: http://192.168.5.243:4175. Brak testu na fizycznym tablecie. Dane meczu osobne w każdej przeglądarce.
+- W toku niezacommitowane moduły drużyn i kolorów od agentów; Mnożnik 7–12 buduje agent teams_ui. Wymagają integracji w app.js.
