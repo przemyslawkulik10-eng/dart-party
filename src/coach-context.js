@@ -1,3 +1,4 @@
+import {jdcInsights} from './jdc-insights.js';
 import {validateJdc,jdcStats} from './jdc.js';
 import {validateTraining,trainingStats} from './training.js';
 import {validateMatch,replay} from './engine.js';
@@ -22,5 +23,5 @@ export function buildCoachContext(payload){
   for(const e of m.events){if(e.type==='next')current=(current+1)%m.names.length;else if(e.type==='nextLeg'){starter=(starter+1)%m.names.length;current=starter;}else if(e.type==='dart'&&current===idx)darts.push(e);}
   return {date:m.updatedAt.slice(0,10),mode:m.mode,scoring:m.cricketScoring||'standard',doubleOut:m.doubleOut,throws:darts.length,triples:darts.filter(d=>d.multiplier===3).length,recordedZeros:darts.filter(d=>d.number===0).length,won:state.winner===idx,targetKnown:false};
  });
- return {scope:'dart-training',jdc:{sessions:jdcSessions,completed:jdcSessions.length},training:{sessions,throws,hits,accuracy:throws?Math.round(hits/throws*100):null},competition,limitations:['Brak pomiaru techniki ciała.','Zamiar rzutu w meczu jest nieznany.','Zera w Cricket mogą oznaczać niepunktujące pola.','Historia ograniczona do 30 treningów sektora 20, 30 prób JDC i 20 zakończonych meczów.','Wynik próby JDC nie jest oficjalnym stopniem akademii.','JDC ma 57 lotek; nie przerywaj próby limitem czasu i nie porównuj surowych punktów różnych etapów jako celności.'],availableExercises:[{id:'sector-20',target:20,description:'Celowanie w cały sektor 20; maksymalnie 15 minut.'},{id:'jdc',description:'Pełna próba JDC: 57 lotek, z możliwością przerwy i wznowienia.'}]};
+ return {scope:'dart-training',jdc:{sessions:jdcSessions,completed:jdcSessions.length,last30Days:jdcInsights(jdc,payload.profileId,30)},training:{sessions,throws,hits,accuracy:throws?Math.round(hits/throws*100):null},competition,limitations:['Brak pomiaru techniki ciała.','Zamiar rzutu w meczu jest nieznany.','Zera w Cricket mogą oznaczać niepunktujące pola.','Historia ograniczona do 30 treningów sektora 20, 30 prób JDC i 20 zakończonych meczów.','Wynik próby JDC nie jest oficjalnym stopniem akademii.','JDC ma 57 lotek; nie przerywaj próby limitem czasu i nie porównuj surowych punktów różnych etapów jako celności.'],availableExercises:[{id:'sector-20',target:20,description:'Celowanie w cały sektor 20; maksymalnie 15 minut.'},{id:'jdc',description:'Pełna próba JDC: 57 lotek, z możliwością przerwy i wznowienia.'}]};
 }

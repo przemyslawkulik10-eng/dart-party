@@ -290,3 +290,12 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - 70/70 testów PASS, build, składnia JS i diff-check PASS. QA przeglądarkowe nadal oczekuje; poprzednio serwer 4173 niedostępny dla narzędzi. Nie potwierdzono wyglądu ani rzeczywistego wywołania AI.
 - Zrzuty GoDartsPro zapisano jako kierunek katalogu w KIERUNEK-ROZWOJU.md; nie importowano wyników użytkownika ze zdjęć.
 - Bez publikacji, zakupu bazy i zmian chmury. Akceptacja konkretnego kosztu Supabase pozostaje nierozstrzygnięta.
+
+## 2026-10-17 — analiza JDC z okresem i liczebnością prób
+- Dodano w profilu okres analizy: 30/90/180/365 dni lub cała historia. Zakres jest jawnie opisany w dniach i datach; uwzględnia ukończenie pełnej próby, wyklucza przyszłe daty i niepełne sesje.
+- Średnia i liczba prób wybranego okresu, poprzedni równy okres i różnica średnich; rekord całej historii wyraźnie oddzielony. Brak wyników = brak danych, a rzeczywisty brak trafień przy oddanych lotkach = 0%.
+- D1–D20/BULL: trafienia, próby i procent. Shanghai: średnia kolejki z bonusem, liczba kolejek, trafienia i bonusy. Numer 15 liczony w obu etapach z właściwym mianownikiem.
+- Wskazówki tylko przy włączonym prostym planie. Nie wyróżniamy pól przed 20 próbami na pole; to jawna ostrożna reguła produktu, nie próg pewności statystycznej. Przy remisach pokazujemy wszystkie najniższe pola; przy równych wszystkich brak arbitralnego wyboru. Brak diagnoz trwałych słabości.
+- Kontekst AI rozszerzono o obliczoną analizę ostatnich 30 dni z tej samej ograniczonej historii (do 30 pełnych prób); instrukcja wymaga odróżnienia historycznych wyników od obecnej formy i małej próby od diagnozy. Usługa AI nadal nieprzetestowana na żywo.
+- 75/75 testów PASS, build i diff-check PASS. Nowe testy: 13 prób bez wskazywania słabości, granice dat i poprzedni okres, rekord historyczny, dwie kolejki 15, remisy i odrzucenie mieszanych profili. QA przeglądarkowe pozostaje otwarte — nie deklarować sprawdzonego wyglądu.
+- Bez migracji, pusha, deploy i zakupów. Następny krok: test profilu i przełączania okresów w działającej przeglądarce.
