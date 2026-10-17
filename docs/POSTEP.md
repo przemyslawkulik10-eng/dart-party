@@ -350,3 +350,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Wynik końcowy: zwycięzca lub remis oraz osobne szczegóły obu prób. Tryb wspólny nie jest oficjalnym regulaminem turniejowym JDC. Trwały ranking meczu nie został dodany.
 - 91/91 testów PASS: pełne 38 kolejek, kolejność, JSON/wznowienie, remis/zwycięzca, wybór ostatniego gracza, izolacja solo i zapisów, odrzucenie niepełnej pary. Build, składnia i diff-check PASS.
 - Próba QA Chrome przerwana przez zmianę okna użytkownika: narzędzie zwróciło „The user changed '/Applications/Google Chrome.app'”. Nie potwierdzono nowego formularza ani widoku pojedynku na urządzeniu. Nie wpisano testowych wyników do profili użytkownika. Następny krok: odświeżenie i uruchomienie Przemek kontra Mikołaj przez użytkownika. Bez pusha i publikacji.
+
+## 2026-10-17 — zwarty ekran wpisywania JDC
+- Po uwadze o przewijaniu: poziomy i historia pod Szczegóły na dole. Mniejszy nagłówek/komunikat oraz zwarta tablica dwóch graczy. Duże pola trafień i pudeł pozostają trzykolumnowe. Zatwierdzenie jako pierwszy duży przycisk pod lotkami, panel dokładnego pola poniżej działań.
+- Wybrane trafienia nie przygasają po trzecim wpisie. Stałe miejsce na komunikat kolejki ogranicza przeskok przycisków po kliknięciu. Zmiany ograniczone klasą jdc-playing, usuwaną po wyjściu/wyniku.
+- 91/91 testów PASS, build i składnia PASS. Nie potwierdzono jeszcze układu na wszystkich rozmiarach z wymaganej macierzy QA; użytkownik aktywnie testuje swoją grę, nie wpisywano mu wyników. Następny krok: odświeżenie i sprawdzenie widoczności zatwierdzenia bez przewijania.
