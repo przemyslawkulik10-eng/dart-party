@@ -270,3 +270,10 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Profile lokalne jawnie opisane jako lokalne, bez logowania. Użytkownik poprosił o prawdziwe konta i zaakceptował rekomendację logowania linkiem na e-mail. Konta i synchronizacja nie są jeszcze wdrożone.
 - Supabase get_cost dla obecnej organizacji DostawaWarzyw zwrócił 10 USD miesięcznie. Zadano konkretne pytanie o zgodę na osobny DART PARTY w eu-central-1; oczekiwanie na odpowiedź, bez kupna i tworzenia projektu. Szczegóły: docs/KONTA-GRACZY.md.
 - 66/66 testów PASS, build PASS, diff-check PASS. Nowe testy: ważona celność, ukończone próby vs aktywne, izolacja profili i eksport bez danych przeciwników. QA przeglądarkowe nadal nieprzeprowadzone z powodu niedostępnego serwera 4173 dla narzędzi. Bez migracji/pusha/deploy/wysyłki wiadomości.
+
+## 2026-10-17 — bez logowania i wybór drogi gracza
+- Poprzedni checkpoint panelu gracza: 6ab8475.
+- Użytkownik wymaga stałej opcji gry bez logowania oraz wyboru między samymi sparingami a dobrowolnym trenerem. Ekran wejścia ma teraz jawne „Graj bez logowania”, bez konta/e-maila/AI; trening opisuje opcjonalność trenera. Zmieniono teksty, nie logikę gry i zapisów.
+- Zapisano pełne wymaganie wielojęzyczności w docs/KIERUNEK-ROZWOJU.md i granicę kont w docs/KONTA-GRACZY.md. Obecnie tylko polski; brak gotowego selektora innych języków. Nie twierdzić, że wszystkie języki działają.
+- Pytanie o koszt nowego projektu Supabase 10 USD/mies. nadal bez wyraźnej odpowiedzi. Wypowiedź o gościu i językach nie jest akceptacją zakupu.
+- Weryfikacja: składnia app.js, build i diff-check. Zmiana tekstów nie wymaga nowych testów logiki. QA wizualne nieprzeprowadzone. Bez publikacji i zmian chmury.

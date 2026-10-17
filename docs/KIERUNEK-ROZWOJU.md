@@ -23,3 +23,14 @@
 ## Stan implementacji przed kolejnym etapem
 
 Istniejący lokalny licznik X01/Cricket, zapis meczów, podpowiedzi X01 i celebracje. Dodano pierwszy trening solo sektora 20 (5/10/15 minut, pauza, historia lokalna), wybór Trening/Zawody oraz wyciszenie i brak podpowiedzi w nowych zawodach. Poziomy, automatyczne odblokowanie gier, pełne profile i AI nie są jeszcze wdrożone. Audyt konkurencji znajduje się w AUDYT-KONKURENCJI-2026-10-17.md. Nie rozpoczynać od zera i nie usuwać obecnych zapisów.
+
+## 17.10.2026 — swobodna gra i zasięg międzynarodowy
+
+- Wejście „Graj bez logowania” pozostaje stałą, równorzędną ścieżką. Sparingi bez konta, e-maila, trenera AI i wymuszonego okresu próbnego. Imiona/pseudonimy służą obsłudze meczu; profil lokalny nie oznacza rejestracji konta.
+- Gracz najpierw poznaje aplikację. Sam wybiera dalszą drogę: tylko sparingi, samodzielny trening albo dobrowolny trener AI. Bez przymusowej rejestracji po określonej liczbie meczów.
+- Konto jest dodatkiem do przenoszenia historii między urządzeniami; nie jest warunkiem gry. Przyszły pakiet AI nie blokuje podstawowego licznika i sparingów.
+- Gość zachowuje lokalne wyniki. Po rejestracji możliwe świadome dołączenie własnej historii; nie przypisywać kontu wszystkich profili wspólnego tabletu.
+- Cel: wiele języków, docelowo jak najszersza dostępność na świecie. Wybór ręczny i zapamiętanie preferencji, z propozycją języka urządzenia. Brak bariery językowej przy wejściu bez konta.
+- Tłumaczenie obejmuje cały interfejs, zasady, błędy, daty/liczby, dostępność, komunikaty głosowe i odpowiedzi trenera. Dla języków pisanych od prawej do lewej uwzględnić RTL. Nie tłumaczyć imion użytkowników ani zmieniać zasad/punktacji.
+- Język dostępny w wyborze dopiero po uzupełnieniu i sprawdzeniu tłumaczenia całego przepływu. Nie udawać „każdego języka” listą flag lub częściowym tłumaczeniem ekranu głównego. Obecny interfejs pozostaje polski; pełna wielojęzyczność to kolejny etap implementacji.
+- Docelowa architektura: katalogi komunikatów zamiast tekstów w rendererach, jawny język sesji UI, oddzielny język lektora/AI, bez sieci do podstawowych tłumaczeń. Najpierw pełne PL/EN, potem kolejne katalogi — propozycja kolejności technicznej, nie ograniczenie zasięgu.

@@ -43,3 +43,7 @@ To nie są jeszcze konta z uwierzytelnieniem. Profile na wspólnym tablecie są 
 5. QA na dwóch kontach i dwóch urządzeniach, eksport i obsługa usuwania własnego konta/danych. Publikacja osobno za zgodą.
 
 Źródła: https://supabase.com/docs/guides/auth/auth-email-passwordless oraz https://supabase.com/docs/guides/platform/billing-on-supabase . Wycena konkretnego projektu pochodzi z konektora, nie z ogólnego cennika.
+
+## Uzupełnienie: logowanie nigdy nie blokuje gry
+
+Decyzja użytkownika: stale dostępne sparingi bez logowania; gracz sam wybiera korzystanie z trenera AI lub tylko z licznika do gry. Konto/synchronizacja opcjonalne. Nie wprowadzać obowiązkowego e-maila ani automatycznej rejestracji wszystkich uczestników meczu. Przejście gość → konto ma zachować własną historię, z jawnym wyborem profilu. Wielojęzyczność obejmuje też rejestrację i informację o danych. Szczegóły w KIERUNEK-ROZWOJU.md.
