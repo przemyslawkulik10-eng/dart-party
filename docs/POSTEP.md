@@ -415,3 +415,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-17 — duży przycisk PUDŁO
 - Po zrzucie użytkownika PUDŁO / 0 zajmuje osobny rząd na pełną szerokość klawiatury, minimum 76 px wysokości, napis 22–30 px. BULL 25 i 50 pozostają obok siebie w poprzednim rzędzie. Dotyczy Cricket i X01, pomarańczowy kolor zachowany.
 - Build i diff-check PASS. Zmiana CSS, bez ingerencji w bieżące wyniki. Układ na urządzeniu do potwierdzenia po odświeżeniu. Lokalny main.
+
+## 2026-10-17 — wyraźna kolumna aktywnego gracza
+- Cała aktywna kolumna Cricket (nagłówek i wszystkie pola do BULL) otrzymała stonowane zielone tło, jasne napisy i pionowe krawędzie. Nagłówek nieco jaśniejszy; zamknięcia jasną zielenią. Bez migania i jaskrawego wypełnienia.
+- Zmiana CSS; build i diff-check PASS. Czytelność z dystansu do oceny przez użytkownika na jego ekranie. Bieżący mecz bez zmian, lokalny main.
