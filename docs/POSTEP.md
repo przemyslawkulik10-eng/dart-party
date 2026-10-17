@@ -343,3 +343,10 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-17 — trzy graficzne lotki przy ostatniej kolejce
 - Po prawej stronie rozwijanej historii dodano własne ikony SVG lotek z podpisami zapisanych trafień. Liczba ikon odpowiada zapisanym lotkom (3 dla pełnej kolejki). Responsywne zawijanie na wąskim ekranie.
 - Składnia, build i diff-check PASS. Wygląd do potwierdzenia po odświeżeniu u użytkownika.
+
+## 2026-10-17 — JDC dla dwóch graczy przy jednej tarczy
+- W formularzu JDC wybór solo / we dwoje i drugie imię. Pojedynek tworzy dwie osobne próby profili powiązane matchId/seat, zapisywane początkowo jednym zapisem localStorage. Dotychczasowe próby solo zostają zachowane.
+- Zmiana gracza po zatwierdzonej trójce; obaj rozgrywają 57 lotek (19 kolejek). Widoczne imię aktywnego gracza i dwa wyniki, lektor ogłasza zmianę. Wznowienie wybiera właściwego gracza na podstawie zapisanych lotek. Cofnięcie usuwa ostatnią zatwierdzoną kolejkę właściwego gracza.
+- Wynik końcowy: zwycięzca lub remis oraz osobne szczegóły obu prób. Tryb wspólny nie jest oficjalnym regulaminem turniejowym JDC. Trwały ranking meczu nie został dodany.
+- 91/91 testów PASS: pełne 38 kolejek, kolejność, JSON/wznowienie, remis/zwycięzca, wybór ostatniego gracza, izolacja solo i zapisów, odrzucenie niepełnej pary. Build, składnia i diff-check PASS.
+- Próba QA Chrome przerwana przez zmianę okna użytkownika: narzędzie zwróciło „The user changed '/Applications/Google Chrome.app'”. Nie potwierdzono nowego formularza ani widoku pojedynku na urządzeniu. Nie wpisano testowych wyników do profili użytkownika. Następny krok: odświeżenie i uruchomienie Przemek kontra Mikołaj przez użytkownika. Bez pusha i publikacji.
