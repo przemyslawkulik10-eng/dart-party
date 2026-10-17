@@ -434,3 +434,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Po zgłoszeniu wchodzenia sobie w kolejkę ekran przekazania kolejki jest modalny i pozostaje aż do dotknięcia przycisku zajmującego cały ekran („Dotknij ekranu — zaczynam rzucać”). Usunięto jego automatyczne znikanie; działa także w zawodach. Escape nie pomija potwierdzenia.
 - Automatyczna zmiana gracza po 3,5 s nadal działa, ale przed wpisywaniem następnych rzutów pokazuje duże imię nowego gracza. Same celebracje zachowują wcześniejsze czasowe zamknięcie. Wersja V 01.02, data/godzina w nagłówku.
 - 106/106 testów PASS, build i diff-check PASS. Potwierdzenie dotykiem w przeglądarce do sprawdzenia przez użytkownika. Lokalny main, bez pusha (wcześniejszy błąd DNS).
+
+## 2026-10-17 — V 01.03: bez ekranu przekazania kolejki
+- Na wyraźne polecenie usunięto pełnoekranowe imię przy zwykłej zmianie gracza. Lektor i dźwięk wykonują się, funkcja wraca przed stworzeniem dialogu. Automatyczna zmiana po kolejce oraz podświetlenie gracza/kolumny pozostają. Celebracje zwycięstwa i specjalnych trafień bez zmian.
+- 106/106 testów PASS, build i diff-check PASS. Otwarty stary dialog znika po odświeżeniu; kod nie zmienia punktów. Wersja V 01.03, aktualna godzina w nagłówku. Lokalny main, bez zdalnej publikacji.

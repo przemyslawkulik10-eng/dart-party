@@ -205,7 +205,7 @@ function announcePlayer(playerName=match.names[replay(match).current], victory=f
   const state=!victory && !contest && match && match.mode!=='cricket'?replay(match):null;
   if(triples)speakThreeTriples(playerName,victory,legOnly);else if(shanghai)speakShanghai(playerName,shanghai.number,shanghai.points,shanghai.cutthroat,shanghai.bust,victory,legOnly);else speakPlayer(playerName,victory,state?state.players[state.current].score:null,legOnly,state?finishAdvice(state):'');
   const handoff=!victory&&!shanghai&&!triples;
-  if(competition()&&!handoff)return;
+  if(handoff||competition())return;
   const name=playerName.toLocaleUpperCase('pl-PL');
   const overlay=document.createElement('dialog');
   overlay.className='player-announcement';
