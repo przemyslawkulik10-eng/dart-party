@@ -298,3 +298,8 @@ body[data-view=game] .cricket-layout .current-panel .cricket-board tr:last-child
 .brand .app-version{flex-basis:100%;margin:0;font-size:11px;letter-spacing:.5px;color:#f4c58c;line-height:1.3}
 body[data-view=game] .number-grid button.most-used-field,body[data-view=game] .special-keys button.most-used-field{background:#ff9f32;color:#251300;border-color:#ffc477}
 body[data-view=game] button.most-used-field:hover:not(:disabled){background:#ffb85c}
+
+/* Green multiplier controls; the selected value remains easy to distinguish. */
+body[data-view=game] .multiplier button{background:#254d3a;color:#eaf7e8;border:1px solid #78a886}
+body[data-view=game] .multiplier button:hover:not(:disabled){background:#376b4c}
+body[data-view=game] .multiplier button.selected{background:#91cf89;color:#102b19;border:2px solid #d4f2c8;box-shadow:inset 0 -3px 0 #417344}

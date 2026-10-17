@@ -438,3 +438,6 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-17 — V 01.03: bez ekranu przekazania kolejki
 - Na wyraźne polecenie usunięto pełnoekranowe imię przy zwykłej zmianie gracza. Lektor i dźwięk wykonują się, funkcja wraca przed stworzeniem dialogu. Automatyczna zmiana po kolejce oraz podświetlenie gracza/kolumny pozostają. Celebracje zwycięstwa i specjalnych trafień bez zmian.
 - 106/106 testów PASS, build i diff-check PASS. Otwarty stary dialog znika po odświeżeniu; kod nie zmienia punktów. Wersja V 01.03, aktualna godzina w nagłówku. Lokalny main, bez zdalnej publikacji.
+
+## 2026-10-17 — V 01.04: zielone mnożniki
+- Przyciski ×1/×2/×3 w grze mają zielone tło. Wybrany mnożnik jasnozielony, z ciemnym napisem i wyraźną ramką. Nie zmieniono obsługi kliknięć ani resetowania ×3. Build i diff-check PASS. Lokalny main, ocena wizualna po odświeżeniu.
