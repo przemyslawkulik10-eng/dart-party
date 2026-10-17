@@ -219,3 +219,10 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Po trzeciej lotce: ekran TRZY POTRÓJNE z imieniem, fanfara i głos „Jeeest! Trzy potrójne! Ale petarda! Brawo…”. Wygrana leg/mecz zachowuje pierwszeństwo i jest dołączona do wypowiedzi. Wyciszenie nadal obowiązuje.
 - 45/45 testów PASS, składnia app.js, build i diff-check PASS. Odsłuch i ekran celebracji po tej zmianie jeszcze nie sprawdzone w Chrome. Użytkownik testuje równolegle, nie dopisywano mu sztucznych rzutów.
 - Przed rozpoczęciem tego testu Chrome pokazywał poprzedni zapis Cricket + dla siebie; nie potwierdzono jeszcze przejścia na punkty przeciwnikom. Poprzedni checkpoint: fb00646. Bez publikacji.
+
+## 2026-10-17 — audyt konkurencji i kierunek trenera
+- Raport: docs/AUDYT-KONKURENCJI-2026-10-17.md. Audyt publicznych źródeł, bez instalacji, zakupów i testów konkurencyjnych aplikacji przy tarczy.
+- Potwierdzono polski produkt AstroDarts, polski interfejs DartsOn, personalizację GoDartsPro i trenera AI z planem tygodnia All-Round. Nie używać tezy o braku konkurencji.
+- Znaleziono oficjalne https://scoliadarts.com/api/ — zdarzenia trafień, XY, kąty i wyjmowanie lotek. Warunki dostępu nieustalone; bez kontaktu z producentem.
+- Wizja użytkownika: profile i historia lotek; TRENING wspierany przez AI, ZAWODY bez komentarza i podpowiedzi; trening tygodniowy na podstawie weekendowych sparingów. To plan produktu, nie wykonane funkcje.
+- Nie zmieniono kodu. Poprzedni commit celebracji: 11be6ee. QA przy tarczy i wcześniejsze QA 301 pozostają otwarte.
