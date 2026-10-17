@@ -1,3 +1,4 @@
+import {APP_VERSION,APP_UPDATED,mostUsedField} from './interface-info.js';
 import {mountCyferki} from './cyferki-ui.js';
 import {rulesPanel} from './game-rules.js';
 import {mountPlayers} from './players-ui.js';
@@ -11,6 +12,7 @@ import { loadMatches, saveMatch } from './storage.js';
 import { syncCloud, onCloudStatus, cloudEnabled } from './cloud.js';
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const versionLabel=document.createElement('small');versionLabel.className='app-version';versionLabel.textContent=`${APP_VERSION} · ${APP_UPDATED}`;$('.brand').append(versionLabel);
 let names = [...DEFAULT_PLAYERS];
 let mode = '501';
 let doubleOut = true;
@@ -173,6 +175,8 @@ function renderGame() {
   document.querySelectorAll('[data-mult]').forEach(b=>b.onclick=()=>{multiplier=Number(b.dataset.mult);renderGame();});
   document.querySelectorAll('[data-hit]').forEach(b=>b.onclick=()=>hit(Number(b.dataset.hit),multiplier));
   document.querySelectorAll('[data-special]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.special);hit(n===50?25:n,n===50?2:1);});
+  const frequent=mostUsedField(match.events);
+  if(frequent!==null){const button=$(`[data-hit="${frequent}"], [data-special="${frequent}"]`);if(button){button.classList.add('most-used-field');button.title='Najczęściej wybierane pole w tym meczu';}}
   if($('#speak-checkout'))$('#speak-checkout').onclick=()=>speakCheckout(finishAdvice(state));
   if($('#undo'))$('#undo').onclick=()=>update(undoDart(match));
   if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));announcePlayer();}catch(e){toast(e.message);}};

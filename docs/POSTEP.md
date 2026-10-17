@@ -424,3 +424,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Kursor na urządzeniach z myszą: pomarańczowa strzałka SVG 48×60 z ciemnym obrysem i jasnym akcentem, hotspot na grocie. Pola tekstowe zachowują kursor tekstowy.
 - Jednorazowy doping dla aktywnego Maćka po wczytaniu aktualizacji: „Maciek, daj czadu!” i 2,8 s kolorowych rozbłysków. Bez zmiany wyniku, pointer-events:none, bez migania; reduced-motion usuwa ruch. Znacznik sessionStorage ogranicza efekt do jednego razu w karcie.
 - Składnia, build i diff-check PASS. Wizualna ocena na urządzeniu użytkownika pozostaje po odświeżeniu. Lokalny main; bez zdalnej publikacji.
+
+## 2026-10-17 — V 01.01 i najczęściej wybierane pole
+- Numer wersji wskazany przez użytkownika: V 01.01. W nagłówku przy logo widoczna data 17.10.2026 i godzina aktualizacji 20:47, pochodzące z modułu załadowanego kodu.
+- Najczęściej zapisane pole meczu X01/Cricket wyróżnione pomarańczowo. Każda lotka to jeden wybór, niezależnie od mnożnika; przy remisie wygrywa ostatnio wybrane pole. BULL 25/50 osobno, pudło jako 0. Przeliczenie z historii uwzględnia cofanie. Pomarańczowe PUDŁO pozostaje stałe zgodnie z wcześniejszą prośbą.
+- 106/106 testów PASS, build i diff-check PASS. Test liczenia, remisów, undo, pustego meczu, BULL i pudła. Wizualny układ wersji do potwierdzenia na urządzeniu. Lokalny main, bez pusha z powodu wcześniejszego błędu DNS.
