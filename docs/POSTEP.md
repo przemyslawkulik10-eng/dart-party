@@ -207,3 +207,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Dodano przycisk INNA GRA obok ZAPISANE MECZE w górnym pasku. Otwiera wybór gier, bez kasowania zapisanych meczów. Na ekranie ustawień nie resetuje edytowanego formularza. Build i diff-check PASS.
 - Potwierdzono przycisk w Chrome po odświeżeniu. Użytkownik równolegle zmienił grę; po poleceniu CRICKET NA 2 GRACZY odczytano już aktywny Cricket: MACIEK i PRZEMEK, obaj 0, runda 1, teraz MACIEK, punktacja + dla siebie. Agent nie tworzył dodatkowego meczu ani nie zmieniał rzutów.
 - Widoczna obecna zasada domowa: 20 zablokowana do dwóch różnych potrójnych 15–19. Zachowano konfigurację. Dalsze QA 301 pozostaje otwarte; nie ogłaszać całej przebudowy zakończoną.
+
+## 2026-10-17 — Cricket: środkowe pola i punkty przeciwnikom
+- Dla dwóch graczy kolumny: pierwszy gracz | POLE | drugi gracz. Numery 20–15 i BULL w środku, pomarańczowe #ffa447. Większe składy zachowują pole po lewej. Układ dwóch graczy potwierdzono wcześniej w Chrome; kolor zmieniony później.
+- Użytkownik określił wariant: wszystkie pola zamknięte i najmniejszy wynik; nadmiarowe trafienia dopisują punkty przeciwnikom. Istniejący cutthroat realizuje tę regułę. Ustawiono go domyślnie w formularzu nowych gier i poprawiono etykiety. Zapisane mecze zachowują swoją punktację, bez przeliczania historii.
+- Poprzedni checkpoint nawigacji: 6973a86. Pełne QA 301 i publikacja nadal otwarte.
+- Weryfikacja: 44/44 testy PASS (w tym dopisywanie rywalom, zamknięte pola, najniższy wynik, undo i zapis), build PASS, diff-check PASS. Bez publikacji.
