@@ -411,3 +411,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Korekta użytkownika na przykładzie Maćka (zamknięte 15 i 17): blokada 20 sprawdza teraz dwa zamknięte pola 15–19, a nie dwie różne potrójne. Zmieniono warunek w silniku i UI oraz opisy zasad. Dotyczy każdego gracza osobno. Undo wylicza blokadę ponownie z marks.
 - Zachowano zapisane cricketOpening='two-triples' jako klucz kompatybilności istniejącego meczu; nowe znaczenie zgodne z korektą. Dawne poprawne zdarzenia nadal są poprawne (złagodzenie warunku), zapisów nie kasowano ani nie zmieniano rzutów. openingTriples pozostaje historycznym licznikiem, nie steruje blokadą.
 - 105/105 testów PASS, build i diff-check PASS; test zamknięcia pojedynczymi potwierdza odblokowanie 20. Po odświeżeniu bieżącego meczu 20 Maćka będzie dostępna przy dwóch zamkniętych polach i pozostałej lotce. Lokalny main; publikacja zdalna nadal zablokowana wcześniejszym DNS.
+
+## 2026-10-17 — duży przycisk PUDŁO
+- Po zrzucie użytkownika PUDŁO / 0 zajmuje osobny rząd na pełną szerokość klawiatury, minimum 76 px wysokości, napis 22–30 px. BULL 25 i 50 pozostają obok siebie w poprzednim rzędzie. Dotyczy Cricket i X01, pomarańczowy kolor zachowany.
+- Build i diff-check PASS. Zmiana CSS, bez ingerencji w bieżące wyniki. Układ na urządzeniu do potwierdzenia po odświeżeniu. Lokalny main.
