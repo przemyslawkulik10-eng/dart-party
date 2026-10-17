@@ -1,3 +1,4 @@
+import {ensureProfiles} from './profiles.js';
 import { mountTraining } from './training-ui.js';
 import { CHECKOUT_HINT_THRESHOLD, checkout, checkoutLabel, checkoutAdvice } from './checkout.js';
 import { playSound, soundEnabled, toggleSound, speakPlayer, speakTurn, speakShanghai, speakThreeTriples, speakCheckout } from './sound.js';
@@ -77,7 +78,8 @@ function saveContest() {
 }
 function beginContest(players, gameMode, out, scoring='standard', opening='standard', targetLegs=1, sessionType='competition') {
   const valid=createMatch(players,gameMode,out,scoring,opening,targetLegs);
-  contest={sessionType,names:valid.names,mode:valid.mode,doubleOut:valid.doubleOut,cricketScoring:valid.cricketScoring,cricketOpening:valid.cricketOpening,legsToWin:valid.legsToWin,throws:[]};
+  const profiles=ensureProfiles(valid.names);
+  contest={sessionType,profileIds:profiles.map(p=>p.id),names:valid.names,mode:valid.mode,doubleOut:valid.doubleOut,cricketScoring:valid.cricketScoring,cricketOpening:valid.cricketOpening,legsToWin:valid.legsToWin,throws:[]};
   match=null;saveContest();renderContest();announcePlayer(contest.names[0]);
 }
 function renderContest() {
@@ -96,6 +98,7 @@ function renderContest() {
   $('#cancel-contest').onclick=()=>{names=contest.names;mode=contest.mode;doubleOut=contest.doubleOut;cricketScoring=contest.cricketScoring||'standard';cricketOpening=contest.cricketOpening||'standard';legsToWin=contest.legsToWin||1;contest=null;saveContest();renderSetup();};
   if(won)$('#start-match').onclick=()=>{
     const next=createMatch([contest.names[s.winner],...contest.names.filter((_,i)=>i!==s.winner)],contest.mode,contest.doubleOut,contest.cricketScoring,contest.cricketOpening,contest.legsToWin);
+    if(contest.profileIds)next.profileIds=[contest.profileIds[s.winner],...contest.profileIds.filter((_,i)=>i!==s.winner)];
     next.sessionType=contest.sessionType;contest=null;saveContest();update(next);
   };
 }

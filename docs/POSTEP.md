@@ -245,3 +245,11 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - W formularzu i podczas treningu dodano checkbox „Wirtualny trener — chcę wskazówki”, domyślnie wyłączony. Bez zaznaczenia zostają cel ćwiczenia, wyniki i zapis; brak porad po rzucie. Można zmieniać wybór w trakcie sesji, jest zapisywany z treningiem. Starsze sesje bez flagi pozostają bez trenera.
 - Włączony trener pokazuje podstawowe wskazówki dla sektora 20 i podsumowanie ostatnich 3 lotek. UI jawnie informuje, że AI będzie dostępne później; nie podłączono modelu ani usług zewnętrznych.
 - 50/50 testów PASS, build, syntax i diff-check PASS. Nowy test: opt-in, stare zapisy, wyłączenie, seria 2/3 i JSON. Nie przeprowadzono jeszcze wizualnego QA nowego checkboxa. Bez publikacji.
+
+## 2026-10-17 — fundament profili/AI i potwierdzenie oddzielenia hobby
+- Lokalne profile UUID, przypisanie nowych treningów i meczów, agregacja statystyk bez nazw i adapter OpenAI. Szczegóły i uruchomienie: docs/ARCHITEKTURA-AI.md.
+- Backend wyłącznie lokalny, klucz po stronie serwera; brak publicznego API, kont i synchronizacji profili. Nie wykonano rzeczywistego wywołania AI ani QA nowego UI. Potrzebna konfiguracja klucza/modelu i restart dotychczasowego serwera przed zapisaniem sekretów.
+- Użytkownik zatwierdził osobne projekty na obecnych kontach oraz przyszłą opcjonalną subskrypcję produktu. Nie tworzyć nowych kont tylko dla hobby.
+- Read-only konektory potwierdziły osobne repo GitHub i projekt Vercel. Supabase pokazuje tylko Magazyn; nie podłączono do niego gry. Tworzenie dedykowanej bazy i koszt pozostają nierozstrzygnięte. Bez pusha, publikacji, migracji i zakupów.
+- Użytkownik wskazał DJC jako najważniejszą grę przygotowującą do zawodów. Skrót i zasady wymagają doprecyzowania; nie implementować domysłu.
+- Weryfikacja końcowa: 57/57 testów PASS, build PASS, diff-check PASS, parser configure-ai.py PASS. Transport AI w testach jest atrapą; brak potwierdzenia działania usługi na żywo.

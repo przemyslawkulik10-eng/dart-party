@@ -1,3 +1,4 @@
+import {validProfileId} from './profiles.js';
 import { validDart } from './engine.js';
 export const TRAINING_KEY='dart-party-training-v1';
 export function createTraining(name,minutes=15,now=Date.now(),coachEnabled=false){
@@ -29,6 +30,7 @@ export function trainingStats(s){
   return {throws:s.darts.length,hits,accuracy:s.darts.length?Math.round(hits/s.darts.length*100):null};
 }
 export function validateTraining(s){
+  if(s?.profileId!==undefined&&!validProfileId(s.profileId))throw new Error('Nieprawidłowy profil treningu.');
   if(s?.coachEnabled!==undefined && typeof s.coachEnabled!=='boolean')throw new Error('Nieprawidłowe ustawienie trenera.');
   if(!s || s.version!==1 || typeof s.id!=='string' || typeof s.name!=='string' || !s.name.trim() || s.name.length>24 || s.target!==20 || ![300000,600000,900000].includes(s.durationMs) || !Number.isFinite(s.remainingMs) || s.remainingMs<0 || s.remainingMs>s.durationMs || !Number.isFinite(s.createdAt) || !(s.runningSince===null||Number.isFinite(s.runningSince)) || !(s.endedAt===null||Number.isFinite(s.endedAt)) || !Array.isArray(s.darts) || s.darts.some(d=>!validDart(d)||d.target!==20||!Number.isFinite(d.at)))throw new Error('Nie można odczytać treningów.');
   return s;

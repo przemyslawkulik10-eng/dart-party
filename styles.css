@@ -221,3 +221,5 @@ body[data-view=game] #app.cricket-game .player-card.active{background:#ffa447;bo
 body[data-view=game] #app.cricket-game .player-card.active .muted{color:#482b12}
 
 .training-coach{margin:24px 0;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.training-coach .switch{font-size:18px;font-weight:700}.training-coach p{margin-top:8px}.training-coach input{flex-shrink:0}.training-coach-advice{padding:18px;border-left:4px solid #ffa447;background:var(--panel2);font-size:18px;line-height:1.6;margin-bottom:16px}
+
+.training-ai{margin:18px 0}.training-ai>p{margin:10px 0}.training-ai #coach-response{margin-top:16px}

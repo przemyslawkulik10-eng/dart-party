@@ -1,3 +1,4 @@
+import {validProfileId} from './profiles.js';
 export const DEFAULT_PLAYERS = ['MACIEK', 'PRZEMEK', 'MANIEK', 'DAWID', 'JAREK', 'BEKO'];
 export const TARGETS = [20, 19, 18, 17, 16, 15, 25];
 export const MODES = ['501', '301', '201', 'cricket'];
@@ -109,6 +110,7 @@ export function undoDart(match) {
 }
 export function validateMatch(match) {
   if (!match || match.version !== 1 || typeof match.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(match.id) || !MODES.includes(match.mode) || !Array.isArray(match.names) || match.names.length < 2 || match.names.length > 6 || match.names.some(n => typeof n !== 'string' || !n.trim() || n.length > 24) || new Set(match.names.map(n => n.toUpperCase())).size !== match.names.length || typeof match.doubleOut !== 'boolean' || !Array.isArray(match.events) || match.events.length > 20000 || !Number.isFinite(Date.parse(match.updatedAt)) || !Number.isFinite(Date.parse(match.createdAt))) throw new Error('Nieprawidłowy plik meczu.');
+  if(match.profileIds!==undefined && (!Array.isArray(match.profileIds)||match.profileIds.length!==match.names.length||match.profileIds.some(id=>!validProfileId(id))||new Set(match.profileIds).size!==match.profileIds.length))throw new Error('Nieprawidłowe profile meczu.');
   if(match.sessionType!==undefined && match.sessionType!=='competition')throw new Error('Nieprawidłowy rodzaj sesji.');
   if(match.legsToWin!==undefined && ![1,2,3].includes(match.legsToWin))throw new Error('Nieprawidłowa liczba legów.');
   if(match.cricketOpening!==undefined && !['standard','two-triples'].includes(match.cricketOpening))throw new Error('Nieprawidłowa zasada otwarcia Cricket.');
