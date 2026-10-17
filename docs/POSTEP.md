@@ -162,3 +162,19 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Celebracja zastępuje formalny odczyt wyniku, zamiast być doklejana do niego. Podpowiedź pozostaje na końcu. Tempo celebracji 1.02, pitch 1.12; inne zapowiedzi zachowane. Zmieniono melodię czterotonowej fanfary 100+.
 - Po ostatnich zmianach npm test = 44/44 PASS, npm run build = PASS, git diff --check = PASS. Test celebracji sprawdza nowe teksty i tempo. Brzmienie nowej wersji wymaga odsłuchu użytkownika po odświeżeniu.
 - Nadal do wykonania: pełne QA 2 graczy/długich imion, aktualizacja historycznego tests/turn-speech-browser.cjs, publikacja przez Git/Vercel i weryfikacja zdalnego commitu. Dostęp Git z agenta nadal ostatnio blokował DNS; bez obchodzenia blokady. Nie uznawać lokalnego QA za publikację.
+- Checkpoint kodu zapisany lokalnie w commicie `379c7b6` na własnej gałęzi `codex/checkout-ui-20261017`. Main nie zmieniony, bez pusha. Ten dopisek po commicie pozostaje w drzewie roboczym; dalsze zadania opisane powyżej.
+
+## 2026-10-17 — użytkownik nie słyszał nowej celebracji
+- Potwierdzono nowy tekst Jeeest w src/sound.js i dist/src/sound.js. Otwarta karta była lokalna 127.0.0.1:4173 w incognito.
+- Wykonano twarde odświeżenie Chrome i Wznów mecz. Zachowana testowa kolejka Mańka: T20, 20, 20 = 100, pozostaje 201.
+- Cofnięto i powtórzono ostatnie pojedyncze 20 w testowym meczu, aby ponownie wywołać celebrację. Końcowy wynik odtworzony: MANIEK 201 / 100 w kolejce. Chrome pokazał odtwarzanie dźwięku. Dokładna słyszalna treść i jakość głosu wymagają potwierdzenia użytkownika; nie ustalono jednoznacznie przyczyny wcześniejszego braku zmiany.
+
+## 2026-10-17 — zgłoszenie 180 odczytanego jako 100
+- Odczyt bieżącej testowej karty Chrome: JAREK, LOTKA 1 T20, LOTKA 2 20, LOTKA 3 20; suma wyświetlana 100.
+- Przyczyna potwierdzona w src/app.js: update(next) resetuje multiplier=1 po każdym rzucie. Jednorazowe wybranie x3 i trzykrotne 20 daje 60+20+20, nie 180. src/sound.js rozróżnia osobno 100 i 180.
+- Nie zmieniano punktacji, zapisanych rzutów ani zachowania mnożnika. Do wpisania 180 w aktualnym UI trzeba wybierać x3 przed każdą z trzech dwudziestek. Ewentualne utrzymywanie mnożnika przez kolejkę wymaga uzgodnienia z użytkownikiem.
+
+## 2026-10-17 — utrzymanie mnożnika przez kolejkę (zaakceptowane)
+- Użytkownik potwierdził: x3 pozostaje aktywne do ręcznej zmiany lub końca kolejki. update(next) zachowuje mnożnik, jeśli id meczu, gracz, runda i leg pozostają takie same; zmiana kolejki/lega/meczu resetuje x1. Cofanie w tej samej kolejce zachowuje wybór, przekroczenie granicy kolejki resetuje. Wznowienie po przeładowaniu nadal zaczyna od x1.
+- Natywny test Chrome w incognito po twardym odświeżeniu: BEKO, jeden wybór x3 i trzy kliknięcia 20 = T20/T20/T20, KOLEJKA ZAKOŃCZONA 180 PKT W KOLEJCE. Następnie MACIEK: puste trzy lotki i aktywne x1 (x2/x3 nieaktywne). PASS.
+- npm test 44/44 PASS, npm run build PASS, git diff --check PASS. Zmiana dotyczy wejścia UI; nie przelicza wcześniejszych zapisów. Brak publikacji; wcześniejsze zadania QA/publikacji pozostają otwarte.

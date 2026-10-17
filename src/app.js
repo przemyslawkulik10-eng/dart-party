@@ -28,7 +28,12 @@ function persist(next) {
   catch { storageError = true; $('#save-status').textContent = 'Błąd zapisu — pobierz kopię'; toast('Brak zapisu na tablecie. Pobierz kopię meczu w „Zapisane mecze”.'); }
   if (!storageError) { clearTimeout(syncingTimer); syncingTimer = setTimeout(syncCloud, 500); }
 }
-function update(next) { match = next; multiplier = 1; persist(match); renderGame(); }
+function update(next) {
+  const before=match?replay(match):null, after=replay(next);
+  const sameTurn=match?.id===next.id && before && before.current===after.current && before.round===after.round && before.leg===after.leg;
+  if(!sameTurn)multiplier=1;
+  match=next;persist(match);renderGame();
+}
 function openModal(title, content) { $('#modal-content').innerHTML = `<div class="modal-heading"><h2>${title}</h2><button data-close aria-label="Zamknij">×</button></div>${content}`; if (!modal.open) modal.showModal(); $('[data-close]').onclick = () => modal.close(); }
 function readNames() { names = [...document.querySelectorAll('[data-player-name]')].map(el => el.value); }
 function renderSetup() {
