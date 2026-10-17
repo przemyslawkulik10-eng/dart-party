@@ -204,15 +204,17 @@ function announcePlayer(playerName=match.names[replay(match).current], victory=f
   playSound(triples?'maximum':shanghai?'shanghai':victory?'win':'turn');
   const state=!victory && !contest && match && match.mode!=='cricket'?replay(match):null;
   if(triples)speakThreeTriples(playerName,victory,legOnly);else if(shanghai)speakShanghai(playerName,shanghai.number,shanghai.points,shanghai.cutthroat,shanghai.bust,victory,legOnly);else speakPlayer(playerName,victory,state?state.players[state.current].score:null,legOnly,state?finishAdvice(state):'');
-  if(competition())return;
+  const handoff=!victory&&!shanghai&&!triples;
+  if(competition()&&!handoff)return;
   const name=playerName.toLocaleUpperCase('pl-PL');
   const overlay=document.createElement('dialog');
   overlay.className='player-announcement';
   overlay.setAttribute('aria-label',`${victory?'Wygrywa':'Teraz rzuca'} ${name}`);
-  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — ${victory?'zwycięzca meczu':'zaczynam rzucać'}"><span class="announcement-label">${triples?'TRZY POTRÓJNE!' :shanghai?'SZANGHAJ!':legOnly?'WYGRYWA LEG!':victory?'WYGRYWA!':'TERAZ RZUCA'}</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">${triples?`ALE PETARDA! BRAWO!${victory?(legOnly?' · WYGRANY LEG!':' · ZWYCIĘSTWO!'):''}`:shanghai?`POJEDYNCZA · PODWÓJNA · POTRÓJNA ${shanghai.number}${victory?' · WYGRYWA!':''}`:victory?(legOnly?'BRAWO! ZA CHWILĘ NASTĘPNY LEG':'BRAWO! ZA CHWILĘ WYNIK MECZU'):'ZA CHWILĘ TWOJA KOLEJ →'}</span></button>`;
+  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — ${victory?'zwycięzca meczu':'zaczynam rzucać'}"><span class="announcement-label">${triples?'TRZY POTRÓJNE!' :shanghai?'SZANGHAJ!':legOnly?'WYGRYWA LEG!':victory?'WYGRYWA!':'TERAZ RZUCA'}</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">${triples?`ALE PETARDA! BRAWO!${victory?(legOnly?' · WYGRANY LEG!':' · ZWYCIĘSTWO!'):''}`:shanghai?`POJEDYNCZA · PODWÓJNA · POTRÓJNA ${shanghai.number}${victory?' · WYGRYWA!':''}`:victory?(legOnly?'BRAWO! ZA CHWILĘ NASTĘPNY LEG':'BRAWO! ZA CHWILĘ WYNIK MECZU'):'DOTKNIJ EKRANU — ZACZYNAM RZUCAĆ'}</span></button>`;
   document.body.append(overlay);
   let dismissTimer;
   overlay.addEventListener('close',()=>{clearTimeout(dismissTimer);window.removeEventListener('resize',fitName);overlay.remove();});
+  if(handoff)overlay.addEventListener('cancel',event=>event.preventDefault());
   overlay.querySelector('button').onclick=()=>overlay.close();
   overlay.showModal();
   const title=overlay.querySelector('.announcement-name');
@@ -222,7 +224,7 @@ function announcePlayer(playerName=match.names[replay(match).current], victory=f
   while(title.scrollWidth>title.clientWidth && size>24){size-=2;title.style.fontSize=`${size}px`;}
   }
   fitName();window.addEventListener('resize',fitName);
-  dismissTimer=setTimeout(()=>{if(overlay.open)overlay.close();},3000);
+  if(!handoff)dismissTimer=setTimeout(()=>{if(overlay.open)overlay.close();},3000);
 }
 function hit(n,m) {
   try {

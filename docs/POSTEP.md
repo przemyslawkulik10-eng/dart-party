@@ -429,3 +429,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Numer wersji wskazany przez użytkownika: V 01.01. W nagłówku przy logo widoczna data 17.10.2026 i godzina aktualizacji 20:47, pochodzące z modułu załadowanego kodu.
 - Najczęściej zapisane pole meczu X01/Cricket wyróżnione pomarańczowo. Każda lotka to jeden wybór, niezależnie od mnożnika; przy remisie wygrywa ostatnio wybrane pole. BULL 25/50 osobno, pudło jako 0. Przeliczenie z historii uwzględnia cofanie. Pomarańczowe PUDŁO pozostaje stałe zgodnie z wcześniejszą prośbą.
 - 106/106 testów PASS, build i diff-check PASS. Test liczenia, remisów, undo, pustego meczu, BULL i pudła. Wizualny układ wersji do potwierdzenia na urządzeniu. Lokalny main, bez pusha z powodu wcześniejszego błędu DNS.
+
+## 2026-10-17 — V 01.02: imię do dotknięcia
+- Po zgłoszeniu wchodzenia sobie w kolejkę ekran przekazania kolejki jest modalny i pozostaje aż do dotknięcia przycisku zajmującego cały ekran („Dotknij ekranu — zaczynam rzucać”). Usunięto jego automatyczne znikanie; działa także w zawodach. Escape nie pomija potwierdzenia.
+- Automatyczna zmiana gracza po 3,5 s nadal działa, ale przed wpisywaniem następnych rzutów pokazuje duże imię nowego gracza. Same celebracje zachowują wcześniejsze czasowe zamknięcie. Wersja V 01.02, data/godzina w nagłówku.
+- 106/106 testów PASS, build i diff-check PASS. Potwierdzenie dotykiem w przeglądarce do sprawdzenia przez użytkownika. Lokalny main, bez pusha (wcześniejszy błąd DNS).
