@@ -268,3 +268,7 @@ body[data-view=game] #app.x01-game .player-score{display:flex;align-items:center
 .player-checkout{display:flex;flex-direction:column;gap:5px;max-width:190px;font-size:clamp(14px,1.35vw,23px);line-height:1.25;letter-spacing:0;color:#4ff0cf;white-space:normal}
 .player-checkout-title{font-size:10px;line-height:1.3;letter-spacing:.5px;color:#bacfe5}
 .player-card.active .player-checkout,.player-card.active .player-checkout-title{color:#052d48}
+
+/* Clearly distinguish a missed dart from the scoring buttons. */
+.special-keys button[data-special="0"]{background:#ff9f32;color:#251300;border-color:#ffc477;font-weight:800}
+.special-keys button[data-special="0"]:hover:not(:disabled){background:#ffb85c}

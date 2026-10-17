@@ -403,3 +403,6 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 
 ## 2026-10-17 — nazwa podpowiedzi „Do końca”
 - Zgodnie z poleceniem „Zejście” zmieniono na „Do końca” na kartach i w lektorze. Brak możliwej trasy: „Nie skończysz w …”. Bez zmiany liczenia tras. 105/105 testów PASS, build i diff-check PASS. Lokalny main; wcześniejsza blokada DNS publikacji pozostaje.
+
+## 2026-10-17 — pomarańczowe PUDŁO
+- Przycisk PUDŁO / 0 w X01 i Cricket ma pomarańczowe tło i ciemny napis, z jaśniejszym hover. Zachowano blokadę po skończonej kolejce. Build i diff-check PASS; zmiana wyłącznie CSS, bez zmian wyników. Lokalny main, bez publikacji zdalnej.
