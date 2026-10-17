@@ -380,3 +380,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 
 ## 2026-10-17 — powrót z potrójnej na pojedynczą
 - Po prawidłowym wpisaniu lotki ×3 klawiatura X01/Cricket automatycznie wybiera ×1 przed ponownym renderem. Zapisana lotka nadal ma mnożnik ×3. Nie zmieniono zachowania ×2. Build i diff-check PASS; kliknięcie na urządzeniu do sprawdzenia podczas gry.
+
+## 2026-10-17 — 301: podpowiedzi od 170 także w zawodach
+- Użytkownik zgłosił utrzymujące się ×3 i zażądał podpowiedzi. Test rzeczywistego handlera hit z silnikiem potwierdza reset przed renderem: T20/S3/S17 = 221 pozostałych w 301. Serwer 4174 działa z właściwego katalogu. Nie potwierdzono wersji kodu w otwartej karcie; zalecono pełne odświeżenie bez czyszczenia danych.
+- Usunięto blokadę podpowiedzi checkoutu w zawodach, wizualną i głosową; próg 170 zachowany. Zmieniono nieaktualne napisy „bez podpowiedzi”. Zasady double-out i liczba pozostałych lotek nadal sterują trasą.
+- 102/102 testów PASS, build i diff-check PASS. Nowe testy wykonują rzeczywiste funkcje aplikacji z izolowanymi zależnościami; nie zastępują kliknięcia i odsłuchu w przeglądarce użytkownika. Lokalny main, publikacja zdalna nadal zablokowana DNS.
