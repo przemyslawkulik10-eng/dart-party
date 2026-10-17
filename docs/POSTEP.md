@@ -226,3 +226,13 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Znaleziono oficjalne https://scoliadarts.com/api/ — zdarzenia trafień, XY, kąty i wyjmowanie lotek. Warunki dostępu nieustalone; bez kontaktu z producentem.
 - Wizja użytkownika: profile i historia lotek; TRENING wspierany przez AI, ZAWODY bez komentarza i podpowiedzi; trening tygodniowy na podstawie weekendowych sparingów. To plan produktu, nie wykonane funkcje.
 - Nie zmieniono kodu. Poprzedni commit celebracji: 11be6ee. QA przy tarczy i wcześniejsze QA 301 pozostają otwarte.
+
+## 2026-10-17 — dwa tryby, pierwszy trening solo i aktywna kolumna Cricket
+- Ekran wejścia: TRENING / ZAWODY. TRENING to pierwsze ćwiczenie sektor 20, faktyczny zapis lotek i zamierzonego celu, procent celności, wybór 5/10/15 minut, pauza, cofnięcie, zakończenie i wznowienie po przeładowaniu. Historia lokalna w osobnym kluczu dart-party-training-v1; brak kont, synchronizacji treningu, AI i odblokowywania poziomów na tym etapie.
+- Nowe mecze z ekranu ZAWODY otrzymują sessionType=competition: brak podpowiedzi checkout, mowy, dźwięków rzutów i dialogów celebracji. Stare mecze bez flagi zachowują dotychczasowe zachowanie. Zapis/metadane przechodzą przez JSON i undo.
+- Użytkownik zaproponował pomarańczową kolumnę aktywnego zawodnika. Dodano pomarańczowe imię, symbole i ciemne ciepłe tło aktywnej kolumny. Neutralne cyfry środkowe znów jasne. Zmiana zależy od state.current.
+- Pytanie użytkownika o blokadę 20: odczyt Chrome pokazał Przemek 1/2 różnych potrójnych. Aktywny mecz nadal Cricket + dla siebie, runda 7, Maciek 199 / Przemek 414. Nie przeliczono reguł ani nie dopisano rzutów do tego meczu. Wyjaśniono domową opcję otwarcia.
+- QA: 49/49 testów PASS, build i syntax PASS, diff-check PASS. Nowe testy sprawdzają cel vs trafienie, pauzę/deadline po JSON, blokadę rzutów po końcu, ochronę uszkodzonego zapisu i flagę zawodów.
+- Chrome, osobna karta: utworzono test treningu pod nazwą TEST TRENINGU; 20 -> 1/1 i 100%, następnie 1 -> 1/2 i 50%, undo -> 100%; pauza blokuje keypad; odświeżenie zachowuje 14:47 i 1 lotkę; wznowienie i zakończenie daje zapisany wynik. Sesja TEST TRENINGU pozostaje osobno w historii.
+- Wizualnie potwierdzona pomarańczowa kolumna Przemka w istniejącym meczu, bez zmiany wyników. Nie wykonano jeszcze pełnego UI testu nowych zawodów ani nowej macierzy 2/6 graczy i czterech rozmiarów. Nie ogłaszać pełnego QA.
+- Ustalenia poziomów i krótkich sesji zapisano w docs/KIERUNEK-ROZWOJU.md; progi awansu pozostają do ustalenia. Brak publikacji.
