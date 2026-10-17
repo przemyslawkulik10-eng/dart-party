@@ -89,13 +89,13 @@ function remainingDarts(state) {
   return `<div class="remaining-darts" role="img" aria-label="Pozostałe lotki: ${count}">${[0,1,2].map(i=>`<svg class="remaining-dart ${i<count?'available':'used'}" viewBox="0 0 100 52" aria-hidden="true"><g transform="rotate(156 50 26)"><path d="M7 26 L29 26" stroke="#cdd8d1" stroke-width="2"/><path d="M29 22 L57 22 L61 26 L57 30 L29 30 Z" fill="#dce4df"/><path d="M34 22v8m5-8v8m5-8v8m5-8v8" stroke="#71877b" stroke-width="2"/><path d="M60 26H80" stroke="#4ff0cf" stroke-width="4"/><path d="M70 25L81 12L94 12L86 26L94 40L81 40L70 27" fill="#44cfff"/><path d="M73 26H91" stroke="#14639c" stroke-width="2"/></g></svg>`).join('')}</div>`;
 }
 function finishAdvice(state){
-  if(match.mode==='cricket'||state.legWinner!==null)return '';
-  const preview=state.ready;return checkoutAdvice(state.players[state.current].score,preview?3:3-state.turn.length,match.doubleOut,preview);
+  if(match.mode==='cricket'||state.legWinner!==null||state.ready)return '';
+  return checkoutAdvice(state.players[state.current].score,3-state.turn.length,match.doubleOut);
 }
 function scoreWithCheckout(state){
-  const score=state.players[state.current].score,show=score<=CHECKOUT_HINT_THRESHOLD,left=state.ready?3:3-state.turn.length;
+  const score=state.players[state.current].score,show=!state.ready&&score<=CHECKOUT_HINT_THRESHOLD,left=3-state.turn.length;
   const route=show?checkout(score,left,match.doubleOut):null;
-  return `<div class="score-and-checkout ${show?'has-checkout':''}"><div class="score-value"><div class="giant-score">${score}</div><div class="score-caption">punktów do zwycięstwa</div></div>${show?`<aside class="checkout-panel" aria-label="Podpowiedź zakończenia"><div class="checkout-heading">${state.ready?'NA NASTĘPNĄ KOLEJKĘ':route?'MOŻESZ SKOŃCZYĆ':'PODPOWIEDŹ ZEJŚCIA'}</div><div class="checkout-rule">${match.doubleOut?'DOUBLE OUT':'ZWYKŁE ZAKOŃCZENIE'} · ${left} ${left===1?'LOTKA':'LOTKI'}</div>${route?`<ol class="checkout-route">${route.map(d=>`<li>${checkoutLabel(d)}</li>`).join('')}</ol>`:`<p class="checkout-unavailable">BRAK ZEJŚCIA W ${left} ${left===1?'LOTCE':'LOTKACH'}</p>`}<button id="speak-checkout" class="subtle">🔊 PODPOWIEDŹ</button><div class="checkout-legend">T = POTRÓJNA<br>D = PODWÓJNA<br>S = POJEDYNCZA</div></aside>`:''}</div>`;
+  return `<div class="score-and-checkout ${show?'has-checkout':''}"><div class="score-value"><div class="giant-score">${score}</div><div class="score-caption">punktów do zwycięstwa</div></div>${show?`<aside class="checkout-panel" aria-label="Podpowiedź zakończenia"><div class="checkout-heading">${route?'MOŻESZ SKOŃCZYĆ':'PODPOWIEDŹ ZEJŚCIA'}</div><div class="checkout-rule">${match.doubleOut?'DOUBLE OUT':'ZWYKŁE ZAKOŃCZENIE'} · ${left} ${left===1?'LOTKA':'LOTKI'}</div>${route?`<ol class="checkout-route">${route.map(d=>`<li>${checkoutLabel(d)}</li>`).join('')}</ol>`:`<p class="checkout-unavailable">BRAK ZEJŚCIA W ${left} ${left===1?'LOTCE':'LOTKACH'}</p>`}<button id="speak-checkout" class="subtle">🔊 PODPOWIEDŹ</button><div class="checkout-legend">T = POTRÓJNA<br>D = PODWÓJNA<br>S = POJEDYNCZA</div></aside>`:''}</div>`;
 }
 function renderGame() {
   document.body.dataset.view = "game";

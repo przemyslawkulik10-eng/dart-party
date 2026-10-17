@@ -178,3 +178,11 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Użytkownik potwierdził: x3 pozostaje aktywne do ręcznej zmiany lub końca kolejki. update(next) zachowuje mnożnik, jeśli id meczu, gracz, runda i leg pozostają takie same; zmiana kolejki/lega/meczu resetuje x1. Cofanie w tej samej kolejce zachowuje wybór, przekroczenie granicy kolejki resetuje. Wznowienie po przeładowaniu nadal zaczyna od x1.
 - Natywny test Chrome w incognito po twardym odświeżeniu: BEKO, jeden wybór x3 i trzy kliknięcia 20 = T20/T20/T20, KOLEJKA ZAKOŃCZONA 180 PKT W KOLEJCE. Następnie MACIEK: puste trzy lotki i aktywne x1 (x2/x3 nieaktywne). PASS.
 - npm test 44/44 PASS, npm run build PASS, git diff --check PASS. Zmiana dotyczy wejścia UI; nie przelicza wcześniejszych zapisów. Brak publikacji; wcześniejsze zadania QA/publikacji pozostają otwarte.
+- Poprawka mnożnika zapisana w lokalnym commicie `581c101` na `codex/checkout-ui-20261017`, bez pusha. Ten dopisek aktualizuje checkpoint po commicie.
+
+## 2026-10-17 — podpowiedź przy podejściu do tarczy, nie na końcu kolejki
+- Użytkownik zgłosił, że podpowiedź na końcu jest za wcześnie względem następnego podejścia zawodnika. Usunięto głosową i ekranową podpowiedź po zakończeniu kolejki (również BUST). finishAdvice zwraca pusty tekst dla state.ready; panel pojawia się wyłącznie w aktywnej kolejce przy <=170.
+- Zapowiedź zmiany gracza nadal dołącza finishAdvice dla nowego zawodnika: imię, pozostałe punkty, zejście z 3 lotek. Podczas aktywnej kolejki podpowiedź aktualizuje się po rzutach; przycisk powtórzenia pozostaje.
+- Natywne Chrome po twardym odświeżeniu i wznowieniu: MACIEK 156, zakończona kolejka 14 punktów, panel podpowiedzi nieobecny. Zapis meczu zachowany. W tym etapie nie wykonano pełnego cyklu powrotu do zawodnika ani osobnego odsłuchu nowej zapowiedzi.
+- Zaktualizowano tests/checkout-browser.cjs: brak podpowiedzi po końcowym rzucie, podpowiedź po powrocie zawodnika, powtórzenie głosu i widoki z aktywną podpowiedzią. Zweryfikowano składnię skryptu; samego skryptu Playwright nie uruchamiano.
+- npm test 44/44 PASS; npm run build PASS; git diff --check PASS. Brak publikacji; wcześniejsze otwarte zadania QA nadal obowiązują.
