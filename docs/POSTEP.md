@@ -201,3 +201,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Pytanie o prezentację celu pozostaje bez odpowiedzi: jeden wielki następny cel vs cała sekwencja bez ramki. Nie wdrożono dodatkowej przebudowy układu na podstawie domysłu.
 - Użytkownik zapytał, gdzie inne gry. Otwarto + NOWY MECZ i potwierdzono w Chrome widoczne 501, 301, 201, CRICKET oraz WZNÓW MECZ. Aktualny mecz zachowany. Dalsze nowe gry dopiero po zakończeniu 301, zgodnie z wcześniejszym ustaleniem.
 - Publikacja oraz pełne QA wciąż nieukończone. Przed ogłoszeniem 301 gotowym dokończyć testy legów, podpowiedzi przy zmianie gracza i docelowego układu.
+- Checkpoint `aedfe60` lokalnie, bez pusha; powyższy stan QA pozostaje aktualny. Dopisek po commicie niezacommitowany.
+
+## 2026-10-17 — INNA GRA i Cricket na 2 graczy
+- Dodano przycisk INNA GRA obok ZAPISANE MECZE w górnym pasku. Otwiera wybór gier, bez kasowania zapisanych meczów. Na ekranie ustawień nie resetuje edytowanego formularza. Build i diff-check PASS.
+- Potwierdzono przycisk w Chrome po odświeżeniu. Użytkownik równolegle zmienił grę; po poleceniu CRICKET NA 2 GRACZY odczytano już aktywny Cricket: MACIEK i PRZEMEK, obaj 0, runda 1, teraz MACIEK, punktacja + dla siebie. Agent nie tworzył dodatkowego meczu ani nie zmieniał rzutów.
+- Widoczna obecna zasada domowa: 20 zablokowana do dwóch różnych potrójnych 15–19. Zachowano konfigurację. Dalsze QA 301 pozostaje otwarte; nie ogłaszać całej przebudowy zakończoną.
