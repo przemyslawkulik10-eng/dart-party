@@ -97,3 +97,68 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Usunięto limit szerokości 1360px i puste kolumny wyników: liczba kolumn odpowiada liczbie graczy.
 - 301/501/201 wypełniają dostępną szerokość i wysokość. Wynik główny do290px, przyciski skalują się w wolnej przestrzeni, większe imiona/wyniki/legi. Historia pozostaje w zapisach, dolny pasek nie zajmuje miejsca podczas gry.
 - Test2/6 graczy: 1920x1080,1440x900,1180x820,1024x768,820x1180; brak scrolla, następny gracz w kadrze, scoring/undo PASS. Obejrzano screenshot1920.
+
+
+## 2026-10-17 — wznowienie i przeniesienie katalogu roboczego
+- Aktualny katalog pracy: `/Users/przemyslawkulik/Documents/dart-party`.
+- Za zgodą użytkownika skopiowano całe istniejące repo z `.codex/visualizations/2026/10/16/01a14538-ffcf-76a1-8a49-4fb18c07c1e1/dart-tablet`; źródło pozostawiono jako kopię. Zgodność SHA-256 wszystkich 247 plików potwierdzona przed buildem.
+- Zachowano Git (HEAD `4d35201a14b8852d0e4896b5a0ce70fedc8077e9`) i wszystkie niezacommitowane zmiany podpowiedzi: src/app.js, src/sound.js, styles.css, src/checkout.js, tests/checkout-browser.cjs, tests/checkout.test.mjs.
+- W nowym katalogu: 42/42 testy PASS, build PASS. Usunięta przeszkoda pracy: build w źródłowym katalogu kończył się EPERM przy unlink dist/index.html.
+- Testów przeglądarkowych w tej sesji nie wykonano; rzeczywisty głos na tablecie niesprawdzony. Produkcji ani bazy nie zmieniano. Bez commitu/pusha.
+- Następne: sprawdzić podpowiedzi w przeglądarce (2/6 graczy, długie imiona, rozmiary ze skilla). Wyjaśnić próg 100 punktów: lektor czy mikrofon. Aktualne podpowiedzi mają próg 170 double out / 180 straight out. Mikrofon nadal niezaimplementowany.
+- Nie zmieniać zapisanych meczów ani localStorage użytkownika. Publikacja wymaga wyraźnej zgody.
+
+## 2026-10-17 — próg podpowiedzi potwierdzony: 170
+- Użytkownik doprecyzował „próg od 170”. Ekran i lektor podpowiadają przy 170 punktach lub mniej, zarówno straight out, jak i double out. Wspólna stała CHECKOUT_HINT_THRESHOLD w src/checkout.js.
+- Silnik nadal poprawnie oblicza możliwe zejście 180 straight out; próg ogranicza prezentowanie podpowiedzi, nie zasady gry.
+- 43/43 testy PASS, build PASS. Dodany test granicy głosu 170/171/180 dla obu trybów i podglądu kolejki. Test przeglądarkowy nadal do wykonania.
+- Zmiany lokalne, bez commitu/pusha i publikacji. Mikrofon nadal niezaimplementowany.
+
+## 2026-10-17 — radość za 100+ punktów
+- W X01 po zakończonej kolejce za co najmniej 100 punktów lektor mówi „Ale setka! Brawo! Świetna kolejka!” i gra czterotonowa fanfara. Za 180: „Sto osiemdziesiąt! Maksimum! Ale petarda! Brawo!” i sześć tonów. Żywszy głos.
+- BUST nie uruchamia celebracji, wyciszenie obejmuje głos i fanfarę. Wygrana i Szanghaj zachowują własne komunikaty z pierwszeństwem. Cricket bez nowego progu (suma dopisana wielu rywalom nie odpowiada wynikowi X01). Podpowiedź zejścia pozostaje w tej samej wypowiedzi po okrzyku.
+- Testy 44/44 PASS, build PASS, git diff --check PASS. Test dźwięku sprawdza żądania syntezy i liczbę tonów; odsłuch na urządzeniu i QA przeglądarkowe niewykonane. Lokalny serwer wcześniej zablokowany EPERM listen 127.0.0.1:4173.
+- Bez publikacji i commitu. Następne: uruchomienie lokalne po stronie użytkownika i odsłuch; test turn-speech-browser.cjs ma historyczne oczekiwania sprzed podpowiedzi i wymaga aktualizacji przed uruchomieniem.
+
+## 2026-10-17 — publikacja autoryzowana, zatrzymana przez DNS
+- Użytkownik odpowiedział TAK na publikację; zakres: lokalne podpowiedzi od 170 i celebracja 100+/180.
+- Sprawdzenie zdalnego main przez git ls-remote origin refs/heads/main zakończone kodem 128: Could not resolve host: github.com. Zgodnie z zasadą STOP nie obchodzono blokady.
+- Nie wykonano commitu, pusha ani wdrożenia. Produkcja pozostaje niezweryfikowana. Lokalnie ostatnie testy 44/44 i build PASS.
+- Następne: po przywróceniu dostępu sprawdzić zdalny main, dokończyć QA przeglądarkowe, commit i push przez istniejącą integrację Git/Vercel, potwierdzić wdrożony commit i działanie strony.
+
+## 2026-10-17 — ponowna próba wznowienia publikacji
+- Użytkownik ponownie potwierdził wznowienie sprawdzenia i publikacji podpowiedzi od 170 oraz celebracji 100+/180.
+- Odczyt `git ls-remote origin refs/heads/main` ponownie zakończył się kodem 128: `fatal: unable to access 'https://github.com/przemyslawkulik10-eng/dart-party.git/': Could not resolve host: github.com`.
+- STOP zgodnie z zasadą użytkownika; bez obejść, commitu, pusha i wdrożenia. Testów w tej próbie nie uruchamiano. Zmiany aplikacji pozostawione bez modyfikacji.
+- Punkt wznowienia: po przywróceniu DNS sprawdzić zdalny main, zweryfikować lokalne zmiany i dokończyć QA, następnie publikować w zaakceptowanym zakresie przez istniejącą integrację Git/Vercel i potwierdzić wdrożenie.
+
+## 2026-10-17 — GitHub dostępny w przeglądarce według użytkownika
+- Po potwierdzeniu użytkownika ponowiono wyłącznie `git ls-remote origin refs/heads/main`.
+- Środowisko agenta nadal zwraca kod 128: `Could not resolve host: github.com`. Dostęp przeglądarkowy nie potwierdza dostępu Git w tym środowisku.
+- Bez commitu, pusha, wdrożenia i nowych testów. Następny krok diagnostyczny: uruchomić to samo polecenie w Terminalu użytkownika; nie obchodzić blokady środowiska agenta.
+
+## 2026-10-17 — zdalny HEAD potwierdzony przez Terminal użytkownika
+- Użytkownik dostarczył wynik `git ls-remote`: zdalny main = `4d35201a14b8852d0e4896b5a0ce70fedc8077e9`, zgodny z lokalnym HEAD. To wynik z Terminala użytkownika, nie z sieci agenta.
+- Ponownie wykonano lokalnie: npm test = 44/44 PASS; npm run build = PASS.
+- Próba npm run dev zakończyła się kodem 1: `Error: listen EPERM: operation not permitted 127.0.0.1:4173`. Zatrzymano próby uruchomienia serwera; bez obejść.
+- QA przeglądarkowe nadal niewykonane. Historyczny tests/turn-speech-browser.cjs wymaga aktualizacji oczekiwań dla podpowiedzi i celebracji przed użyciem. Kod aplikacji i testów w tej próbie bez zmian; bez commitu i publikacji.
+- Następny krok: użytkownik uruchamia `cd /Users/przemyslawkulik/Documents/dart-party && npm run dev` w swoim Terminalu i pozostawia proces aktywny; potem można kontynuować QA istniejącego serwera.
+
+## 2026-10-17 — port 4173 zajęty przez istniejący serwer
+- Użytkownik otrzymał EADDRINUSE. Odczyt lsof potwierdził proces node PID 14269 nasłuchujący na 127.0.0.1:4173, cwd=/Users/przemyslawkulik/Documents/dart-party. Nie zatrzymywano procesu.
+- Próba otwarcia strony narzędziem przeglądarkowym: `Browser is not available: iab`; lista dostępnych przeglądarek pusta. Nie potwierdzono widoku strony ani QA.
+- Następny krok: udostępnić Chrome narzędziu przeglądarkowemu, aby wykonać QA istniejącego serwera. Użytkownik może otworzyć http://127.0.0.1:4173 bez ponownego uruchamiania serwera. Publikacja nadal niewykonana.
+
+## 2026-10-17 — natywne QA Chrome, poprawki układu i pulsowanie
+- Dostęp do Chrome uzyskano przez natywne CUA (brak konektora przeglądarkowego). Testy w osobnym oknie incognito; oryginalnego meczu nie edytowano. Użytkownik równolegle wykonywał rzuty w oknie testowym, co kilkukrotnie przerywało działania CUA.
+- Import testowego JSON 301 / 6 graczy / Double Out: 170 pokazuje T20, T20, BULL 50 z oznaczeniem NA NASTĘPNĄ KOLEJKĘ. Cofnięcie ostatniego rzutu przywróciło 181 i ukryło podpowiedź; ponowne 11 przywróciło 170 oraz podpowiedź. Odświeżenie i wznowienie zachowało stan.
+- QA wykryło nakładanie panelu podpowiedzi na duży wynik oraz w pionie nachodzenie wyniku na lotki. Poprawiono styles.css: rozmiar wyniku zależy od szerokości jego kontenera, mniejszy w pionie z podpowiedzią.
+- Obejrzano 6 graczy przy 1920x1080, 1180x820, 1024x768 i 820x1180 w Chrome DevTools. Po poprawkach wynik i podpowiedź są rozdzielone; w pionie wynik nie nachodzi na lotki. Pełna macierz 2 graczy i długich imion nadal DO WYKONANIA (fixture /private/tmp/dart-qa-two.json przygotowane, niewczytane).
+- Na polecenie użytkownika przycisk #next z imieniem następnego gracza pulsuje po zakończeniu kolejki (jasność i poświata, 1.4 s). Przy reduced motion stałe obramowanie. Wizualnie potwierdzono podświetlenie PRZEMEK oraz przejście po kliknięciu do ekranu Teraz rzuca PRZEMEK. Nie potwierdzono osobnym testem animacji po przejściu.
+
+## 2026-10-17 — poprawa celebracji po odsłuchu użytkownika
+- Użytkownik uznał wcześniejsze Ale setka! Brawo! Świetna kolejka! za bezuczuciowe; zaakceptował zmianę.
+- Za dokładnie 100: Jeeest! Setka! Brawo, [imię]!; za 101–179: Ooo, pięknie! [punkty] punktów! Brawo, [imię]! (odmiana punktów wg istniejącej funkcji); za 180: Jeeest! Sto osiemdziesiąt! Maksimum! Brawo, [imię]!
+- Celebracja zastępuje formalny odczyt wyniku, zamiast być doklejana do niego. Podpowiedź pozostaje na końcu. Tempo celebracji 1.02, pitch 1.12; inne zapowiedzi zachowane. Zmieniono melodię czterotonowej fanfary 100+.
+- Po ostatnich zmianach npm test = 44/44 PASS, npm run build = PASS, git diff --check = PASS. Test celebracji sprawdza nowe teksty i tempo. Brzmienie nowej wersji wymaga odsłuchu użytkownika po odświeżeniu.
+- Nadal do wykonania: pełne QA 2 graczy/długich imion, aktualizacja historycznego tests/turn-speech-browser.cjs, publikacja przez Git/Vercel i weryfikacja zdalnego commitu. Dostęp Git z agenta nadal ostatnio blokował DNS; bez obchodzenia blokady. Nie uznawać lokalnego QA za publikację.

@@ -10,7 +10,7 @@ export function playSound(kind){
     if(!Audio)return;
     context??=new Audio();
     const play=()=>{
-      const notes=kind==='shanghai'?[392,523,659,784,1047,1319]:kind==='win'?[523,659,784,1047]:kind==='turn'?[659,880]:[520];
+      const notes=kind==='maximum'?[523,659,784,1047,1319,1568]:kind==='hundred'?[392,523,659,1047]:kind==='shanghai'?[392,523,659,784,1047,1319]:kind==='win'?[523,659,784,1047]:kind==='turn'?[659,880]:[520];
       notes.forEach((frequency,i)=>{
         const start=context.currentTime+i*(kind==='shanghai'?.11:.16), duration=kind==='hit'?.065:((kind==='win'&&i===3)||(kind==='shanghai'&&i===5))?.5:.14;
         const oscillator=context.createOscillator(),gain=context.createGain();
@@ -24,13 +24,13 @@ export function playSound(kind){
   }catch{}
 }
 
-function speak(text, excited=false){
+function speak(text, excited=false, celebration=false){
   if(!enabled || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window))return;
   try{
     const speech=window.speechSynthesis;
     speech.cancel();
     const phrase=new SpeechSynthesisUtterance(text);
-    phrase.lang='pl-PL';phrase.rate=excited?1.18:1.06;phrase.pitch=excited?1.22:1.05;phrase.volume=1;
+    phrase.lang='pl-PL';phrase.rate=celebration?1.02:excited?1.18:1.06;phrase.pitch=celebration?1.12:excited?1.22:1.05;phrase.volume=1;
     const polish=speech.getVoices().filter(voice=>/^pl(?:-|_)/i.test(voice.lang)||voice.lang==='pl');
     const voice=polish.find(voice=>voice.localService)||polish[0];
     if(voice)phrase.voice=voice;
@@ -39,17 +39,21 @@ function speak(text, excited=false){
 }
 const fewPoints=n=>n%10>=2 && n%10<=4 && !(n%100>=12 && n%100<=14);
 const pointWord=n=>n===1?'punkt':fewPoints(n)?'punkty':'punktów';
-export function speakPlayer(playerName, victory=false, remaining=null, legOnly=false){
+export function speakPlayer(playerName, victory=false, remaining=null, legOnly=false, advice=''){
   const name=playerName.toLocaleLowerCase('pl-PL');
   let points='';
   if(!victory && Number.isInteger(remaining) && remaining>0){
     points=` Do zwycięstwa ${remaining===1?'został':fewPoints(remaining)?'zostały':'zostało'} ${remaining} ${pointWord(remaining)}.`;
   }
-  speak(`${legOnly?'Leg wygrywa':victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}${points}`,victory);
+  speak(`${legOnly?'Leg wygrywa':victory?'Wygrywa':'Teraz rzuca'} ${name}${victory?'! Brawo!':'.'}${points}${advice}`,victory);
 }
-export function speakTurn(playerName, points, bust=false, cutthroat=false){
+export function speakTurn(playerName, points, bust=false, cutthroat=false, advice='', celebrate=false){
   const name=playerName.toLocaleLowerCase('pl-PL');
-  speak(bust?`${name}. Przekroczony wynik. Kolejka za zero punktów.`:cutthroat?`${name}. Rywalom dopisano łącznie ${points} ${pointWord(points)}.`:`${name}. Wynik kolejki: ${points} ${pointWord(points)}.`);
+  const summary=bust?`${name}. Przekroczony wynik. Kolejka za zero punktów.`:cutthroat?`${name}. Rywalom dopisano łącznie ${points} ${pointWord(points)}.`:`${name}. Wynik kolejki: ${points} ${pointWord(points)}.`;
+  const joyful=celebrate&&!bust&&points>=100;
+  if(joyful)playSound(points===180?'maximum':'hundred');
+  const cheer=points===180?`Jeeest! Sto osiemdziesiąt! Maksimum! Brawo, ${name}!`:points===100?`Jeeest! Setka! Brawo, ${name}!`:`Ooo, pięknie! ${points} ${pointWord(points)}! Brawo, ${name}!`;
+  speak((joyful?cheer:summary)+advice,joyful,joyful);
 }
 // Prime voice discovery before the first user-triggered announcement.
 try{window.speechSynthesis?.getVoices();}catch{}
@@ -58,3 +62,5 @@ export function speakShanghai(playerName, number, points, cutthroat=false, bust=
   const outcome=legOnly?' I wygrany leg!':victory?' I zwycięstwo!':bust?' Ale przekroczony wynik. Kolejka za zero.':cutthroat?` Rywalom dopisano łącznie ${points} ${pointWord(points)}!`:` ${points} ${pointWord(points)} w kolejce!`;
   speak(`Szanghaj! ${playerName.toLocaleLowerCase('pl-PL')}! Ale petarda! Pojedyncza, podwójna i potrójna ${number}!${outcome}`,true);
 }
+
+export function speakCheckout(advice){if(advice)speak(advice.trim());}
