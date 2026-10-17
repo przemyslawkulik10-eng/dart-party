@@ -236,3 +236,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Chrome, osobna karta: utworzono test treningu pod nazwą TEST TRENINGU; 20 -> 1/1 i 100%, następnie 1 -> 1/2 i 50%, undo -> 100%; pauza blokuje keypad; odświeżenie zachowuje 14:47 i 1 lotkę; wznowienie i zakończenie daje zapisany wynik. Sesja TEST TRENINGU pozostaje osobno w historii.
 - Wizualnie potwierdzona pomarańczowa kolumna Przemka w istniejącym meczu, bez zmiany wyników. Nie wykonano jeszcze pełnego UI testu nowych zawodów ani nowej macierzy 2/6 graczy i czterech rozmiarów. Nie ogłaszać pełnego QA.
 - Ustalenia poziomów i krótkich sesji zapisano w docs/KIERUNEK-ROZWOJU.md; progi awansu pozostają do ustalenia. Brak publikacji.
+
+## 2026-10-17 — korekta: pomarańczowy licznik, nie kolumna
+- Użytkownik doprecyzował, że pomarańczowy ma być licznik punktów rzucającego. Usunięto pomarańczowe tło i symbole kolumny Cricket; wróciły wcześniejsze kolory tabeli. Aktywna karta wyniku (imię + punkty) jest teraz pomarańczowa z ciemnym tekstem. Wskazanie przechodzi za klasą active przy zmianie gracza.
+- Wyłącznie CSS; logika meczu i zapisy bez zmian. Build i diff-check PASS. Bez odświeżania trwającej gry użytkownika i bez publikacji.
