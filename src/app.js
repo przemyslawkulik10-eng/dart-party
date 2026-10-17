@@ -1,7 +1,7 @@
 import { CHECKOUT_HINT_THRESHOLD, checkout, checkoutLabel, checkoutAdvice } from './checkout.js';
-import { playSound, soundEnabled, toggleSound, speakPlayer, speakTurn, speakShanghai, speakCheckout } from './sound.js';
+import { playSound, soundEnabled, toggleSound, speakPlayer, speakTurn, speakShanghai, speakThreeTriples, speakCheckout } from './sound.js';
 import { bullState } from './bull-off.js';
-import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch, isShanghai, nextLeg } from './engine.js';
+import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch, isShanghai, isThreeTriples, nextLeg } from './engine.js';
 import { loadMatches, saveMatch } from './storage.js';
 import { syncCloud, onCloudStatus, cloudEnabled } from './cloud.js';
 const $ = s => document.querySelector(s);
@@ -140,15 +140,15 @@ function renderGame() {
   if($('#undo'))$('#undo').onclick=()=>update(undoDart(match));
   if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));announcePlayer();}catch(e){toast(e.message);}};
 }
-function announcePlayer(playerName=match.names[replay(match).current], victory=false, shanghai=null, legOnly=false) {
-  playSound(shanghai?'shanghai':victory?'win':'turn');
+function announcePlayer(playerName=match.names[replay(match).current], victory=false, shanghai=null, legOnly=false, triples=false) {
+  playSound(triples?'maximum':shanghai?'shanghai':victory?'win':'turn');
   const state=!victory && !contest && match && match.mode!=='cricket'?replay(match):null;
-  if(shanghai)speakShanghai(playerName,shanghai.number,shanghai.points,shanghai.cutthroat,shanghai.bust,victory,legOnly);else speakPlayer(playerName,victory,state?state.players[state.current].score:null,legOnly,state?finishAdvice(state):'');
+  if(triples)speakThreeTriples(playerName,victory,legOnly);else if(shanghai)speakShanghai(playerName,shanghai.number,shanghai.points,shanghai.cutthroat,shanghai.bust,victory,legOnly);else speakPlayer(playerName,victory,state?state.players[state.current].score:null,legOnly,state?finishAdvice(state):'');
   const name=playerName.toLocaleUpperCase('pl-PL');
   const overlay=document.createElement('dialog');
   overlay.className='player-announcement';
   overlay.setAttribute('aria-label',`${victory?'Wygrywa':'Teraz rzuca'} ${name}`);
-  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — ${victory?'zwycięzca meczu':'zaczynam rzucać'}"><span class="announcement-label">${shanghai?'SZANGHAJ!':legOnly?'WYGRYWA LEG!':victory?'WYGRYWA!':'TERAZ RZUCA'}</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">${shanghai?`POJEDYNCZA · PODWÓJNA · POTRÓJNA ${shanghai.number}${victory?' · WYGRYWA!':''}`:victory?(legOnly?'BRAWO! ZA CHWILĘ NASTĘPNY LEG':'BRAWO! ZA CHWILĘ WYNIK MECZU'):'ZA CHWILĘ TWOJA KOLEJ →'}</span></button>`;
+  overlay.innerHTML=`<button class="announcement-continue" aria-label="${esc(name)} — ${victory?'zwycięzca meczu':'zaczynam rzucać'}"><span class="announcement-label">${triples?'TRZY POTRÓJNE!' :shanghai?'SZANGHAJ!':legOnly?'WYGRYWA LEG!':victory?'WYGRYWA!':'TERAZ RZUCA'}</span><strong class="announcement-name">${esc(name)}</strong><span class="announcement-hint">${triples?`ALE PETARDA! BRAWO!${victory?(legOnly?' · WYGRANY LEG!':' · ZWYCIĘSTWO!'):''}`:shanghai?`POJEDYNCZA · PODWÓJNA · POTRÓJNA ${shanghai.number}${victory?' · WYGRYWA!':''}`:victory?(legOnly?'BRAWO! ZA CHWILĘ NASTĘPNY LEG':'BRAWO! ZA CHWILĘ WYNIK MECZU'):'ZA CHWILĘ TWOJA KOLEJ →'}</span></button>`;
   document.body.append(overlay);
   let dismissTimer;
   overlay.addEventListener('close',()=>{clearTimeout(dismissTimer);window.removeEventListener('resize',fitName);overlay.remove();});
@@ -166,11 +166,13 @@ function announcePlayer(playerName=match.names[replay(match).current], victory=f
 function hit(n,m) {
   try {
     update(recordDart(match,n,m));const state=replay(match);
+    const triples=match.mode==='cricket' && isThreeTriples(state.turn);
     const shanghai=isShanghai(state.turn)?{number:state.turn[0].number,points:state.turnPoints,cutthroat:match.cricketScoring==='cutthroat',bust:state.bust}:null;
-    if(state.legWinner!==null)announcePlayer(match.names[state.legWinner],true,state.legWinner===state.current?shanghai:null,state.winner===null);
+    if(state.legWinner!==null)announcePlayer(match.names[state.legWinner],true,state.legWinner===state.current?shanghai:null,state.winner===null,triples && state.legWinner===state.current);
+    else if(triples)announcePlayer(match.names[state.current],false,null,false,true);
     else if(shanghai)announcePlayer(match.names[state.current],false,shanghai);
     else {playSound('hit');if(state.ready)speakTurn(match.names[state.current],state.turnPoints,state.bust,match.cricketScoring==='cutthroat',finishAdvice(state),match.mode!=='cricket');else if(finishAdvice(state))speakCheckout(finishAdvice(state));}
-    if(navigator.vibrate)navigator.vibrate(shanghai?[100,60,100,60,200]:15);
+    if(navigator.vibrate)navigator.vibrate((shanghai||triples)?[100,60,100,60,200]:15);
   }catch(e){toast(e.message);}
 }
 function exportMatch() {

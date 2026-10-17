@@ -213,3 +213,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Użytkownik określił wariant: wszystkie pola zamknięte i najmniejszy wynik; nadmiarowe trafienia dopisują punkty przeciwnikom. Istniejący cutthroat realizuje tę regułę. Ustawiono go domyślnie w formularzu nowych gier i poprawiono etykiety. Zapisane mecze zachowują swoją punktację, bez przeliczania historii.
 - Poprzedni checkpoint nawigacji: 6973a86. Pełne QA 301 i publikacja nadal otwarte.
 - Weryfikacja: 44/44 testy PASS (w tym dopisywanie rywalom, zamknięte pola, najniższy wynik, undo i zapis), build PASS, diff-check PASS. Bez publikacji.
+
+## 2026-10-17 — celebracja trzech potrójnych w Cricket
+- Powód braku gratulacji: Cricket miał celebrację Shanghai (S/D/T tego samego pola), ale nie trzech potrójnych. Dodano rozpoznanie trzech potrójnych 15–20 w jednej kolejce, również różnych pól.
+- Po trzeciej lotce: ekran TRZY POTRÓJNE z imieniem, fanfara i głos „Jeeest! Trzy potrójne! Ale petarda! Brawo…”. Wygrana leg/mecz zachowuje pierwszeństwo i jest dołączona do wypowiedzi. Wyciszenie nadal obowiązuje.
+- 45/45 testów PASS, składnia app.js, build i diff-check PASS. Odsłuch i ekran celebracji po tej zmianie jeszcze nie sprawdzone w Chrome. Użytkownik testuje równolegle, nie dopisywano mu sztucznych rzutów.
+- Przed rozpoczęciem tego testu Chrome pokazywał poprzedni zapis Cricket + dla siebie; nie potwierdzono jeszcze przejścia na punkty przeciwnikom. Poprzedni checkpoint: fb00646. Bez publikacji.

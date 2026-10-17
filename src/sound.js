@@ -64,3 +64,7 @@ export function speakShanghai(playerName, number, points, cutthroat=false, bust=
 }
 
 export function speakCheckout(advice){if(advice)speak(advice.trim());}
+
+export function speakThreeTriples(playerName, victory=false, legOnly=false){
+  speak(`Jeeest! Trzy potrójne! Ale petarda! Brawo, ${playerName.toLocaleLowerCase('pl-PL')}!${legOnly?' I wygrany leg!':victory?' I zwycięstwo!':''}`,true,true);
+}

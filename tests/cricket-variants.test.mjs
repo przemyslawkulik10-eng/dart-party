@@ -38,3 +38,13 @@ test('singles close fields but do not satisfy house opening',()=>{
  let m=createMatch(['A','B'],'cricket',false,'standard','two-triples');for(let i=0;i<3;i++)m=dart(m,16);m=pass(m);m=pass(m);for(let i=0;i<3;i++)m=dart(m,15);m=pass(m);m=pass(m);
  assert.equal(replay(m).players[0].marks[16],3);assert.equal(replay(m).players[0].marks[15],3);assert.throws(()=>dart(m,20));
 });
+
+test('three Cricket triples celebrate same or different fields, only after third dart',async()=>{
+ const {isThreeTriples}=await import('../src/engine.js');
+ const t=n=>({number:n,multiplier:3});
+ assert.equal(isThreeTriples([t(19),t(18),t(17)]),true);
+ assert.equal(isThreeTriples([t(19),t(19),t(19)]),true);
+ assert.equal(isThreeTriples([t(19),t(18)]),false);
+ assert.equal(isThreeTriples([t(19),t(18),{number:17,multiplier:1}]),false);
+ assert.equal(isThreeTriples([t(19),t(18),t(0)]),false);
+});

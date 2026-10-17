@@ -123,3 +123,7 @@ export function isShanghai(turn){
 export function nextLeg(match){
   const next={...match,events:[...match.events,{type:'nextLeg'}],updatedAt:new Date().toISOString()};replay(next);return next;
 }
+
+export function isThreeTriples(turn){
+  return turn.length===3 && turn.every(d=>d.multiplier===3 && TARGETS.includes(d.number) && d.number!==25);
+}
