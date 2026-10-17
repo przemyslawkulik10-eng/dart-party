@@ -49,7 +49,7 @@ export function speakPlayer(playerName, victory=false, remaining=null, legOnly=f
 }
 export function speakTurn(playerName, points, bust=false, cutthroat=false, advice='', celebrate=false){
   const name=playerName.toLocaleLowerCase('pl-PL');
-  const summary=bust?`${name}. Przekroczony wynik. Kolejka za zero punktów.`:cutthroat?`${name}. Rywalom dopisano łącznie ${points} ${pointWord(points)}.`:`${name}. Wynik kolejki: ${points} ${pointWord(points)}.`;
+  const summary=bust?`${name}. FURA. Kolejka za zero punktów.`:cutthroat?`${name}. Rywalom dopisano łącznie ${points} ${pointWord(points)}.`:`${name}. Wynik kolejki: ${points} ${pointWord(points)}.`;
   const joyful=celebrate&&!bust&&points>=100;
   if(joyful)playSound(points===180?'maximum':'hundred');
   const cheer=points===180?`Jeeest! Sto osiemdziesiąt! Maksimum! Brawo, ${name}!`:points===100?`Jeeest! Setka! Brawo, ${name}!`:`Ooo, pięknie! ${points} ${pointWord(points)}! Brawo, ${name}!`;
@@ -59,7 +59,7 @@ export function speakTurn(playerName, points, bust=false, cutthroat=false, advic
 try{window.speechSynthesis?.getVoices();}catch{}
 
 export function speakShanghai(playerName, number, points, cutthroat=false, bust=false, victory=false, legOnly=false){
-  const outcome=legOnly?' I wygrany leg!':victory?' I zwycięstwo!':bust?' Ale przekroczony wynik. Kolejka za zero.':cutthroat?` Rywalom dopisano łącznie ${points} ${pointWord(points)}!`:` ${points} ${pointWord(points)} w kolejce!`;
+  const outcome=legOnly?' I wygrany leg!':victory?' I zwycięstwo!':bust?' Ale FURA. Kolejka za zero.':cutthroat?` Rywalom dopisano łącznie ${points} ${pointWord(points)}!`:` ${points} ${pointWord(points)} w kolejce!`;
   speak(`Szanghaj! ${playerName.toLocaleLowerCase('pl-PL')}! Ale petarda! Pojedyncza, podwójna i potrójna ${number}!${outcome}`,true);
 }
 

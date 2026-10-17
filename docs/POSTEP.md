@@ -374,3 +374,6 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - 100/100 testów PASS, build PASS, składnia i git diff --check PASS. Test Cyferek sprawdza izolację profilu, niepełne gry, pełne zakończenie i eksport bez danych przeciwnika. Odsłuch i pełna macierz urządzeń pozostają do sprawdzenia przez użytkownika; nie ingerowano w trwający mecz.
 - Użytkownik upoważnił push i main. Fetch zablokowany: fatal: unable to access 'https://github.com/przemyslawkulik10-eng/dart-party.git/': Could not resolve host: github.com. Brak publikacji; nie obchodzono blokady. Przygotowana lokalna wersja do main, stan zdalny niepotwierdzony.
 - Automatyczny zapis działa lokalnie w aplikacji podczas gry. Agent nie prowadzi stałego monitoringu w tle. Zalecenie zwykłego okna Chrome; incognito może utracić wyniki po zamknięciu prywatnych okien. Wieczorem: Gracze → Historia i statystyki, eksport JSON. Nie usuwać checkpoints/ ani danych przeglądarki.
+
+## 2026-10-17 — komunikat FURA
+- Na prośbę użytkownika „Przekroczony wynik” zastąpiono „FURA” na ekranie i w lektorze, także przy Shanghai z przekroczeniem. Zasady punktacji bez zmian. Zaktualizowano oczekiwanie istniejącego testu przeglądarkowego; build i diff-check PASS. Test przeglądarkowy nieuruchomiony. Publikacja nadal zablokowana wcześniejszym błędem DNS GitHub.

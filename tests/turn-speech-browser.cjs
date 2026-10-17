@@ -13,7 +13,7 @@ for(const scenario of ['201','cricket','bust','zero']){
  await page.reload();await page.locator('#resume').click();
  if(scenario==='bust'){
  await page.locator('[data-hit="20"]').click();assert.match(await page.evaluate(()=>window.spoken.at(-1)),/Zejście: pojedyncza 1/);await page.locator('[data-hit="2"]').click();
- assert.equal(await page.evaluate(()=>window.spoken.at(-1)),'maciek. Przekroczony wynik. Kolejka za zero punktów.');
+ assert.equal(await page.evaluate(()=>window.spoken.at(-1)),'maciek. FURA. Kolejka za zero punktów.');
  }else{
  if(scenario!=='zero')await page.locator('[data-mult="3"]').click();
  for(let i=0;i<3;i++){
