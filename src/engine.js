@@ -47,7 +47,7 @@ export function replay(match) {
     }
     if (event.type !== 'dart' || !validDart(event) || state.ready) throw new Error('Nieprawidłowy rzut.');
     const player = state.players[state.current];
-    if(match.mode==='cricket' && match.cricketOpening==='two-triples' && event.number===20 && player.openingTriples.length<2)throw new Error('Najpierw traf potrójne w dwóch różnych polach 15–19. Dwudziestkę wpisz jako pudło.');
+    if(match.mode==='cricket' && match.cricketOpening==='two-triples' && event.number===20 && [15,16,17,18,19].filter(n=>player.marks[n]===3).length<2)throw new Error('Najpierw zamknij dwa różne pola 15–19. Dwudziestkę wpisz jako pudło.');
     player.darts++;
     state.turn.push({ number: event.number, multiplier: event.multiplier });
     const value = event.number * event.multiplier;

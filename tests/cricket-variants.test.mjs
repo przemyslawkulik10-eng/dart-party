@@ -34,9 +34,9 @@ test('house opening: two DISTINCT triples unlock 20 per player and undo relocks'
  assert.throws(()=>dart(undoDart(m),20));m=pass(m);assert.throws(()=>dart(m,20));m=pass(m);m=dart(m,20,3);assert.equal(replay(m).players[0].marks[20],3);
  assert.deepEqual(replay(validateMatch(JSON.parse(JSON.stringify(m)))),replay(m));
 });
-test('singles close fields but do not satisfy house opening',()=>{
+test('two fields closed with singles unlock 20',()=>{
  let m=createMatch(['A','B'],'cricket',false,'standard','two-triples');for(let i=0;i<3;i++)m=dart(m,16);m=pass(m);m=pass(m);for(let i=0;i<3;i++)m=dart(m,15);m=pass(m);m=pass(m);
- assert.equal(replay(m).players[0].marks[16],3);assert.equal(replay(m).players[0].marks[15],3);assert.throws(()=>dart(m,20));
+ assert.equal(replay(m).players[0].marks[16],3);assert.equal(replay(m).players[0].marks[15],3);m=dart(m,20);assert.equal(replay(m).players[0].marks[20],1);
 });
 
 test('three Cricket triples celebrate same or different fields, only after third dart',async()=>{
