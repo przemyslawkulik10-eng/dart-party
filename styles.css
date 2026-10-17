@@ -283,3 +283,12 @@ body[data-view=game] .cricket-layout .current-panel .cricket-board .current-col{
 body[data-view=game] .cricket-layout .current-panel .cricket-board th.current-col{background:#385f4c;color:#fff7dc;border-top:3px solid #91b59c}
 body[data-view=game] .cricket-layout .current-panel .cricket-board td.current-col.closed{color:#c5efb9}
 body[data-view=game] .cricket-layout .current-panel .cricket-board tr:last-child td.current-col{border-bottom:3px solid #91b59c}
+
+/* Large high-contrast pointer with its hotspot at the arrow tip. */
+@media(pointer:fine){body,body *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2248%22%20height%3D%2260%22%20viewBox%3D%220%200%2048%2060%22%3E%3Cpath%20d%3D%22M5%203%20L5%2045%20L16%2035%20L25%2055%20L34%2051%20L25%2031%20L41%2029%20Z%22%20fill%3D%22%23ffad42%22%20stroke%3D%22%2307152b%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M8%2010%20L8%2036%22%20stroke%3D%22%23fff4d1%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E") 5 3,auto}input,textarea{cursor:text}button:disabled{cursor:not-allowed}}
+
+.player-fireworks{position:fixed;inset:0;pointer-events:none;z-index:1000;overflow:hidden;display:grid;place-items:center}
+.player-fireworks strong{background:#09213bea;color:#ffe6a0;border:2px solid #ffc369;border-radius:20px;padding:20px 35px;font-size:clamp(32px,6vw,80px);text-align:center;box-shadow:0 8px 35px #0005}
+.player-fireworks i{position:absolute;left:var(--x);top:var(--y);width:9px;height:18px;border-radius:5px;background:var(--c);animation:party-burst 2.5s ease-out forwards}
+@keyframes party-burst{from{transform:translate(0,0) rotate(0);opacity:1}to{transform:translate(var(--dx),var(--dy)) rotate(280deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){.player-fireworks i{display:none}}

@@ -177,6 +177,16 @@ function renderGame() {
   if($('#undo'))$('#undo').onclick=()=>update(undoDart(match));
   if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));announcePlayer();}catch(e){toast(e.message);}};
   scheduleAutoNext(state);
+  if(!won)cheerForMaciek(state);
+}
+function cheerForMaciek(state){
+  if(state.players[state.current].name.trim().toLocaleLowerCase('pl-PL')!=='maciek')return;
+  const key='dart-party-cheer-maciek-20261017';
+  try{if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'done');}catch{return;}
+  const layer=document.createElement('div');layer.className='player-fireworks';layer.setAttribute('aria-hidden','true');
+  layer.innerHTML='<strong>MACIEK, DAJ CZADU! 🎯</strong>';
+  for(let i=0;i<60;i++){const spark=document.createElement('i'),angle=i*Math.PI*2/20; spark.style.cssText=`--x:${[25,50,75][Math.floor(i/20)]}%;--y:40%;--dx:${Math.cos(angle)*260}px;--dy:${Math.sin(angle)*260+140}px;--c:${['#ffad42','#4ff0cf','#fff0a8'][i%3]}`;layer.append(spark);}
+  document.body.append(layer);setTimeout(()=>layer.remove(),2800);
 }
 function scheduleAutoNext(state){
   if(!state.ready||state.legWinner!==null)return;

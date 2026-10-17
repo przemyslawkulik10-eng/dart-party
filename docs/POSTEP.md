@@ -419,3 +419,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-17 — wyraźna kolumna aktywnego gracza
 - Cała aktywna kolumna Cricket (nagłówek i wszystkie pola do BULL) otrzymała stonowane zielone tło, jasne napisy i pionowe krawędzie. Nagłówek nieco jaśniejszy; zamknięcia jasną zielenią. Bez migania i jaskrawego wypełnienia.
 - Zmiana CSS; build i diff-check PASS. Czytelność z dystansu do oceny przez użytkownika na jego ekranie. Bieżący mecz bez zmian, lokalny main.
+
+## 2026-10-17 — duży kursor i doping dla Maćka
+- Kursor na urządzeniach z myszą: pomarańczowa strzałka SVG 48×60 z ciemnym obrysem i jasnym akcentem, hotspot na grocie. Pola tekstowe zachowują kursor tekstowy.
+- Jednorazowy doping dla aktywnego Maćka po wczytaniu aktualizacji: „Maciek, daj czadu!” i 2,8 s kolorowych rozbłysków. Bez zmiany wyniku, pointer-events:none, bez migania; reduced-motion usuwa ruch. Znacznik sessionStorage ogranicza efekt do jednego razu w karcie.
+- Składnia, build i diff-check PASS. Wizualna ocena na urządzeniu użytkownika pozostaje po odświeżeniu. Lokalny main; bez zdalnej publikacji.
