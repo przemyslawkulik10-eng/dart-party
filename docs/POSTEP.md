@@ -282,3 +282,11 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Dodano rozwijane „Zasady gry” pod ustawieniami wybranego X01/Cricket. Opis uwzględnia bieżący Double Out, punktację Cricket, domową blokadę 20 i liczbę wygranych legów.
 - JDC i sektor 20 mają własne zasady przed rozpoczęciem i na dole aktywnego treningu. Panel details/summary obsługuje klawiaturę, nie przerywa sesji i jest niezależny od trenera.
 - Źródło opisów: src/game-rules.js. Zasady silnika i zapisane mecze bez zmian. Składnia JS, sprawdzenie wybranych wariantów opisów, build i diff-check PASS. QA wizualne nadal niewykonane. Bez pusha/deploy.
+
+## 2026-10-17 — spokojny powrót do tarczy
+- Profil gracza zawiera „Twój rytm”: ostatnia zapisana lotka treningowa, podsumowanie 30 dni, dobrowolny prosty plan oraz przejścia do JDC, krótkiego treningu i sparingu.
+- Prosty plan oparty na jawnych regułach, nie udaje AI. Preferencja osobna dla profilu, domyślnie wyłączona. Brak historii nie oznacza przerwy; pusta sesja nie zmienia ostatniej aktywności. Daty przyszłe wykluczone z 30-dniowej analizy.
+- Przejście do treningu/JDC przekazuje imię gracza bez uruchamiania sesji automatycznie. JDC można wznowić; plan nie wymusza nowej próby. Brak kar, zaległości i serii do odrabiania.
+- 70/70 testów PASS, build, składnia JS i diff-check PASS. QA przeglądarkowe nadal oczekuje; poprzednio serwer 4173 niedostępny dla narzędzi. Nie potwierdzono wyglądu ani rzeczywistego wywołania AI.
+- Zrzuty GoDartsPro zapisano jako kierunek katalogu w KIERUNEK-ROZWOJU.md; nie importowano wyników użytkownika ze zdjęć.
+- Bez publikacji, zakupu bazy i zmian chmury. Akceptacja konkretnego kosztu Supabase pozostaje nierozstrzygnięta.

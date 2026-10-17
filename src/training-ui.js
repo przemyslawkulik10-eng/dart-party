@@ -7,7 +7,7 @@ import {dartLabel} from './engine.js';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const coachChoice=checked=>`<div class="training-coach"><label class="switch"><input id="training-coach" type="checkbox" ${checked?'checked':''}> Wirtualny trener — chcę wskazówki</label><p class="small">Bez zaznaczenia ćwiczysz samodzielnie. Możesz zmienić wybór w trakcie sesji.</p><p class="small muted">Podstawowe wskazówki są dostępne od razu. Analizę AI uruchamiasz osobnym przyciskiem; wymaga połączenia z usługą.</p></div>`;
 const clock=ms=>`${Math.floor(Math.ceil(ms/1000)/60)}:${String(Math.ceil(ms/1000)%60).padStart(2,'0')}`;
-export function mountTraining(root,{onExit,toast,names=[]}){
+export function mountTraining(root,{onExit,toast,names=[],initialName='',initialExercise=null}){
  let current=null,multiplier=1,timer=null,disposed=false,coachRequest=null,coachReport=null,jdcCleanup=null;
  const $=s=>root.querySelector(s);
  function stop(){clearInterval(timer);timer=null;if(coachRequest){coachRequest.abort();coachRequest=null;}}
@@ -24,8 +24,9 @@ export function mountTraining(root,{onExit,toast,names=[]}){
   <section class="panel"><div class="eyebrow">CEL: SEKTOR 20</div><h2>Powtarzalność przed punktami</h2><p>Celuj w sektor 20. Każde trafienie w 20 — pojedyncze, podwójne lub potrójne — zaliczamy jako jeden celny rzut. Wpisuj faktycznie trafione pole, również gdy chybiłeś celu.</p>${rulesPanel({mode:'sector-20'})}
   ${coachChoice(false)}<div class="training-form"><label>Twoje imię<input id="training-name" maxlength="24" list="training-names" placeholder="Np. Przemek"></label><datalist id="training-names">${[...new Set([...names,...profiles.map(p=>p.name),...sessions.map(s=>s.name)])].map(n=>`<option value="${esc(n)}"></option>`).join('')}</datalist><label>Czas sesji<select id="training-duration"><option value="5">5 minut</option><option value="10">10 minut</option><option value="15" selected>15 minut</option></select></label><button id="training-start" class="primary">Zacznij trening →</button></div><p class="small">Możesz zrobić pauzę lub skończyć wcześniej. Treningi zapisują się na tym urządzeniu, osobno od meczów.</p></section>
   <section class="panel training-history"><h2>Ostatnie treningi</h2>${sessions.filter(s=>s.endedAt!==null).slice(0,12).map(s=>{const st=trainingStats(s);return `<div class="saved-match"><div><strong>${esc(s.name)} · ${st.accuracy??'—'}${st.accuracy===null?'':'%'}</strong><p>${st.hits}/${st.throws} trafień w sektor 20 · ${new Date(s.createdAt).toLocaleDateString('pl-PL')}</p></div><button data-result="${esc(s.id)}">Wynik</button></div>`;}).join('')||'<p>Pierwsza sesja będzie początkiem Twojej historii.</p>'}</section>`;
+  $('#training-name').value=initialName;
   $('#training-back').onclick=onExit;
-  $('#open-jdc').onclick=()=>{stop();jdcCleanup=mountJdc(root,{onExit:home,toast,names});};
+  $('#open-jdc').onclick=()=>{stop();jdcCleanup=mountJdc(root,{onExit:home,toast,names,initialName});};
   $('#training-start').onclick=()=>safely(()=>{const name=$('#training-name').value.trim();if(active.some(s=>s.name.toLocaleLowerCase('pl-PL')===name.toLocaleLowerCase('pl-PL')))throw new Error('Masz rozpoczęty trening. Wznów go z listy.');const [profile]=ensureProfiles([name]);store({...createTraining(profile.name,Number($('#training-duration').value),Date.now(),$('#training-coach').checked),profileId:profile.id});coachReport=null;multiplier=1;game();});
   root.querySelectorAll('[data-resume-training]').forEach(b=>b.onclick=()=>safely(()=>{coachReport=null;current=sessions.find(s=>s.id===b.dataset.resumeTraining);if(!remainingTime(current)){store(finishTraining(current));result();}else {store(resumeTraining(current));game();}}));
   root.querySelectorAll('[data-result]').forEach(b=>b.onclick=()=>{current=sessions.find(s=>s.id===b.dataset.result);result();});
@@ -62,5 +63,6 @@ export function mountTraining(root,{onExit,toast,names=[]}){
   $('#training-home').onclick=home;
  }
  home();
+ if(initialExercise==='jdc' && $('#open-jdc'))$('#open-jdc').click();
  return ()=>{disposed=true;jdcCleanup?.();stop();if(current && current.endedAt===null && current.runningSince!==null)safely(()=>store(pauseTraining(current)));};
 }

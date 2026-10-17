@@ -34,3 +34,10 @@ Istniejący lokalny licznik X01/Cricket, zapis meczów, podpowiedzi X01 i celebr
 - Tłumaczenie obejmuje cały interfejs, zasady, błędy, daty/liczby, dostępność, komunikaty głosowe i odpowiedzi trenera. Dla języków pisanych od prawej do lewej uwzględnić RTL. Nie tłumaczyć imion użytkowników ani zmieniać zasad/punktacji.
 - Język dostępny w wyborze dopiero po uzupełnieniu i sprawdzeniu tłumaczenia całego przepływu. Nie udawać „każdego języka” listą flag lub częściowym tłumaczeniem ekranu głównego. Obecny interfejs pozostaje polski; pełna wielojęzyczność to kolejny etap implementacji.
 - Docelowa architektura: katalogi komunikatów zamiast tekstów w rendererach, jawny język sesji UI, oddzielny język lektora/AI, bez sieci do podstawowych tłumaczeń. Najpierw pełne PL/EN, potem kolejne katalogi — propozycja kolejności technicznej, nie ograniczenie zasięgu.
+
+## Powrót po przerwie i wzorce pokazane przez użytkownika
+
+- Panel powrotu korzysta tylko z własnych zapisanych lotek treningowych. Nie utożsamia braku historii z brakiem gry poza aplikacją. Nie importowano wyników GoDartsPro ze zrzutów ekranu.
+- Prosty plan jest dobrowolny i opisany jako reguły oparte na aktywności, nie jako odpowiedź AI. Po przerwie proponuje JDC jako punkt odniesienia, bez obowiązku pobicia rekordu. Dla świeżej pełnej próby proponuje krótkie ćwiczenie. Wznowienie JDC ma pierwszeństwo przed nową próbą.
+- Ostatnie 30 dni pokazują pełne próby JDC, krótkie sesje z rzutami i średnią JDC. Próg 30 dni służy wyłącznie komunikatowi powrotu, nie diagnozie poziomu ani odblokowaniu gry.
+- Użytkownik pokazał katalog GoDartsPro: kafelki, ulubione, ostatnio grane, grupowanie według umiejętności. Referencja do dalszego rozwoju katalogu, bez polecenia kopiowania wszystkich gier, grafik i nazw. Pozostaje wcześniejszy kierunek stopniowego odblokowywania ćwiczeń.

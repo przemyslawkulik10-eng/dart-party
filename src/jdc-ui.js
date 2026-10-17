@@ -4,7 +4,7 @@ import {dartLabel} from './engine.js';
 import {createJdc,loadJdc,saveJdc,recordJdcDart,undoJdc,jdcTarget,jdcStats,jdcProgress,JDC_PHASES} from './jdc.js';
 import {requestCoach,saveCoachReport} from './coach-client.js';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function mountJdc(root,{onExit,toast,names=[]}){
+export function mountJdc(root,{onExit,toast,names=[],initialName=''}){
  let current=null,multiplier=1,request=null,disposed=false;
  const $=s=>root.querySelector(s);
  const safe=fn=>{try{fn();}catch(e){toast(e.message);}};
@@ -17,6 +17,7 @@ export function mountJdc(root,{onExit,toast,names=[]}){
   <section class="panel"><h2>Trzy etapy, jedna próba</h2><ol><li>Shanghai 10–15 — po 3 lotki na numer.</li><li>D1–D20 i BULL — po 1 lotce na cel, również po pudle idziesz dalej.</li><li>Shanghai 15–20 — po 3 lotki na numer.</li></ol><p>Shanghai: wartość trafionego celu + 100 pkt za S/D/T w jednej kolejce. Double: 50 pkt za wskazane D, 100 pkt za środek BULL. Pozostałe pola nie punktują. Maksimum: 3380.</p>${rulesPanel({mode:'jdc'})}
   <div class="training-form"><label>Twoje imię<input id="jdc-name" maxlength="24" list="jdc-names" placeholder="Np. Przemek"></label><datalist id="jdc-names">${[...new Set([...names,...profiles.map(p=>p.name)])].map(n=>`<option value="${esc(n)}"></option>`).join('')}</datalist><button id="jdc-start" class="primary">Rozpocznij JDC →</button></div><label class="switch"><input id="jdc-coach-start" type="checkbox"> Wirtualny trener — chcę wskazówki</label><p class="small">Bez limitu czasu. Możesz zapisać próbę i wrócić później. Niepełna próba nie trafia do rekordów. Historia pozostaje na tym urządzeniu.</p></section>
   <section class="panel"><h2>Twoje próby JDC</h2>${history.map(s=>{const st=jdcStats(s);return `<div class="saved-match"><div><strong>${esc(s.name)} · ${st.score} pkt</strong><p>${new Date(s.createdAt).toLocaleDateString('pl-PL')} · ${st.complete?esc(st.grade):`${st.throws}/57 lotek · w toku`}</p></div><button data-jdc-open="${s.id}">${st.complete?'Wynik':'Wznów'}</button></div>`;}).join('')||'<p>Twoja pierwsza próba rozpocznie historię postępów.</p>'}</section>`;
+  $('#jdc-name').value=initialName;
   $('#jdc-exit').onclick=onExit;
   $('#jdc-start').onclick=()=>safe(()=>{const [p]=ensureProfiles([$('#jdc-name').value]);const active=history.find(s=>s.profileId===p.id&&s.endedAt===null);if(active){current=active;toast('Wznawiam Twoją rozpoczętą próbę.');}else store(createJdc(p,$('#jdc-coach-start').checked));multiplier=1;game();});
   root.querySelectorAll('[data-jdc-open]').forEach(b=>b.onclick=()=>{current=history.find(s=>s.id===b.dataset.jdcOpen);multiplier=1;current.endedAt===null?game():result();});
