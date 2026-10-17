@@ -40,3 +40,13 @@ test('enable Double Out preserves existing scores and refuses to rewrite earlier
  const {nextPlayer}=await import('../src/engine.js');one=recordDart(one,20,3);one=nextPlayer(one);one=recordDart(one,0,1);one=recordDart(one,0,1);one=recordDart(one,0,1);one=nextPlayer(one);one=recordDart(one,20,1);
  assert.throws(()=>enableDoubleOut(one),/wcześniejsze wyniki/);assert.equal(one.doubleOut,false);
 });
+test('automatic next player waits for finished turn, ignores wins and stale matches',async()=>{
+ const {nextPlayer}=await import('../src/engine.js');let callback,announced=0;
+ const ctx=vm.createContext({match:createMatch(['A','B'],'301'),autoNextTimer:null,setTimeout:fn=>{callback=fn;return 1;},document:{body:{dataset:{view:'game'}}},nextPlayer,announcePlayer:()=>announced++,toast:message=>{throw new Error(message);}});
+ ctx.update=next=>{ctx.match=next;};vm.runInContext(source.slice(source.indexOf('function scheduleAutoNext(state)'),source.indexOf('function announcePlayer(')),ctx);
+ ctx.scheduleAutoNext(replay(ctx.match));assert.equal(callback,undefined);
+ for(let i=0;i<3;i++)ctx.match=recordDart(ctx.match,20,1);
+ ctx.scheduleAutoNext(replay(ctx.match));callback();assert.equal(replay(ctx.match).current,1);assert.equal(announced,1);
+ callback();assert.equal(announced,1);
+ callback=undefined;ctx.scheduleAutoNext({ready:true,legWinner:0});assert.equal(callback,undefined);
+});

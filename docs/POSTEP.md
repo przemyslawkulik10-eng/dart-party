@@ -395,3 +395,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Zrzut użytkownika pokazuje zwykłe zakończenie, użytkownik deklaruje Double Out. Nowe formularze domyślnie Double Out. Dla trwającego zwykłego meczu dodano przycisk „Kończymy podwójną — włącz” w nagłówku.
 - Przełączenie zapisuje doubleOut i przelicza podpowiedzi, tylko jeżeli replay zachowuje cały dotychczasowy stan. Gdy wcześniejsze rzuty zmieniłyby punktację/wygrane, operacja odmawia bez nadpisania. Nie zmodyfikowano bezpośrednio localStorage użytkownika.
 - 104/104 testów PASS, build i diff-check PASS. Test zachowania wyniku oraz odmowy przy pozostałym 1. Użytkownik musi odświeżyć i kliknąć przycisk w bieżącym meczu. Publikacja zdalna nadal zablokowana DNS.
+
+## 2026-10-17 — automatyczna zmiana gracza
+- X01/Cricket automatycznie przechodzą do następnego gracza po zakończonej kolejce/FURZE, po 3,5 s na odczyt wyniku. Lektor ogłasza kolejną osobę. Przycisk ręczny nadal pozwala przyspieszyć.
+- Timer anulowany przy renderze/wyjściu/cofnięciu; sprawdzana tożsamość meczu i widok. Brak przejścia po zwycięstwie/wygraniu lega. Gotowa kolejka wznowiona z zapisu także przejdzie automatycznie.
+- 105/105 testów PASS, build i diff-check PASS. Test rzeczywistego planowania: niepełna kolejka, pełna kolejka, powtórny stary callback, wygrany leg. Odsłuch podczas rzeczywistej gry do sprawdzenia. Lokalny main; push nadal zablokowany DNS.
