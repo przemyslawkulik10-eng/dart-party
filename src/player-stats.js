@@ -1,3 +1,4 @@
+import {loadCyferki,cyferkiState} from './cyferki.js';
 import {loadProfiles} from './profiles.js';
 import {loadTrainings,trainingStats} from './training.js';
 import {loadJdc,jdcStats} from './jdc.js';
@@ -5,10 +6,10 @@ import {loadMatches} from './storage.js';
 import {replay} from './engine.js';
 export function playerData(profileId){
  const profile=loadProfiles().find(p=>p.id===profileId);if(!profile)throw new Error('Nie znaleziono profilu gracza.');
- return {profile,trainings:loadTrainings().filter(s=>s.profileId===profileId),jdc:loadJdc().filter(s=>s.profileId===profileId),matches:loadMatches().filter(m=>m.profileIds?.includes(profileId))};
+ return {profile,trainings:loadTrainings().filter(s=>s.profileId===profileId),jdc:loadJdc().filter(s=>s.profileId===profileId),matches:loadMatches().filter(m=>m.profileIds?.includes(profileId)),cyferki:loadCyferki().filter(m=>m.players.some(p=>p.id===profileId))};
 }
 export function playerStats(data){
- const {profile,trainings,jdc,matches}=data;
+ const {profile,trainings,jdc,matches,cyferki=[]}=data;
  if(trainings.some(s=>s.profileId!==profile.id)||jdc.some(s=>s.profileId!==profile.id)||matches.some(m=>!m.profileIds?.includes(profile.id)))throw new Error('Dane należą do innego profilu.');
  const completedTraining=trainings.filter(s=>s.endedAt!==null),completedJdc=jdc.filter(s=>s.endedAt!==null).sort((a,b)=>a.createdAt-b.createdAt);
  const sector=completedTraining.reduce((a,s)=>{const st=trainingStats(s);return {throws:a.throws+st.throws,hits:a.hits+st.hits};},{throws:0,hits:0});
@@ -23,8 +24,12 @@ export function playerStats(data){
  const doubles=[...targets.values()].map(r=>({...r,accuracy:Math.round(r.hits/r.attempts*100)}));
  const competitions=matches.map(m=>{const state=replay(m),index=m.profileIds.indexOf(profile.id);let current=0,starter=0,darts=0;for(const e of m.events){if(e.type==='next')current=(current+1)%m.names.length;else if(e.type==='nextLeg'){starter=(starter+1)%m.names.length;current=starter;}else if(e.type==='dart'&&current===index)darts++;}return {id:m.id,date:m.updatedAt,mode:m.mode,complete:state.winner!==null,won:state.winner===index,darts,legWins:state.legWins[index]};});
  const completedMatches=competitions.filter(m=>m.complete);
+ const cyferkiResults=cyferki.map(m=>{const state=cyferkiState(m),index=m.players.findIndex(p=>p.id===profile.id);if(index<0)throw new Error('Dane należą do innego profilu.');const darts=state.history.filter(d=>d.player===index),hits=darts.filter(d=>d.hits>0).length;return {id:m.id,date:m.events.at(-1)?.at??m.createdAt,rules:{...m.rules},complete:state.finished,won:state.finished&&state.winners.length===1&&state.winners[0]===index,draw:state.finished&&state.winners.length>1&&state.winners.includes(index),score:state.scores[index],closures:state.closures[index],darts:darts.length,hits,accuracy:darts.length?Math.round(100*hits/darts.length):null};});
+ const finishedCyferki=cyferkiResults.filter(m=>m.complete);
+ const cyferkiSummary={completed:finishedCyferki.length,active:cyferkiResults.length-finishedCyferki.length,wins:finishedCyferki.filter(m=>m.won).length,draws:finishedCyferki.filter(m=>m.draw).length,darts:finishedCyferki.reduce((n,m)=>n+m.darts,0),hits:finishedCyferki.reduce((n,m)=>n+m.hits,0),closures:finishedCyferki.reduce((n,m)=>n+m.closures,0)};
+ cyferkiSummary.accuracy=cyferkiSummary.darts?Math.round(100*cyferkiSummary.hits/cyferkiSummary.darts):null;
  const scored=jdcResults.map(s=>s.score);
- return {sector,jdcResults,jdcBest:scored.length?Math.max(...scored):null,jdcAverage:scored.length?Math.round(scored.reduce((a,b)=>a+b,0)/scored.length):null,jdcDelta:scored.length>1?scored.at(-1)-scored.at(-2):null,doubles,actualHits:[...actualHits].map(([key,count])=>({key,count})),trainingDarts,competitions,completedMatches:completedMatches.length,wins:completedMatches.filter(m=>m.won).length,trainingSessions:completedTraining.length,activeSessions:trainings.filter(s=>s.endedAt===null).length+jdc.filter(s=>s.endedAt===null).length};
+ return {cyferkiResults,cyferkiSummary,sector,jdcResults,jdcBest:scored.length?Math.max(...scored):null,jdcAverage:scored.length?Math.round(scored.reduce((a,b)=>a+b,0)/scored.length):null,jdcDelta:scored.length>1?scored.at(-1)-scored.at(-2):null,doubles,actualHits:[...actualHits].map(([key,count])=>({key,count})),trainingDarts,competitions,completedMatches:completedMatches.length,wins:completedMatches.filter(m=>m.won).length,trainingSessions:completedTraining.length,activeSessions:trainings.filter(s=>s.endedAt===null).length+jdc.filter(s=>s.endedAt===null).length};
 }
 // No auth tokens, keys or opponents' raw records in the player's portable export.
 export function exportPlayer(data){

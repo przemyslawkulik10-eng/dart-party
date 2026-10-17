@@ -98,7 +98,7 @@ function renderContest() {
   <section class="panel bull-panel"><div class="eyebrow">${s.round===1?'PIERWSZA SERIA':`DOGRYWKA ${s.round-1} · TYLKO REMISUJĄCY`}</div><h2>${esc(contest.names[s.current])}${won?' zaczyna mecz!':' rzuca'}</h2>
   ${won?`<p>Kolejność: ${[contest.names[s.winner],...contest.names.filter((_,i)=>i!==s.winner)].map(esc).join(' → ')}</p><button class="primary" id="start-match">Rozpocznij ${contest.mode==='cricket'?'Cricket':contest.mode} →</button>`:`<div class="darts">${[0,1,2].map(i=>`<div class="dart-slot ${s.turn[i]!==undefined?'filled':''}"><small>LOTKA ${i+1}</small><strong>${s.turn[i]??'—'}</strong></div>`).join('')}</div><p>Po trzeciej lotce przechodzimy do kolejnego gracza. Remis oznacza nową serię trzech lotek.</p><div class="special-keys bull-keys"><button data-bull="0">POZA ŚRODKIEM / 0</button><button data-bull="25">BULL 25</button><button data-bull="50">BULL 50</button></div>`}
   <button id="undo-bull" ${contest.throws.length?'':'disabled'}>↶ Cofnij rzut</button></section>`;
-  document.querySelectorAll('[data-bull]').forEach(b=>b.onclick=()=>{contest.throws.push(Number(b.dataset.bull));saveContest();renderContest();const next=bullState(contest.names.length,contest.throws);if(next.winner===null && (next.current!==s.current || next.round!==s.round))announcePlayer(contest.names[next.current]);else if(!competition())playSound('hit');});
+  document.querySelectorAll('[data-bull]').forEach(b=>b.onclick=()=>{contest.throws.push(Number(b.dataset.bull));saveContest();renderContest();const next=bullState(contest.names.length,contest.throws);if(next.winner===null && (next.current!==s.current || next.round!==s.round))announcePlayer(contest.names[next.current]);else playSound('hit');});
   $('#undo-bull').onclick=()=>{contest.throws.pop();saveContest();renderContest();};
   $('#cancel-contest').onclick=()=>{names=contest.names;mode=contest.mode;doubleOut=contest.doubleOut;cricketScoring=contest.cricketScoring||'standard';cricketOpening=contest.cricketOpening||'standard';legsToWin=contest.legsToWin||1;contest=null;saveContest();renderSetup();};
   if(won)$('#start-match').onclick=()=>{
@@ -169,10 +169,10 @@ function renderGame() {
   if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));announcePlayer();}catch(e){toast(e.message);}};
 }
 function announcePlayer(playerName=match.names[replay(match).current], victory=false, shanghai=null, legOnly=false, triples=false) {
-  if(competition()){window.speechSynthesis?.cancel();return;}
   playSound(triples?'maximum':shanghai?'shanghai':victory?'win':'turn');
   const state=!victory && !contest && match && match.mode!=='cricket'?replay(match):null;
   if(triples)speakThreeTriples(playerName,victory,legOnly);else if(shanghai)speakShanghai(playerName,shanghai.number,shanghai.points,shanghai.cutthroat,shanghai.bust,victory,legOnly);else speakPlayer(playerName,victory,state?state.players[state.current].score:null,legOnly,state?finishAdvice(state):'');
+  if(competition())return;
   const name=playerName.toLocaleUpperCase('pl-PL');
   const overlay=document.createElement('dialog');
   overlay.className='player-announcement';
@@ -195,7 +195,6 @@ function announcePlayer(playerName=match.names[replay(match).current], victory=f
 function hit(n,m) {
   try {
     update(recordDart(match,n,m));const state=replay(match);
-    if(competition())return;
     const triples=match.mode==='cricket' && isThreeTriples(state.turn);
     const shanghai=isShanghai(state.turn)?{number:state.turn[0].number,points:state.turnPoints,cutthroat:match.cricketScoring==='cutthroat',bust:state.bust}:null;
     if(state.legWinner!==null)announcePlayer(match.names[state.legWinner],true,state.legWinner===state.current?shanghai:null,state.winner===null,triples && state.legWinner===state.current);
@@ -237,7 +236,7 @@ setInterval(()=>{if(!storageError)syncCloud();},60000);
 
 const soundButton=document.createElement('button');
 soundButton.id='sound-toggle';
-function renderSoundButton(){soundButton.disabled=competition();soundButton.textContent=competition()?'Zawody: cisza':soundEnabled()?'Dźwięk: WŁ.':'Dźwięk: WYŁ.';soundButton.setAttribute('aria-pressed',String(soundEnabled()));soundButton.setAttribute('aria-label',soundEnabled()?'Wyłącz dźwięk':'Włącz dźwięk');}
+function renderSoundButton(){soundButton.disabled=false;soundButton.textContent=soundEnabled()?'Dźwięk: WŁ.':'Dźwięk: WYŁ.';soundButton.setAttribute('aria-pressed',String(soundEnabled()));soundButton.setAttribute('aria-label',soundEnabled()?'Wyłącz dźwięk':'Włącz dźwięk');}
 renderSoundButton();
-soundButton.onclick=()=>{if(competition())return;toggleSound();renderSoundButton();};
+soundButton.onclick=()=>{toggleSound();renderSoundButton();};
 document.querySelector('.top-actions').append(soundButton);

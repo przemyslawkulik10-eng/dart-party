@@ -18,3 +18,16 @@ test('match stats include only player darts and wins; export excludes opponent r
  const serialized=JSON.stringify(exportPlayer(data));assert.ok(!serialized.includes('PRIVATE OPPONENT'));assert.ok(!serialized.includes(other));assert.ok(!serialized.includes('events'));assert.ok(!serialized.includes('access_token'));
  assert.throws(()=>playerStats({...data,profile:{...profile,id:'33333333-3333-4333-8333-333333333333'}}));
 });
+
+test('Cyferki stats isolate player throws, exclude unfinished games and export no opponent records',async()=>{
+ const {createCyferki,chooseCyferki,throwCyferki,CYFERKI_FIELDS}=await import('../src/cyferki.js');
+ const players=[profile,{id:other,name:'PRIVATE OPPONENT'}];
+ let m=createCyferki(players,{scoring:'hits',progress:'player'},1000);
+ m=chooseCyferki(m,7);m=throwCyferki(m,0);m=throwCyferki(m,1);m=throwCyferki(m,2);
+ const data={profile,trainings:[],jdc:[],matches:[],cyferki:[m]};
+ let st=playerStats(data);assert.equal(st.cyferkiResults[0].accuracy,67);assert.equal(st.cyferkiResults[0].closures,1);assert.equal(st.cyferkiSummary.active,1);assert.equal(st.cyferkiSummary.darts,0);
+ for(const field of CYFERKI_FIELDS.filter(n=>n!==7)){m=chooseCyferki(m,field);if(field===25){m=throwCyferki(m,1);m=throwCyferki(m,2);}else m=throwCyferki(m,3);}
+ st=playerStats({...data,cyferki:[m]});assert.equal(st.cyferkiSummary.completed,1);assert.equal(st.cyferkiSummary.active,0);assert.ok(st.cyferkiSummary.darts>0);
+ const serialized=JSON.stringify(exportPlayer({...data,cyferki:[m]}));assert.ok(!serialized.includes('PRIVATE OPPONENT'));assert.ok(!serialized.includes(other));assert.ok(!serialized.includes('events'));
+ assert.throws(()=>playerStats({...data,profile:{id:'33333333-3333-4333-8333-333333333333',name:'Other'}}));
+});
