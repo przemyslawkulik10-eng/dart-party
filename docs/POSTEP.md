@@ -299,3 +299,11 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Kontekst AI rozszerzono o obliczoną analizę ostatnich 30 dni z tej samej ograniczonej historii (do 30 pełnych prób); instrukcja wymaga odróżnienia historycznych wyników od obecnej formy i małej próby od diagnozy. Usługa AI nadal nieprzetestowana na żywo.
 - 75/75 testów PASS, build i diff-check PASS. Nowe testy: 13 prób bez wskazywania słabości, granice dat i poprzedni okres, rekord historyczny, dwie kolejki 15, remisy i odrzucenie mieszanych profili. QA przeglądarkowe pozostaje otwarte — nie deklarować sprawdzonego wyglądu.
 - Bez migracji, pusha, deploy i zakupów. Następny krok: test profilu i przełączania okresów w działającej przeglądarce.
+
+## 2026-10-17 — projekt platformy i lokalna droga gracza
+- PLATFORMA-PLAN.md: pięć obszarów produktu, katalog istniejących i proponowanych gier, warunki odblokowania, plan 4 krótkich sesji, nagrody, model danych i kolejność budowy kont/AI/kamer/aplikacji mobilnych. Progi jawnie eksperymentalne, nie oficjalne normy sportowe.
+- Profil: panel „Twoja droga”, cztery kamienie milowe i odznaki z rzeczywistej historii. Opcjonalny tygodniowy plan pod istniejącym przełącznikiem planu. Przyciski kierują tylko do działających JDC/sektora20/sparingów. Nie ma jeszcze silnika nowych gier ani ich blokad/odblokowań.
+- Odznaki wyliczane z pełnej zachowanej historii; sama nieaktywność ich nie odbiera. Nie ma osobnej trwałej księgi nagród. Plan tygodnia jest propozycją, nie harmonogramem z odhaczaniem i kalendarzem. Aktualny plan ograniczony do istniejących ćwiczeń; analiza double służy obserwacji.
+- 79/79 testów PASS, build PASS, składnia players-ui.js i git diff --check PASS. Testy granic celności, minimalnej liczby lotek, braku historii, przyszłych i pustych sesji, duplikatów i izolacji profili.
+- QA przeglądarkowe NIE wykonane: curl: (7) Failed to connect to 127.0.0.1 port 4173. Nie potwierdzono wyglądu w wymaganych rozmiarach. Następny krok: uruchomić lokalny serwer i przetestować profil na tablecie, potem pełny backup/restore (nadal niewdrożony).
+- Bez pusha, publikacji, migracji, zakupu osobnej bazy i zmian firmowych usług. Stan kont i kamer nadal projektowy. Kod kontynuowany na istniejącej gałęzi.
