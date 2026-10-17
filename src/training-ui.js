@@ -1,3 +1,4 @@
+import {mountJdc} from './jdc-ui.js';
 import {ensureProfiles,loadProfiles} from './profiles.js';
 import {requestCoach,saveCoachReport} from './coach-client.js';
 import {createTraining,remainingTime,pauseTraining,resumeTraining,finishTraining,recordTrainingDart,trainingStats,trainingAdvice,loadTrainings,saveTraining} from './training.js';
@@ -6,27 +7,29 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const coachChoice=checked=>`<div class="training-coach"><label class="switch"><input id="training-coach" type="checkbox" ${checked?'checked':''}> Wirtualny trener — chcę wskazówki</label><p class="small">Bez zaznaczenia ćwiczysz samodzielnie. Możesz zmienić wybór w trakcie sesji.</p><p class="small muted">Podstawowe wskazówki są dostępne od razu. Analizę AI uruchamiasz osobnym przyciskiem; wymaga połączenia z usługą.</p></div>`;
 const clock=ms=>`${Math.floor(Math.ceil(ms/1000)/60)}:${String(Math.ceil(ms/1000)%60).padStart(2,'0')}`;
 export function mountTraining(root,{onExit,toast,names=[]}){
- let current=null,multiplier=1,timer=null,disposed=false,coachRequest=null,coachReport=null;
+ let current=null,multiplier=1,timer=null,disposed=false,coachRequest=null,coachReport=null,jdcCleanup=null;
  const $=s=>root.querySelector(s);
  function stop(){clearInterval(timer);timer=null;if(coachRequest){coachRequest.abort();coachRequest=null;}}
  function safely(fn){try{fn();}catch(e){toast(e.message);}}
  function store(next){saveTraining(next);current=next;}
  function home(){
-  stop();document.body.dataset.view='training';root.classList.remove('cricket-game','x01-game');
+  jdcCleanup?.();jdcCleanup=null;stop();document.body.dataset.view='training';root.classList.remove('cricket-game','x01-game');
   let sessions,profiles;
   try{sessions=loadTrainings();profiles=loadProfiles();}catch(e){root.innerHTML='<section class="panel"><h1>Nie można odczytać treningów</h1><p>Istniejący zapis pozostaje zachowany.</p><button id="training-back">Wróć</button></section>';$('#training-back').onclick=onExit;toast(e.message);return;}
   const active=sessions.filter(s=>s.endedAt===null);
-  root.innerHTML=`<section class="hero"><div><div class="eyebrow">TRENING · PIERWSZY KROK</div><h1>Poznaj swoją celność.</h1><p>Jeden cel. Krótka sesja. Twój punkt odniesienia na kolejne treningi.</p></div><button id="training-back">Wróć</button></section>
+  root.innerHTML=`<section class="hero"><div><div class="eyebrow">TRENING · TWÓJ ROZWÓJ</div><h1>Przygotuj się do sparingu.</h1><p>Pełna próba JDC lub krótkie ćwiczenie celności. Wybierz swój trening.</p></div><button id="training-back">Wróć</button></section>
+  <section class="panel jdc-entry"><div><div class="eyebrow">GŁÓWNY SPRAWDZIAN POSTĘPÓW</div><h2>JDC Challenge</h2><p>57 lotek · Shanghai, podwójne i BULL. Wynik, rekord i historia każdego etapu.</p></div><button id="open-jdc" class="primary">Trenuj JDC →</button></section>
   ${active.map(s=>`<div class="resume-banner"><div><strong>${esc(s.name)} · rozpoczęty trening</strong><p>${s.darts.length} lotek · ${clock(remainingTime(s))} do końca</p></div><button data-resume-training="${esc(s.id)}">Wznów trening</button></div>`).join('')}
   <section class="panel"><div class="eyebrow">CEL: SEKTOR 20</div><h2>Powtarzalność przed punktami</h2><p>Celuj w sektor 20. Każde trafienie w 20 — pojedyncze, podwójne lub potrójne — zaliczamy jako jeden celny rzut. Wpisuj faktycznie trafione pole, również gdy chybiłeś celu.</p>
   ${coachChoice(false)}<div class="training-form"><label>Twoje imię<input id="training-name" maxlength="24" list="training-names" placeholder="Np. Przemek"></label><datalist id="training-names">${[...new Set([...names,...profiles.map(p=>p.name),...sessions.map(s=>s.name)])].map(n=>`<option value="${esc(n)}"></option>`).join('')}</datalist><label>Czas sesji<select id="training-duration"><option value="5">5 minut</option><option value="10">10 minut</option><option value="15" selected>15 minut</option></select></label><button id="training-start" class="primary">Zacznij trening →</button></div><p class="small">Możesz zrobić pauzę lub skończyć wcześniej. Treningi zapisują się na tym urządzeniu, osobno od meczów.</p></section>
   <section class="panel training-history"><h2>Ostatnie treningi</h2>${sessions.filter(s=>s.endedAt!==null).slice(0,12).map(s=>{const st=trainingStats(s);return `<div class="saved-match"><div><strong>${esc(s.name)} · ${st.accuracy??'—'}${st.accuracy===null?'':'%'}</strong><p>${st.hits}/${st.throws} trafień w sektor 20 · ${new Date(s.createdAt).toLocaleDateString('pl-PL')}</p></div><button data-result="${esc(s.id)}">Wynik</button></div>`;}).join('')||'<p>Pierwsza sesja będzie początkiem Twojej historii.</p>'}</section>`;
   $('#training-back').onclick=onExit;
+  $('#open-jdc').onclick=()=>{stop();jdcCleanup=mountJdc(root,{onExit:home,toast,names});};
   $('#training-start').onclick=()=>safely(()=>{const name=$('#training-name').value.trim();if(active.some(s=>s.name.toLocaleLowerCase('pl-PL')===name.toLocaleLowerCase('pl-PL')))throw new Error('Masz rozpoczęty trening. Wznów go z listy.');const [profile]=ensureProfiles([name]);store({...createTraining(profile.name,Number($('#training-duration').value),Date.now(),$('#training-coach').checked),profileId:profile.id});coachReport=null;multiplier=1;game();});
   root.querySelectorAll('[data-resume-training]').forEach(b=>b.onclick=()=>safely(()=>{coachReport=null;current=sessions.find(s=>s.id===b.dataset.resumeTraining);if(!remainingTime(current)){store(finishTraining(current));result();}else {store(resumeTraining(current));game();}}));
   root.querySelectorAll('[data-result]').forEach(b=>b.onclick=()=>{current=sessions.find(s=>s.id===b.dataset.result);result();});
  }
- function renderAdvice(report){const a=report.advice;return `<div class="training-coach-advice"><strong>Trener AI · analiza z ${new Date(report.createdAt).toLocaleTimeString('pl-PL')}</strong><p>${esc(a.summary)}</p><p><strong>Cel: </strong>${esc(a.focus)}</p><p>${esc(a.tip)}</p><p class="small">${esc(a.reason)}</p><p class="small">Podstawa: ${report.evidence.trainingThrows} lotek treningowych i ${report.evidence.completedMatches} zakończonych meczów.</p></div>`;}
+ function renderAdvice(report){const a=report.advice;return `<div class="training-coach-advice"><strong>Trener AI · analiza z ${new Date(report.createdAt).toLocaleTimeString('pl-PL')}</strong><p>${esc(a.summary)}</p><p><strong>Cel: </strong>${esc(a.focus)}</p><p>${esc(a.tip)}</p><p class="small">${esc(a.reason)}</p><p class="small">Podstawa: ${report.evidence.trainingThrows} lotek treningowych i ${report.evidence.completedMatches} zakończonych meczów oraz ${report.evidence.jdcSessions??0} pełnych prób JDC.</p></div>`;}
  async function askCoach(){
   if(coachRequest)return;const controller=new AbortController();coachRequest=controller;const id=current.id;
   $('#ask-coach').disabled=true;$('#coach-response').textContent='Trener analizuje Twoje wyniki…';
@@ -58,5 +61,5 @@ export function mountTraining(root,{onExit,toast,names=[]}){
   $('#training-home').onclick=home;
  }
  home();
- return ()=>{disposed=true;stop();if(current && current.endedAt===null && current.runningSince!==null)safely(()=>store(pauseTraining(current)));};
+ return ()=>{disposed=true;jdcCleanup?.();stop();if(current && current.endedAt===null && current.runningSince!==null)safely(()=>store(pauseTraining(current)));};
 }

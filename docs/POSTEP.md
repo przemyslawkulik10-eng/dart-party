@@ -253,3 +253,13 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Read-only konektory potwierdziły osobne repo GitHub i projekt Vercel. Supabase pokazuje tylko Magazyn; nie podłączono do niego gry. Tworzenie dedykowanej bazy i koszt pozostają nierozstrzygnięte. Bez pusha, publikacji, migracji i zakupów.
 - Użytkownik wskazał DJC jako najważniejszą grę przygotowującą do zawodów. Skrót i zasady wymagają doprecyzowania; nie implementować domysłu.
 - Weryfikacja końcowa: 57/57 testów PASS, build PASS, diff-check PASS, parser configure-ai.py PASS. Transport AI w testach jest atrapą; brak potwierdzenia działania usługi na żywo.
+
+## 2026-10-17 — JDC Challenge zbudowane lokalnie
+- Zatwierdzone przez użytkownika zasady i polecenie BUDUJ. GoDartsPro punktem odniesienia dla rutyny i historii wyników; własny interfejs DART PARTY.
+- src/jdc.js: 57 lotek (18/21/18), Shanghai 10–15 i 15–20: wartość trafionego celu i +100 za S/D/T; runda D1–D20 po jednej próbie: 50 za poprawne D, BULL D25 = 100, S25 = 0. Maksimum 3380 (1050+1100+1230). Pudła zużywają próbę. Osiem progów koloru wyniku.
+- src/jdc-ui.js i wejście w Trening: duży pomarańczowy cel, faktyczne trafienia, cofanie, automatyczne zakończenie, korekta 57. lotki, zapis/wznowienie, osobna historia, poprzedni wynik/rekord/średnia pełnych prób własnego profilu. Liczba zawodników nie dotyczy JDC solo; istniejące mecze 2–6 pozostają osobno.
+- Trener domyślnie wyłączony. W trakcie wskazówki zasad; po pełnej próbie opcjonalne wywołanie AI. Kontekst poszerzony o do 30 pełnych prób JDC bez nazw i ID. Brak konfiguracji usługi daje błąd, nie atrapę porady.
+- 64/64 testy PASS, build PASS i diff-check PASS. Testy obejmują granice etapów, sześć permutacji Shanghai, zewnętrzny/środkowy BULL, perfekcyjny wynik, undo zakończenia, JSON, izolację profili i ochronę uszkodzonych zapisów.
+- QA przeglądarkowe i macierz 1920×1080, 1180×820, 1024×768, 820×1180 nieprzeprowadzone. curl: (7) Failed to connect to 127.0.0.1 port 4173. Lokalnie brak modułu Playwright. Nie potwierdzono wyglądu ani działającego API AI. Nie obchodzono blokady połączenia. Następnie: uruchomić aktualny serwer npm run dev w terminalu użytkownika i przetestować Trening → JDC.
+- Bez pusha, deploy, zmian bazy i opłat. Checkpoint lokalny na gałęzi codex/checkout-ui-20261017.
+- Źródła zasad: https://www.godartspro.com/app/jdc-practice-routine/ oraz https://dartson.app/nl/rules/jdc-challenge/ (sprawdzone w rozmowie 17.10.2026).

@@ -54,3 +54,10 @@ To nie jest jeszcze publiczny backend dla sklepowej aplikacji. Build nadal daje 
 3. Ustalona z użytkownikiem ścieżka umiejętności i jawne kryteria awansu; AI nie odblokowuje gier samowolnie.
 4. Weryfikacja efektów krótkich sesji na sparingach; docelowa aplikacja iOS/Android.
 5. API Scolii po zweryfikowaniu dostępu i warunków, bez łączenia z firmową infrastrukturą.
+
+## Aktualizacja JDC — 17.10.2026
+
+- Dostępne ćwiczenia obejmują teraz sektor 20 oraz JDC; wcześniejsze ograniczenie do samego sektora 20 jest nieaktualne.
+- Osobny zapis dart-party-jdc-v1, stałe profile, pełne próby 57 lotek, cofanie (również po zakończeniu), powrót i wznowienie bez limitu czasu. Niepełne próby nie uczestniczą w porównaniu wyników.
+- Analiza AI otrzymuje do 30 zakończonych prób JDC tego samego profilu, przeliczone punkty, trafienia i liczbę lotek każdego etapu. Nie otrzymuje nazw ani UUID. Stopień wyniku nie jest oficjalnym awansem JDC. Różne skale punktowe etapów nie są porównywane jako celność.
+- Trener opcjonalny: wskazówki zasad w trakcie gry, analiza AI na żądanie po pełnej próbie. Prawdziwe API nadal wymaga konfiguracji; nie potwierdzono działania na żywo.
