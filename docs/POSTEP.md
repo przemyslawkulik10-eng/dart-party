@@ -277,3 +277,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Zapisano pełne wymaganie wielojęzyczności w docs/KIERUNEK-ROZWOJU.md i granicę kont w docs/KONTA-GRACZY.md. Obecnie tylko polski; brak gotowego selektora innych języków. Nie twierdzić, że wszystkie języki działają.
 - Pytanie o koszt nowego projektu Supabase 10 USD/mies. nadal bez wyraźnej odpowiedzi. Wypowiedź o gościu i językach nie jest akceptacją zakupu.
 - Weryfikacja: składnia app.js, build i diff-check. Zmiana tekstów nie wymaga nowych testów logiki. QA wizualne nieprzeprowadzone. Bez publikacji i zmian chmury.
+
+## 2026-10-17 — zasady przy wybranej grze
+- Dodano rozwijane „Zasady gry” pod ustawieniami wybranego X01/Cricket. Opis uwzględnia bieżący Double Out, punktację Cricket, domową blokadę 20 i liczbę wygranych legów.
+- JDC i sektor 20 mają własne zasady przed rozpoczęciem i na dole aktywnego treningu. Panel details/summary obsługuje klawiaturę, nie przerywa sesji i jest niezależny od trenera.
+- Źródło opisów: src/game-rules.js. Zasady silnika i zapisane mecze bez zmian. Składnia JS, sprawdzenie wybranych wariantów opisów, build i diff-check PASS. QA wizualne nadal niewykonane. Bez pusha/deploy.
