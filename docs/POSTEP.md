@@ -385,3 +385,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Użytkownik zgłosił utrzymujące się ×3 i zażądał podpowiedzi. Test rzeczywistego handlera hit z silnikiem potwierdza reset przed renderem: T20/S3/S17 = 221 pozostałych w 301. Serwer 4174 działa z właściwego katalogu. Nie potwierdzono wersji kodu w otwartej karcie; zalecono pełne odświeżenie bez czyszczenia danych.
 - Usunięto blokadę podpowiedzi checkoutu w zawodach, wizualną i głosową; próg 170 zachowany. Zmieniono nieaktualne napisy „bez podpowiedzi”. Zasady double-out i liczba pozostałych lotek nadal sterują trasą.
 - 102/102 testów PASS, build i diff-check PASS. Nowe testy wykonują rzeczywiste funkcje aplikacji z izolowanymi zależnościami; nie zastępują kliknięcia i odsłuchu w przeglądarce użytkownika. Lokalny main, publikacja zdalna nadal zablokowana DNS.
+
+## 2026-10-17 — podpowiedzi na kartach graczy
+- Użytkownik wskazał kartę wyniku jako miejsce podpowiedzi. Dodano trasę obok wyniku każdego gracza od 170 do 1; oczekujący widzi trasę na 3 lotki, aktywny na faktycznie pozostałe. Po zakończeniu kolejki podgląd oznaczony „Na swoją kolejkę”. Po wygraniu lega i w Cricket ukryte.
+- Respektowane zwykłe zakończenie ze zrzutu: 168 = T20 → T20 → T16. W double-out 168 pokazuje brak zejścia. Powyżej 170 brak panelu. Istniejąca większa podpowiedź aktywnego gracza pozostaje.
+- 103/103 testów PASS, build i diff-check PASS. Test obejmuje kartę oczekującego, pozostałe lotki aktywnego i double-out. Układ na urządzeniu użytkownika do potwierdzenia po odświeżeniu. Zapis lokalny main, bez zdalnego pusha (wcześniejsza blokada DNS).

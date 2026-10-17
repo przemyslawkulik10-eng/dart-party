@@ -22,3 +22,12 @@ test('checkout display and voice available at 170 in competition, hidden above 1
  assert.match(ctx.scoreWithCheckout(state),/checkout-panel/);assert.ok(ctx.finishAdvice(state));
  state.players[0].score=171;assert.doesNotMatch(ctx.scoreWithCheckout(state),/checkout-panel/);
 });
+test('scoreboard shows waiting player 168 straight-out finish, active player uses remaining darts',()=>{
+ const ctx=vm.createContext({match:{mode:'301',doubleOut:false},checkout,checkoutLabel,CHECKOUT_HINT_THRESHOLD});
+ vm.runInContext(source.slice(source.indexOf('function playerCheckout(state,index)'),source.indexOf('function renderGame()')),ctx);
+ const state={players:[{score:220},{score:168},{score:275}],current:2,turn:[],ready:false,legWinner:null};
+ assert.match(ctx.playerCheckout(state,1),/T20 → T20 → T16/);assert.equal(ctx.playerCheckout(state,0),'');
+ state.current=1;state.turn=[{},{}];assert.match(ctx.playerCheckout(state,1),/BRAK ZEJŚCIA/);
+ ctx.match.doubleOut=true;state.turn=[];assert.match(ctx.playerCheckout(state,1),/BRAK ZEJŚCIA/);
+ state.legWinner=0;assert.equal(ctx.playerCheckout(state,1),'');
+});
