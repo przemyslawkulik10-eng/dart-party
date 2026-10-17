@@ -327,3 +327,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Lektor uruchamiany po zatwierdzeniu, nie przy każdym zaznaczeniu. Shanghai dostaje wyróżnienie wizualne, fanfarę i bardziej energiczne ustawienia mowy systemowej. Brak nagrań profesjonalnego lektora; rzeczywista jakość odsłuchu do oceny użytkownika.
 - Weryfikacja: 89/89 testów PASS, npm run build PASS, node --check modułów UI/rund PASS, git diff --check PASS. Nie wykonano wizualnego QA ani odsłuchu na urządzeniu użytkownika. Testy logiki nie potwierdzają tych dwóch obszarów.
 - Następny krok: odświeżyć 127.0.0.1:4174, otworzyć zapisany wynik (np. 1906), sprawdzić historię; nowa próba do oceny wpisywania kolejki i celebracji. Konta/chmura/kamery nadal niewdrożone. Bez pusha/publikacji.
+
+## 2026-10-17 — jawny zapis zerowej kolejki
+- Dodano przycisk „Żadna nie trafiła celu — zapisz 0 pkt”. Zapisuje wszystkie pozostałe lotki kolejki jako nietrafione cele o nieznanym polu i przechodzi dalej. Działa także przy wznowieniu częściowej kolejki; nie usuwa wcześniejszych zapisanych lotek.
+- Wspólna obsługa zatwierdzania zachowuje historię, cofnięcie, zapis i lektora. 89/89 testów PASS, build/składnia/diff-check PASS. Wizualny test urządzenia pozostaje do wykonania. Bez publikacji.
