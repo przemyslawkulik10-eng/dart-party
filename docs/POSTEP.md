@@ -451,3 +451,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Dodano scripts/serve-tablet.mjs: port 4175, jawna lista lokalnych adresów Host, bez konfiguracji sekretów trenera. Dotychczasowy port 4174 niezmieniony. Dodano UUID fallback dla przeglądarek HTTP w LAN.
 - Testy i build PASS. Próba uruchomienia: listen EPERM 0.0.0.0:4175 — środowisko blokuje nasłuch. Użytkownik musi wykonać node scripts/serve-tablet.mjs w Terminalu Maca. Adres wykryty: http://192.168.5.243:4175. Brak testu na fizycznym tablecie. Dane meczu osobne w każdej przeglądarce.
 - W toku niezacommitowane moduły drużyn i kolorów od agentów; Mnożnik 7–12 buduje agent teams_ui. Wymagają integracji w app.js.
+
+## 2026-10-17 — Mnożnik 7–12
+- Nowy moduł src/mnoznik.js i wejście Graj w Mnożnik na stronie głównej. Sześć rund7–12: trzy lotki na mnożnik S1/D2/T3, trzy lotki na punkty, iloczyn daje wynik rundy. Maksimum9720.
+- Profile, zapis po każdej lotce, wznowienie, cofanie, tabela rund, historia i dźwięk. Reset mnożnika punktowego do×1 po rzucie.
+- 119/119 testów PASS i build PASS. Brak fizycznego testu na tablecie. Pozostałe zmiany agentów (drużyny/kolory) jeszcze wymagają integracji.

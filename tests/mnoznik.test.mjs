@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {webcrypto} from 'node:crypto';
+import {MNOZNIK_KEY,createMnoznik,mnoznikState,throwMnoznik,undoMnoznik,loadMnoznik,saveMnoznik} from '../src/mnoznik.js';
+globalThis.crypto??=webcrypto;
+const create=()=>createMnoznik({id:crypto.randomUUID(),name:'Gracz'},1);
+const hit=(m,n)=>throwMnoznik(m,n,2);
+test('Mnożnik counts S+D+T multiplier, then three ordinary dart scores',()=>{let m=create();for(const n of [1,2,3])m=hit(m,n);let s=mnoznikState(m);assert.equal(s.phase,'score');assert.equal(s.rounds[0].multiplier,6);for(const n of [60,25,50])m=hit(m,n);s=mnoznikState(m);assert.equal(s.total,810);assert.equal(s.target,8);assert.equal(s.phase,'hits');assert.equal(s.rounds[0].complete,true);assert.deepEqual(s.rounds[0].scores,[60,25,50]);});
+test('Mnożnik six perfect rounds end at 9720 after 36 darts',()=>{let m=create();for(let i=0;i<6;i++)for(const n of [3,3,3,60,60,60])m=hit(m,n);const s=mnoznikState(m);assert.equal(s.total,9720);assert.equal(s.finished,true);assert.equal(s.darts,36);assert.throws(()=>hit(m,0));assert.deepEqual(s.rounds.map(r=>r.target),[7,8,9,10,11,12]);const u=mnoznikState(undoMnoznik(m));assert.equal(u.finished,false);assert.equal(u.phase,'score');assert.equal(u.dart,3);assert.equal(u.total,9180);});
+test('Mnożnik zero hits produce zero and undo crosses phase boundaries',()=>{let m=create();for(const n of [0,0,0,60,60,60])m=hit(m,n);assert.equal(mnoznikState(m).total,0);m=undoMnoznik(m);assert.equal(mnoznikState(m).target,7);for(let i=0;i<3;i++)m=undoMnoznik(m);const s=mnoznikState(m);assert.equal(s.phase,'hits');assert.equal(s.dart,3);});
+test('Mnożnik rejects invalid darts, malformed histories and corrupt storage without overwrite',()=>{let m=create();assert.throws(()=>hit(m,4));for(const n of [1,1,1])m=hit(m,n);for(const n of [-1,61,59,1.5])assert.throws(()=>hit(m,n));assert.throws(()=>mnoznikState({...m,events:[{type:'score',value:60,at:2}]}));const map=new Map();globalThis.localStorage={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};saveMnoznik(m);assert.deepEqual(loadMnoznik(),[m]);const restored=JSON.parse(JSON.stringify(m));assert.deepEqual(mnoznikState(restored),mnoznikState(m));map.set(MNOZNIK_KEY,'broken');assert.throws(()=>saveMnoznik(m));assert.equal(map.get(MNOZNIK_KEY),'broken');});
