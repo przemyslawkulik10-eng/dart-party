@@ -263,3 +263,10 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - QA przeglądarkowe i macierz 1920×1080, 1180×820, 1024×768, 820×1180 nieprzeprowadzone. curl: (7) Failed to connect to 127.0.0.1 port 4173. Lokalnie brak modułu Playwright. Nie potwierdzono wyglądu ani działającego API AI. Nie obchodzono blokady połączenia. Następnie: uruchomić aktualny serwer npm run dev w terminalu użytkownika i przetestować Trening → JDC.
 - Bez pusha, deploy, zmian bazy i opłat. Checkpoint lokalny na gałęzi codex/checkout-ui-20261017.
 - Źródła zasad: https://www.godartspro.com/app/jdc-practice-routine/ oraz https://dartson.app/nl/rules/jdc-challenge/ (sprawdzone w rozmowie 17.10.2026).
+
+## 2026-10-17 — panel gracza i dane rozwoju
+- Poprzedni checkpoint JDC: 4e32fdc, lokalny, bez publikacji.
+- Dodano Profile i statystyki na ekranie głównym. Tworzenie lokalnego profilu, historia JDC/treningów/meczów, rekord, średnia i zmiana JDC, trafienia/próby/% dla D1–D20/BULL, ważona celność sektora 20, zakończone mecze i zwycięstwa. Eksport JSON własnych treningów i podsumowań meczów, bez tokenów i surowej historii przeciwników.
+- Profile lokalne jawnie opisane jako lokalne, bez logowania. Użytkownik poprosił o prawdziwe konta i zaakceptował rekomendację logowania linkiem na e-mail. Konta i synchronizacja nie są jeszcze wdrożone.
+- Supabase get_cost dla obecnej organizacji DostawaWarzyw zwrócił 10 USD miesięcznie. Zadano konkretne pytanie o zgodę na osobny DART PARTY w eu-central-1; oczekiwanie na odpowiedź, bez kupna i tworzenia projektu. Szczegóły: docs/KONTA-GRACZY.md.
+- 66/66 testów PASS, build PASS, diff-check PASS. Nowe testy: ważona celność, ukończone próby vs aktywne, izolacja profili i eksport bez danych przeciwników. QA przeglądarkowe nadal nieprzeprowadzone z powodu niedostępnego serwera 4173 dla narzędzi. Bez migracji/pusha/deploy/wysyłki wiadomości.
