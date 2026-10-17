@@ -339,3 +339,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-17 — pudło zaznaczane w miejscu lotki
 - Zamiast trzech statycznych opisów są trzy przyciski Pudło z aria-pressed. Klik zaznacza, ponowny odznacza; zaznaczone pudło ma kontrastowe tło. Trafienie S/D/T uzupełnia pierwsze wolne miejsce, więc wybór pudła na trzeciej lotce nie blokuje pierwszych dwóch.
 - Draft odróżnia jawne pudło (0/1 + unknownMiss) od wolnego null. Zatwierdzenie zachowuje semantykę nieznanego pola. Usunięto osobny przycisk pojedynczego pudła. 89 testów, build, składnia i diff-check PASS; wizualnie do testu użytkownika.
+
+## 2026-10-17 — trzy graficzne lotki przy ostatniej kolejce
+- Po prawej stronie rozwijanej historii dodano własne ikony SVG lotek z podpisami zapisanych trafień. Liczba ikon odpowiada zapisanym lotkom (3 dla pełnej kolejki). Responsywne zawijanie na wąskim ekranie.
+- Składnia, build i diff-check PASS. Wygląd do potwierdzenia po odświeżeniu u użytkownika.
