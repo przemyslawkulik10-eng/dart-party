@@ -307,3 +307,10 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - 79/79 testów PASS, build PASS, składnia players-ui.js i git diff --check PASS. Testy granic celności, minimalnej liczby lotek, braku historii, przyszłych i pustych sesji, duplikatów i izolacji profili.
 - QA przeglądarkowe NIE wykonane: curl: (7) Failed to connect to 127.0.0.1 port 4173. Nie potwierdzono wyglądu w wymaganych rozmiarach. Następny krok: uruchomić lokalny serwer i przetestować profil na tablecie, potem pełny backup/restore (nadal niewdrożony).
 - Bez pusha, publikacji, migracji, zakupu osobnej bazy i zmian firmowych usług. Stan kont i kamer nadal projektowy. Kod kontynuowany na istniejącej gałęzi.
+
+## 2026-10-17 — dźwięk treningu i JDC
+- Przyczyna ciszy: oba moduły treningowe nie wywoływały istniejącej obsługi dźwięku. Podłączono lektora PL i sygnały, z zachowaniem globalnego wyciszenia i niezależnie od opt-in AI.
+- Sektor20: cel na start/wznowienie, wynik każdej trójki, pauza/cofnięcie i końcowy wynik (także po timerze). JDC: aktualny cel na start/wznowienie, przyrost punktów z silnika wraz z bonusem, następny cel po rzucie, koniec próby i korekta lotki. Jeden komunikat łączy wynik z celem; render i wybór mnożnika nie odpalają mowy.
+- Przycisk powtórzenia celu/sprawdzenia dźwięku w obu aktywnych treningach. Przy wyciszeniu wskazuje globalny przełącznik. Wyjście z treningu przerywa mowę. Oglądanie archiwalnego wyniku nie odtwarza celebracji.
+- 83/83 testów PASS, build PASS, składnia modułów i diff-check PASS. Testy obejmują granice etapów, BULL 25/50, Shanghai, koniec bez nieistniejącego następnego celu i respektowanie wyciszenia.
+- Użytkownik przesłał screen działającego JDC na 127.0.0.1:4174. Odsłuch rzeczywistego głosu na jego komputerze pozostaje do wspólnego testu; test mock speech nie dowodzi słyszalności. Bez pusha/publikacji i zmian zapisów.

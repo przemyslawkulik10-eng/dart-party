@@ -1,3 +1,5 @@
+import {speakTraining,stopSpeech,playSound,soundEnabled} from './sound.js';
+import {sectorPrompt,sectorTurn,sectorResult} from './training-audio.js';
 import {rulesPanel} from './game-rules.js';
 import {mountJdc} from './jdc-ui.js';
 import {ensureProfiles,loadProfiles} from './profiles.js';
@@ -14,7 +16,7 @@ export function mountTraining(root,{onExit,toast,names=[],initialName='',initial
  function safely(fn){try{fn();}catch(e){toast(e.message);}}
  function store(next){saveTraining(next);current=next;}
  function home(){
-  jdcCleanup?.();jdcCleanup=null;stop();document.body.dataset.view='training';root.classList.remove('cricket-game','x01-game');
+  stopSpeech();jdcCleanup?.();jdcCleanup=null;stop();document.body.dataset.view='training';root.classList.remove('cricket-game','x01-game');
   let sessions,profiles;
   try{sessions=loadTrainings();profiles=loadProfiles();}catch(e){root.innerHTML='<section class="panel"><h1>Nie można odczytać treningów</h1><p>Istniejący zapis pozostaje zachowany.</p><button id="training-back">Wróć</button></section>';$('#training-back').onclick=onExit;toast(e.message);return;}
   const active=sessions.filter(s=>s.endedAt===null);
@@ -27,8 +29,8 @@ export function mountTraining(root,{onExit,toast,names=[],initialName='',initial
   $('#training-name').value=initialName;
   $('#training-back').onclick=onExit;
   $('#open-jdc').onclick=()=>{stop();jdcCleanup=mountJdc(root,{onExit:home,toast,names,initialName});};
-  $('#training-start').onclick=()=>safely(()=>{const name=$('#training-name').value.trim();if(active.some(s=>s.name.toLocaleLowerCase('pl-PL')===name.toLocaleLowerCase('pl-PL')))throw new Error('Masz rozpoczęty trening. Wznów go z listy.');const [profile]=ensureProfiles([name]);store({...createTraining(profile.name,Number($('#training-duration').value),Date.now(),$('#training-coach').checked),profileId:profile.id});coachReport=null;multiplier=1;game();});
-  root.querySelectorAll('[data-resume-training]').forEach(b=>b.onclick=()=>safely(()=>{coachReport=null;current=sessions.find(s=>s.id===b.dataset.resumeTraining);if(!remainingTime(current)){store(finishTraining(current));result();}else {store(resumeTraining(current));game();}}));
+  $('#training-start').onclick=()=>safely(()=>{const name=$('#training-name').value.trim();if(active.some(s=>s.name.toLocaleLowerCase('pl-PL')===name.toLocaleLowerCase('pl-PL')))throw new Error('Masz rozpoczęty trening. Wznów go z listy.');const [profile]=ensureProfiles([name]);store({...createTraining(profile.name,Number($('#training-duration').value),Date.now(),$('#training-coach').checked),profileId:profile.id});coachReport=null;multiplier=1;game();playSound('turn');speakTraining(sectorPrompt(current));});
+  root.querySelectorAll('[data-resume-training]').forEach(b=>b.onclick=()=>safely(()=>{coachReport=null;current=sessions.find(s=>s.id===b.dataset.resumeTraining);if(!remainingTime(current)){store(finishTraining(current));result(true);}else {store(resumeTraining(current));game();playSound('turn');speakTraining(sectorPrompt(current));}}));
   root.querySelectorAll('[data-result]').forEach(b=>b.onclick=()=>{current=sessions.find(s=>s.id===b.dataset.result);result();});
  }
  function renderAdvice(report){const a=report.advice;return `<div class="training-coach-advice"><strong>Trener AI · analiza z ${new Date(report.createdAt).toLocaleTimeString('pl-PL')}</strong><p>${esc(a.summary)}</p><p><strong>Cel: </strong>${esc(a.focus)}</p><p>${esc(a.tip)}</p><p class="small">${esc(a.reason)}</p><p class="small">Podstawa: ${report.evidence.trainingThrows} lotek treningowych i ${report.evidence.completedMatches} zakończonych meczów oraz ${report.evidence.jdcSessions??0} pełnych prób JDC.</p></div>`;}
@@ -43,26 +45,27 @@ export function mountTraining(root,{onExit,toast,names=[],initialName='',initial
   stop();const stats=trainingStats(current),paused=current.runningSince===null;
   root.innerHTML=`<div class="game-title"><div><div class="eyebrow">TRENING · ${esc(current.name)}</div><h1>Celuj w <span class="training-target">20</span></h1><p>Cały sektor 20. Rzucaj w swoim tempie.</p></div><strong id="training-clock" class="training-clock" aria-label="Pozostały czas">${clock(remainingTime(current))}</strong></div>
   <div class="training-stats"><span><strong>${stats.hits}/${stats.throws}</strong> trafień</span><span><strong>${stats.accuracy??'—'}${stats.accuracy===null?'':'%'}</strong> celności</span><span>${paused?'PAUZA':'SESJA TRWA'}</span></div>
-  <section class="panel"><div class="keypad-head"><h2>W co trafiła lotka?</h2><div class="multiplier">${[1,2,3].map(m=>`<button data-training-mult="${m}" class="${multiplier===m?'selected':''}" aria-pressed="${multiplier===m}">×${m}</button>`).join('')}</div></div><div class="number-grid">${Array.from({length:20},(_,i)=>i+1).map(n=>`<button data-training-hit="${n}" ${paused?'disabled':''}>${n}</button>`).join('')}</div><div class="special-keys"><button data-training-special="25" ${paused?'disabled':''}>BULL 25</button><button data-training-special="50" ${paused?'disabled':''}>BULL 50</button><button data-training-special="0" ${paused?'disabled':''}>PUDŁO / 0</button></div>
+  <section class="panel"><div class="keypad-head"><h2>W co trafiła lotka?</h2><button id="training-repeat">Powtórz cel / sprawdź dźwięk</button><div class="multiplier">${[1,2,3].map(m=>`<button data-training-mult="${m}" class="${multiplier===m?'selected':''}" aria-pressed="${multiplier===m}">×${m}</button>`).join('')}</div></div><div class="number-grid">${Array.from({length:20},(_,i)=>i+1).map(n=>`<button data-training-hit="${n}" ${paused?'disabled':''}>${n}</button>`).join('')}</div><div class="special-keys"><button data-training-special="25" ${paused?'disabled':''}>BULL 25</button><button data-training-special="50" ${paused?'disabled':''}>BULL 50</button><button data-training-special="0" ${paused?'disabled':''}>PUDŁO / 0</button></div>
   ${coachChoice(current.coachEnabled)}${current.coachEnabled?`<aside class="training-coach-advice" aria-label="Wskazówka trenera" role="status">${esc(trainingAdvice(current))}</aside><div class="training-ai"><button id="ask-coach">Poproś trenera AI o analizę</button><p class="small">Do OpenAI wyślemy statystyki Twoich treningów i zakończonych meczów, bez imienia. Gra działa również bez AI.</p><div id="coach-response" role="status">${coachReport?renderAdvice(coachReport):''}</div></div>`:''}<p class="training-last" role="status">${current.darts.length?`Ostatnia lotka: ${dartLabel(current.darts.at(-1))}`:'Wpisz pierwszą lotkę.'}</p><div class="training-actions"><button id="training-undo" ${current.darts.length?'':'disabled'}>↶ Cofnij rzut</button><button id="training-pause">${paused?'Wznów':'Pauza'}</button><button id="training-finish">Zakończ trening</button><button id="training-home">Zapisz i wróć</button></div>${rulesPanel({mode:'sector-20'})}</section>`;
+  $('#training-repeat').onclick=()=>{if(!soundEnabled()){toast('Włącz dźwięk przyciskiem u góry ekranu.');return;}playSound('turn');speakTraining(paused?'Trening wstrzymany. Wznów, kiedy będziesz gotowy.':sectorPrompt(current));};
   $('#training-coach').onchange=e=>safely(()=>{store({...current,coachEnabled:e.target.checked});if(!e.target.checked)coachReport=null;game();});
   if($('#ask-coach'))$('#ask-coach').onclick=askCoach;
-  function hit(n,m){safely(()=>{if(!remainingTime(current)){store(finishTraining(current));result();return;}store(recordTrainingDart(current,n,m));game();});}
+  function hit(n,m){safely(()=>{if(!remainingTime(current)){store(finishTraining(current));result(true);return;}store(recordTrainingDart(current,n,m));game();playSound('hit');if(current.darts.length%3===0)speakTraining(sectorTurn(current));});}
   root.querySelectorAll('[data-training-hit]').forEach(b=>b.onclick=()=>hit(Number(b.dataset.trainingHit),multiplier));
   root.querySelectorAll('[data-training-special]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.trainingSpecial);hit(n===50?25:n,n===50?2:1);});
   root.querySelectorAll('[data-training-mult]').forEach(b=>b.onclick=()=>{multiplier=Number(b.dataset.trainingMult);game();});
-  $('#training-undo').onclick=()=>safely(()=>{store({...current,darts:current.darts.slice(0,-1)});game();});
-  $('#training-pause').onclick=()=>safely(()=>{store(paused?resumeTraining(current):pauseTraining(current));game();});
-  $('#training-finish').onclick=()=>safely(()=>{store(finishTraining(current));result();});
+  $('#training-undo').onclick=()=>safely(()=>{store({...current,darts:current.darts.slice(0,-1)});game();speakTraining('Cofnięto ostatnią lotkę. '+(paused?'Trening wstrzymany.':sectorPrompt(current)));});
+  $('#training-pause').onclick=()=>safely(()=>{store(paused?resumeTraining(current):pauseTraining(current));game();speakTraining(paused?sectorPrompt(current):'Pauza. Trening wstrzymany.');});
+  $('#training-finish').onclick=()=>safely(()=>{store(finishTraining(current));result(true);});
   $('#training-home').onclick=()=>safely(()=>{store(pauseTraining(current));home();});
-  if(!paused)timer=setInterval(()=>{if(disposed)return;const left=remainingTime(current);$('#training-clock').textContent=clock(left);if(!left){stop();safely(()=>{store(finishTraining(current));result();});}},500);
+  if(!paused)timer=setInterval(()=>{if(disposed)return;const left=remainingTime(current);$('#training-clock').textContent=clock(left);if(!left){stop();safely(()=>{store(finishTraining(current));result(true);});}},500);
  }
- function result(){
-  stop();const st=trainingStats(current);
+ function result(announce=false){
+  stop();if(announce){playSound('win');speakTraining(sectorResult(current));}const st=trainingStats(current);
   root.innerHTML=`<section class="panel training-result"><div class="eyebrow">TRENING ZAKOŃCZONY · ${esc(current.name)}</div><h1>Na dziś wystarczy.</h1><p>Cel: sektor 20 · czas aktywny ${clock(current.durationMs-current.remainingMs)}</p><div class="training-stats"><span><strong>${st.hits}/${st.throws}</strong> trafień</span><span><strong>${st.accuracy??'—'}${st.accuracy===null?'':'%'}</strong> celności</span></div><p>${st.throws?'Wynik zapisany. Kolejna sesja pozwoli porównać celność.':'Sesja zapisana bez rzutów. Nie wyliczamy z niej celności.'}</p><button id="training-home" class="primary">Wróć do treningów</button></section>`;
   $('#training-home').onclick=home;
  }
  home();
  if(initialExercise==='jdc' && $('#open-jdc'))$('#open-jdc').click();
- return ()=>{disposed=true;jdcCleanup?.();stop();if(current && current.endedAt===null && current.runningSince!==null)safely(()=>store(pauseTraining(current)));};
+ return ()=>{stopSpeech();disposed=true;jdcCleanup?.();stop();if(current && current.endedAt===null && current.runningSince!==null)safely(()=>store(pauseTraining(current)));};
 }
