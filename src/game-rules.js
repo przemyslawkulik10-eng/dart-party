@@ -11,7 +11,7 @@ export function gameRules({mode,doubleOut=false,cricketScoring='standard',cricke
  }else{
   title=String(mode);items=[`Każdy zaczyna od ${mode} punktów. Odejmujemy wartość trafionych pól. Masz do trzech lotek w kolejce. Celem jest dokładnie zero.`,doubleOut?'Double Out: kończysz podwójnym polem lub BULL 50. Przekroczenie zera, pozostawienie 1 lub zakończenie bez podwójnej anuluje punkty całej kolejki.':'Zakończenie dowolnym trafieniem. Przekroczenie zera anuluje punkty całej kolejki. Możesz pozostać z wynikiem 1.','Pojedyncza = wartość pola, podwójna = ×2, potrójna = ×3. BULL ma wartość 25 lub 50.'];
  }
- if(!['jdc','sector-20'].includes(mode))items.push(legsToWin>1?`Mecz do ${legsToWin} wygranych legów. Po legu wynik punktowy zaczyna się od nowa; wygrane legi zostają. Rozpoczynający zmienia się kolejno.`:'Gracie pojedynczy leg.', 'Przed meczem walka o start: po trzy lotki na BULL, najwyższa suma zaczyna. Remisujący liderzy powtarzają próbę. „Cofnij rzut” pozwala poprawić ostatni zapis.');
+ if(!['jdc','sector-20'].includes(mode))items.push(legsToWin>1?`Jeden set do ${legsToWin} wygranych legów. Pierwszy gracz z ${legsToWin} wygranymi legami wygrywa set. Po legu wynik punktowy zaczyna się od nowa; wygrane legi zostają. Rozpoczynający zmienia się kolejno.`:'Gracie pojedynczy leg.', 'Przed meczem walka o start: po trzy lotki na BULL, najwyższa suma zaczyna. Remisujący liderzy powtarzają próbę. „Cofnij rzut” pozwala poprawić ostatni zapis.');
  return {title,items};
 }
 export function rulesPanel(options){

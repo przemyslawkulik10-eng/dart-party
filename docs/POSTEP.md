@@ -441,3 +441,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 
 ## 2026-10-17 — V 01.04: zielone mnożniki
 - Przyciski ×1/×2/×3 w grze mają zielone tło. Wybrany mnożnik jasnozielony, z ciemnym napisem i wyraźną ramką. Nie zmieniono obsługi kliknięć ani resetowania ×3. Build i diff-check PASS. Lokalny main, ocena wizualna po odświeżeniu.
+
+## 2026-10-17 — V 01.05: jeden set do trzech wygranych legów
+- Nowy formularz X01/Cricket domyślnie wybiera 3 wygrane legi, opisane jako jeden set. Nagłówek pokazuje SET 1 i numer lega. Zwycięstwo całego formatu nazwane wygraną seta. Silnik już kończy dopiero przy trzecim wygranym legu; nie dodano wielu setów.
+- Dla rozpoczętego, niezakończonego meczu z innym limitem dodano „1 set do 3 legów — włącz”. Zachowuje rzuty i legi. Nie zmienia automatycznie starych ukończonych meczów. Starszy format jednego lega nadal prawidłowo nazwany legiem.
+- 106/106 testów PASS (w tym koniec przy trzeciej wygranej, undo i JSON), build i składnia PASS. Lokalny main. Stałe kolory graczy i wybór najsłabszego na rewanż nadal nie wdrożone; nie traktować wcześniejszych ustaleń jako gotowej funkcji.
