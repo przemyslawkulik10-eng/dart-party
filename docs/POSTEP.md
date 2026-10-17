@@ -314,3 +314,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Przycisk powtórzenia celu/sprawdzenia dźwięku w obu aktywnych treningach. Przy wyciszeniu wskazuje globalny przełącznik. Wyjście z treningu przerywa mowę. Oglądanie archiwalnego wyniku nie odtwarza celebracji.
 - 83/83 testów PASS, build PASS, składnia modułów i diff-check PASS. Testy obejmują granice etapów, BULL 25/50, Shanghai, koniec bez nieistniejącego następnego celu i respektowanie wyciszenia.
 - Użytkownik przesłał screen działającego JDC na 127.0.0.1:4174. Odsłuch rzeczywistego głosu na jego komputerze pozostaje do wspólnego testu; test mock speech nie dowodzi słyszalności. Bez pusha/publikacji i zmian zapisów.
+
+## 2026-10-17 — prosty wpis Shanghai
+- Zgodnie z porównaniem użytkownika do GoDartsPro: JDC ma bezpośrednie przyciski POJEDYNCZA/PODWÓJNA/POTRÓJNA aktualnego numeru. Każdy zapisuje jedną lotkę; nadal automatyczne przejście po trzech, bez zbiorczego zatwierdzania kolejki.
+- W etapie double jeden przycisk właściwego celu, BULL 50 zapisuje D25. Pozostałe trafienia pod „Trafiłem inne pole”, poza tarczą osobno. Wybranie mnożnika zachowuje otwarty panel. Silnik punktacji i stare zapisy bez zmian.
+- Opis Shanghai: S+D+T jednego numeru w trzech lotkach = +100; nie trzy potrójne. 83/83 testy i build PASS, składnia i diff-check PASS. Wygląd/słyszalność oczekują testu użytkownika w przeglądarce; bez publikacji.

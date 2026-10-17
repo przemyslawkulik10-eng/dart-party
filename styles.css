@@ -235,3 +235,12 @@ body[data-view=game] #app.cricket-game .player-card.active .muted{color:#482b12}
 .game-rules{margin-top:20px;border-top:1px solid var(--line,#34404c);padding-top:16px;text-align:left}.game-rules summary{cursor:pointer;font-weight:700;min-height:44px;padding:10px 0;color:#ffa447}.game-rules summary:focus-visible{outline:2px solid #ffa447;outline-offset:4px}.game-rules ol{padding-left:24px;line-height:1.6}.game-rules li+li{margin-top:10px}
 .return-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:20px}.return-options>div{border:1px solid var(--line,#34404c);border-radius:16px;padding:20px;display:flex;flex-direction:column}.return-options p{flex:1}.return-plan .training-stats{flex-wrap:wrap}@media(max-width:900px){.return-options{grid-template-columns:1fr}}
 .shanghai-insights{display:grid;gap:12px;margin-top:18px}.shanghai-insights>div{display:grid;grid-template-columns:32px minmax(80px,1fr) minmax(200px,2fr);gap:12px;align-items:center}.shanghai-insights progress{width:100%;accent-color:#ffa447}.shanghai-insights span{font-size:14px}@media(max-width:700px){.shanghai-insights>div{grid-template-columns:32px 1fr}.shanghai-insights span{grid-column:2}}
+
+/* Direct target entry for JDC: one action per dart. */
+.jdc-quick-hits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+.jdc-quick-hits button{display:flex;flex-direction:column;align-items:center;gap:10px;min-height:160px;padding:20px 10px}
+.jdc-quick-hits button strong{font-size:64px;line-height:1;color:var(--orange,#ff9b3d)}
+.jdc-quick-hits button span{font-size:clamp(14px,1.6vw,22px);font-weight:800}
+.jdc-quick-hits button small{font-size:16px}
+#jdc-other{margin:18px 0}#jdc-other summary{cursor:pointer;font-size:20px;padding:14px 0}#jdc-other .multiplier{margin:12px 0}
+@media(max-width:600px){.jdc-quick-hits{gap:8px}.jdc-quick-hits button{min-height:130px;padding:16px 5px}.jdc-quick-hits button strong{font-size:44px}.jdc-quick-hits button small{font-size:12px}}
