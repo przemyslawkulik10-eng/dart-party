@@ -456,3 +456,8 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Nowy moduł src/mnoznik.js i wejście Graj w Mnożnik na stronie głównej. Sześć rund7–12: trzy lotki na mnożnik S1/D2/T3, trzy lotki na punkty, iloczyn daje wynik rundy. Maksimum9720.
 - Profile, zapis po każdej lotce, wznowienie, cofanie, tabela rund, historia i dźwięk. Reset mnożnika punktowego do×1 po rzucie.
 - 119/119 testów PASS i build PASS. Brak fizycznego testu na tablecie. Pozostałe zmiany agentów (drużyny/kolory) jeszcze wymagają integracji.
+
+## 2026-10-17 — V 01.06: Mnożnik w sparingu
+- W Sparing / zawody dodano Mnożnik7–12: edytowalny skład2–6, po3lotki każdy w cel, następnie po3lotki każdy na punkty. Sześć rund,36lotek na osobę.
+- Osobne wyniki/ranking/remisy, zapis każdej lotki, wznowienie i undo przez zmianę gracza. Zapisane mecze otwierają historię właściwego modułu.
+- 122/122 testów PASS, build i diff-check PASS. Brak sprawdzenia na fizycznym tablecie. Zmiany drużyn/kolorów pozostają oddzielne w drzewie. Wcześniejszy push blokował DNS github.com.
