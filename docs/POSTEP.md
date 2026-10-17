@@ -186,3 +186,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Natywne Chrome po twardym odświeżeniu i wznowieniu: MACIEK 156, zakończona kolejka 14 punktów, panel podpowiedzi nieobecny. Zapis meczu zachowany. W tym etapie nie wykonano pełnego cyklu powrotu do zawodnika ani osobnego odsłuchu nowej zapowiedzi.
 - Zaktualizowano tests/checkout-browser.cjs: brak podpowiedzi po końcowym rzucie, podpowiedź po powrocie zawodnika, powtórzenie głosu i widoki z aktywną podpowiedzią. Zweryfikowano składnię skryptu; samego skryptu Playwright nie uruchamiano.
 - npm test 44/44 PASS; npm run build PASS; git diff --check PASS. Brak publikacji; wcześniejsze otwarte zadania QA nadal obowiązują.
+- Checkpoint tej poprawki: lokalny commit `664eaf7` na `codex/checkout-ui-20261017`, bez pusha; niniejszy dopisek po commicie pozostaje niezacommitowany.
+
+## 2026-10-17 — pomarańczowe cele rzutu i zmiana kierunku projektu
+- Na prośbę użytkownika dodano pomarańczowy #ffa447 do panelu zejścia: nagłówek, obramowanie, T/D/S/BULL, strzałki i przycisk powtórzenia. Ciepłe ciemne tło odróżnia cel rzutu od niebieskich wyników. Zmiana wyłącznie styles.css.
+- Build PASS, git diff --check PASS. Potwierdzone wizualnie w Chrome na zaimportowanym osobnym fixture 301 / 2 graczy z długimi imionami / aktywne 170 double out: pomarańczowe T20, T20, BULL 50 czytelne i oddzielone od wyniku. Fixture wczytany w incognito, poprzedni mecz pozostaje w zapisach.
+- NOWY KIERUNEK od użytkownika: aplikacja ma docelowo trafić do App Store i być dostępna na iOS i Androidzie. Przerwano dalsze przygotowanie publikacji dotychczasowej wersji web; najpierw ustalić architekturę i zakres wersji mobilnej. Nie tworzono jeszcze projektów natywnych, nie zakładano kont sklepowych, nie wysyłano aplikacji do sklepów.

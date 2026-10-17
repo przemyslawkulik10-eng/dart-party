@@ -193,11 +193,11 @@ body[data-view=game] .cricket-layout.many-players .current-panel .cricket-board 
 }
 @media(max-width:740px){body[data-view=game] #app.x01-game .scoreboard{grid-template-columns:repeat(2,minmax(0,1fr))}body[data-view=game] #app.x01-game .player-name{font-size:21px}body[data-view=game] #app.x01-game .player-score{font-size:48px}}
 .score-and-checkout{flex:1;display:flex;align-items:center;min-height:0}.score-value{min-width:0;width:100%;container-type:inline-size}.score-and-checkout.has-checkout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:12px}
-.checkout-panel{position:relative;border:2px solid #44cfff;border-radius:14px;background:#092849;padding:12px;min-width:0}
-.checkout-heading{font-size:15px;font-weight:850;color:#4ff0cf;line-height:1.2}.checkout-rule{font-size:11px;color:var(--muted);margin-top:6px}
-.checkout-route{list-style:none;padding:0;margin:10px 0;display:grid;gap:6px}.checkout-route li{font-size:clamp(25px,2.6vw,48px);font-weight:850;color:var(--ink);line-height:1.1}
-.checkout-route li+li:before{content:'↓ ';font-size:.55em;color:#44cfff}.checkout-unavailable{font-weight:800;font-size:18px;line-height:1.35;margin:12px 0;color:var(--ink)}
-.checkout-legend{font-size:10px;line-height:1.45;margin-top:8px;color:var(--muted)}#speak-checkout{font-size:12px;padding:8px 5px;min-height:40px;width:100%}
+.checkout-panel{position:relative;border:2px solid #ffa447;border-radius:14px;background:#2b1c14;padding:12px;min-width:0}
+.checkout-heading{font-size:15px;font-weight:850;color:#ffa447;line-height:1.2}.checkout-rule{font-size:11px;color:var(--muted);margin-top:6px}
+.checkout-route{list-style:none;padding:0;margin:10px 0;display:grid;gap:6px}.checkout-route li{font-size:clamp(25px,2.6vw,48px);font-weight:850;color:#ffa447;line-height:1.1}
+.checkout-route li+li:before{content:'↓ ';font-size:.55em;color:#ffa447}.checkout-unavailable{font-weight:800;font-size:18px;line-height:1.35;margin:12px 0;color:var(--ink)}
+.checkout-legend{font-size:10px;line-height:1.45;margin-top:8px;color:var(--muted)}#speak-checkout{background:#ffa447;color:#20130b;border-color:#ffa447;font-size:12px;padding:8px 5px;min-height:40px;width:100%}
 body[data-view=game] #app.x01-game .score-and-checkout .giant-score{margin:0}
 body[data-view=game] #app.x01-game .score-and-checkout .score-caption{margin:0}
 body[data-view=game] #app.x01-game .score-and-checkout.has-checkout .giant-score{font-size:min(18vh,48cqw,240px);letter-spacing:-4px}
