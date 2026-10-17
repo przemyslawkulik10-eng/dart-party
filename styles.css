@@ -244,3 +244,14 @@ body[data-view=game] #app.cricket-game .player-card.active .muted{color:#482b12}
 .jdc-quick-hits button small{font-size:16px}
 #jdc-other{margin:18px 0}#jdc-other summary{cursor:pointer;font-size:20px;padding:14px 0}#jdc-other .multiplier{margin:12px 0}
 @media(max-width:600px){.jdc-quick-hits{gap:8px}.jdc-quick-hits button{min-height:130px;padding:16px 5px}.jdc-quick-hits button strong{font-size:44px}.jdc-quick-hits button small{font-size:12px}}
+.jdc-counters{display:flex;gap:22px;align-items:center}.jdc-counters>strong{font-size:32px}.jdc-counters small{display:block;font-size:13px;max-width:180px}
+.jdc-title .training-target{color:#ffa344;font-size:clamp(30px,5vw,86px)}
+.jdc-levels{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin:20px 0}.jdc-levels>div{border:2px solid #435575;border-radius:12px;padding:12px 5px;text-align:center;opacity:.6}.jdc-levels small{display:block}.jdc-levels .active{border-color:var(--level-color);color:var(--level-color);opacity:1;box-shadow:0 0 15px color-mix(in srgb,var(--level-color),transparent 70%)}.jdc-levels p{grid-column:1/-1}
+.jdc-draft{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}.jdc-draft span{border:1px solid #6781a8;border-radius:8px;padding:12px}
+.jdc-quick-hits button.selected{background:#a84c00;border:3px solid #ffb45c;color:white}
+.jdc-celebration{background:#9b4600;border:2px solid #ffb257;padding:22px;border-radius:16px;text-align:center;margin:16px 0}.jdc-celebration strong{display:block;font-size:clamp(28px,4vw,60px)}.jdc-celebration span{display:block;font-size:22px}.jdc-celebration.shanghai{animation:jdc-pop .45s ease-out;background:#734400;border-color:#ffe078;color:#fff3bb}
+@keyframes jdc-pop{from{transform:scale(.95)}to{transform:scale(1)}}
+.jdc-comparison{overflow-x:auto;margin:24px 0}.jdc-comparison table{width:100%;border-collapse:collapse}.jdc-comparison th,.jdc-comparison td{text-align:left;padding:12px;border-bottom:1px solid #567094}.jdc-comparison thead{color:#ffb257}
+@media(max-width:800px){.jdc-levels{grid-template-columns:repeat(4,minmax(0,1fr))}.jdc-title{flex-wrap:wrap}.jdc-counters{width:100%;justify-content:space-between}.jdc-quick-hits strong{font-size:36px}}
+@media(prefers-reduced-motion:reduce){.jdc-celebration.shanghai{animation:none}}
+.jdc-draft .filled{background:#9b4600;border:2px solid #ffbd72;color:white;font-size:22px}.jdc-draft b{font-size:22px}.jdc-quick-hits button small{letter-spacing:2px}.jdc-comparison td{min-width:90px}.jdc-comparison summary{cursor:pointer}

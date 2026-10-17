@@ -15,7 +15,7 @@ export function playerStats(data){
  sector.accuracy=sector.throws?Math.round(100*sector.hits/sector.throws):null;
  const jdcResults=completedJdc.map(s=>({id:s.id,date:s.createdAt,...jdcStats(s)}));
  const targets=new Map(),actualHits=new Map();let trainingDarts=0;
- function addActual(d){const key=`${d.number}:${d.multiplier}`;actualHits.set(key,(actualHits.get(key)||0)+1);trainingDarts++;}
+ function addActual(d){trainingDarts++;if(d.unknownMiss)return;const key=`${d.number}:${d.multiplier}`;actualHits.set(key,(actualHits.get(key)||0)+1);}
  for(const s of trainings)for(const d of s.darts)addActual(d);
  for(const s of jdc)for(const d of s.darts)addActual(d);
  // Per-double attempts in full JDC tests; never infer the intended target in matches.

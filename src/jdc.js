@@ -13,6 +13,8 @@ export function createJdc(profile,coachEnabled=false,now=Date.now()){
 }
 export function validateJdc(s){
  if(!s||s.version!==1||s.kind!=='jdc'||!validProfileId(s.id)||!validProfileId(s.profileId)||typeof s.name!=='string'||!s.name.trim()||s.name.length>24||typeof s.coachEnabled!=='boolean'||!Number.isFinite(s.createdAt)||!Array.isArray(s.darts)||s.darts.length>57||s.darts.some(d=>!validDart(d)||!Number.isFinite(d.at))||(s.darts.length===57?(!Number.isFinite(s.endedAt)||s.endedAt<s.createdAt):s.endedAt!==null))throw new Error('Nie można odczytać próby JDC. Zapis pozostaje zachowany.');
+ if(s.draft!==undefined&&(!Array.isArray(s.draft)||s.draft.length>(s.darts.length===57?0:3-s.darts.length%3)||s.draft.some(d=>d!==null&&!validDart(d))))throw new Error('Nieprawidłowe zaznaczenia kolejki.');
+ if(s.darts.some(d=>d.unknownMiss!==undefined&&(d.unknownMiss!==true||d.number!==0||d.multiplier!==1)))throw new Error('Nieprawidłowy zapis nietrafionego celu.');
  return s;
 }
 export function recordJdcDart(s,number,multiplier=1,now=Date.now()){

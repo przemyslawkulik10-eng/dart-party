@@ -70,5 +70,5 @@ export function speakThreeTriples(playerName, victory=false, legOnly=false){
 }
 
 // Training announcements are user-triggered; repainting a view never starts speech.
-export function speakTraining(text){if(text)speak(text);}
+export function speakTraining(text,celebrate=false){if(text)speak(text,celebrate,celebrate);}
 export function stopSpeech(){try{window.speechSynthesis?.cancel();}catch{}}
