@@ -335,3 +335,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 ## 2026-10-17 — pojedyncze pudło Shanghai
 - Przycisk „Pudło — jedna lotka” dodaje null do draftu, bez przechodzenia do kolejnego celu. Następne trafienie zapisuje się w kolejnym miejscu. Puste miejsca pokazują „Czeka na wpis”, wpisane pudło „Pudło — cel nietrafiony”. Zatwierdzanie i punktacja pozostają bez zmian.
 - Składnia, build i diff-check PASS. Do sprawdzenia na urządzeniu: pudło/S10/D10 i zatwierdzenie 30 pkt.
+
+## 2026-10-17 — pudło zaznaczane w miejscu lotki
+- Zamiast trzech statycznych opisów są trzy przyciski Pudło z aria-pressed. Klik zaznacza, ponowny odznacza; zaznaczone pudło ma kontrastowe tło. Trafienie S/D/T uzupełnia pierwsze wolne miejsce, więc wybór pudła na trzeciej lotce nie blokuje pierwszych dwóch.
+- Draft odróżnia jawne pudło (0/1 + unknownMiss) od wolnego null. Zatwierdzenie zachowuje semantykę nieznanego pola. Usunięto osobny przycisk pojedynczego pudła. 89 testów, build, składnia i diff-check PASS; wizualnie do testu użytkownika.
