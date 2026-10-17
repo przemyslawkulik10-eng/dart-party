@@ -355,3 +355,7 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Po uwadze o przewijaniu: poziomy i historia pod Szczegóły na dole. Mniejszy nagłówek/komunikat oraz zwarta tablica dwóch graczy. Duże pola trafień i pudeł pozostają trzykolumnowe. Zatwierdzenie jako pierwszy duży przycisk pod lotkami, panel dokładnego pola poniżej działań.
 - Wybrane trafienia nie przygasają po trzecim wpisie. Stałe miejsce na komunikat kolejki ogranicza przeskok przycisków po kliknięciu. Zmiany ograniczone klasą jdc-playing, usuwaną po wyjściu/wyniku.
 - 91/91 testów PASS, build i składnia PASS. Nie potwierdzono jeszcze układu na wszystkich rozmiarach z wymaganej macierzy QA; użytkownik aktywnie testuje swoją grę, nie wpisywano mu wyników. Następny krok: odświeżenie i sprawdzenie widoczności zatwierdzenia bez przewijania.
+
+## 2026-10-17 — pauza do wieczora
+- Użytkownik potwierdził „jest ok” i poprosił o zapis. Checkpoint: docs/CHECKPOINT-JDC-2026-10-17.md. Kopia kodu i manifest SHA-256 w checkpoints/2026-10-17-jdc, odczyt archiwum zweryfikowany. Wyniki localStorage nie są częścią kopii kodu.
+- Kolejny krok: rzeczywisty pojedynek Przemek/Mikołaj, przejście na podwójne i wynik końcowy. Bez pracy w tle i bez publikacji.
