@@ -129,14 +129,14 @@ function finishAdvice(state){
 function scoreWithCheckout(state){
   const score=state.players[state.current].score,show=!state.ready&&score<=CHECKOUT_HINT_THRESHOLD,left=3-state.turn.length;
   const route=show?checkout(score,left,match.doubleOut):null;
-  return `<div class="score-and-checkout ${show?'has-checkout':''}"><div class="score-value"><div class="giant-score">${score}</div><div class="score-caption">punktów do zwycięstwa</div></div>${show?`<aside class="checkout-panel" aria-label="Podpowiedź zakończenia"><div class="checkout-heading">${route?'MOŻESZ SKOŃCZYĆ':'PODPOWIEDŹ ZEJŚCIA'}</div><div class="checkout-rule">${match.doubleOut?'DOUBLE OUT':'ZWYKŁE ZAKOŃCZENIE'} · ${left} ${left===1?'LOTKA':'LOTKI'}</div>${route?`<ol class="checkout-route">${route.map(d=>`<li>${checkoutLabel(d)}</li>`).join('')}</ol>`:`<p class="checkout-unavailable">BRAK ZEJŚCIA W ${left} ${left===1?'LOTCE':'LOTKACH'}</p>`}<button id="speak-checkout" class="subtle">🔊 PODPOWIEDŹ</button><div class="checkout-legend">T = POTRÓJNA<br>D = PODWÓJNA<br>S = POJEDYNCZA</div></aside>`:''}</div>`;
+  return `<div class="score-and-checkout ${show?'has-checkout':''}"><div class="score-value"><div class="giant-score">${score}</div><div class="score-caption">punktów do zwycięstwa</div></div>${show?`<aside class="checkout-panel" aria-label="Podpowiedź zakończenia"><div class="checkout-heading">${route?'MOŻESZ SKOŃCZYĆ':'DO KOŃCA'}</div><div class="checkout-rule">${match.doubleOut?'DOUBLE OUT':'ZWYKŁE ZAKOŃCZENIE'} · ${left} ${left===1?'LOTKA':'LOTKI'}</div>${route?`<ol class="checkout-route">${route.map(d=>`<li>${checkoutLabel(d)}</li>`).join('')}</ol>`:`<p class="checkout-unavailable">NIE SKOŃCZYSZ W ${left} ${left===1?'LOTCE':'LOTKACH'}</p>`}<button id="speak-checkout" class="subtle">🔊 PODPOWIEDŹ</button><div class="checkout-legend">T = POTRÓJNA<br>D = PODWÓJNA<br>S = POJEDYNCZA</div></aside>`:''}</div>`;
 }
 function playerCheckout(state,index){
   const score=state.players[index].score;
   if(match.mode==='cricket'||state.legWinner!==null||score<1||score>CHECKOUT_HINT_THRESHOLD)return '';
   const preview=index!==state.current||state.ready;
   const left=preview?3:3-state.turn.length,route=checkout(score,left,match.doubleOut);
-  return `<span class="player-checkout" aria-label="Podpowiedź zakończenia"><span class="player-checkout-title">${preview?'NA SWOJĄ KOLEJKĘ':'ZEJŚCIE'} · ${left} ${left===1?'LOTKA':'LOTKI'}</span><strong>${route?route.map(checkoutLabel).join(' → '):'BRAK ZEJŚCIA'}</strong></span>`;
+  return `<span class="player-checkout" aria-label="Podpowiedź zakończenia"><span class="player-checkout-title">${preview?'NA SWOJĄ KOLEJKĘ':'DO KOŃCA'} · ${left} ${left===1?'LOTKA':'LOTKI'}</span><strong>${route?route.map(checkoutLabel).join(' → '):'NIE SKOŃCZYSZ'}</strong></span>`;
 }
 function renderGame() {
   leaveTraining();

@@ -400,3 +400,6 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - X01/Cricket automatycznie przechodzą do następnego gracza po zakończonej kolejce/FURZE, po 3,5 s na odczyt wyniku. Lektor ogłasza kolejną osobę. Przycisk ręczny nadal pozwala przyspieszyć.
 - Timer anulowany przy renderze/wyjściu/cofnięciu; sprawdzana tożsamość meczu i widok. Brak przejścia po zwycięstwie/wygraniu lega. Gotowa kolejka wznowiona z zapisu także przejdzie automatycznie.
 - 105/105 testów PASS, build i diff-check PASS. Test rzeczywistego planowania: niepełna kolejka, pełna kolejka, powtórny stary callback, wygrany leg. Odsłuch podczas rzeczywistej gry do sprawdzenia. Lokalny main; push nadal zablokowany DNS.
+
+## 2026-10-17 — nazwa podpowiedzi „Do końca”
+- Zgodnie z poleceniem „Zejście” zmieniono na „Do końca” na kartach i w lektorze. Brak możliwej trasy: „Nie skończysz w …”. Bez zmiany liczenia tras. 105/105 testów PASS, build i diff-check PASS. Lokalny main; wcześniejsza blokada DNS publikacji pozostaje.

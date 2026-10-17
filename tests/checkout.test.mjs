@@ -23,7 +23,7 @@ test('one dart and invalid inputs',()=>{assert.equal(checkout(1,1,false)[0].poin
 
 test('spoken advice starts at 170 in both finish modes',()=>{
  for(const doubleOut of [false,true]){
-  assert.match(checkoutAdvice(170,3,doubleOut),/Zejście:/);
+  assert.match(checkoutAdvice(170,3,doubleOut),/Do końca:/);
   for(const score of [171,180])for(const preview of [false,true])assert.equal(checkoutAdvice(score,3,doubleOut,preview),'');
  }
 });

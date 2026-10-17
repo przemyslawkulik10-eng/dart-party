@@ -27,8 +27,8 @@ test('scoreboard shows waiting player 168 straight-out finish, active player use
  vm.runInContext(source.slice(source.indexOf('function playerCheckout(state,index)'),source.indexOf('function renderGame()')),ctx);
  const state={players:[{score:220},{score:168},{score:275}],current:2,turn:[],ready:false,legWinner:null};
  assert.match(ctx.playerCheckout(state,1),/T20 → T20 → T16/);assert.equal(ctx.playerCheckout(state,0),'');
- state.current=1;state.turn=[{},{}];assert.match(ctx.playerCheckout(state,1),/BRAK ZEJŚCIA/);
- ctx.match.doubleOut=true;state.turn=[];assert.match(ctx.playerCheckout(state,1),/BRAK ZEJŚCIA/);
+ state.current=1;state.turn=[{},{}];assert.match(ctx.playerCheckout(state,1),/NIE SKOŃCZYSZ/);
+ ctx.match.doubleOut=true;state.turn=[];assert.match(ctx.playerCheckout(state,1),/NIE SKOŃCZYSZ/);
  state.legWinner=0;assert.equal(ctx.playerCheckout(state,1),'');
 });
 test('enable Double Out preserves existing scores and refuses to rewrite earlier scoring',async()=>{

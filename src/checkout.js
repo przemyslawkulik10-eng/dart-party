@@ -25,5 +25,5 @@ export function checkoutAdvice(score,dartsLeft,doubleOut,preview=false){
   if(score>CHECKOUT_HINT_THRESHOLD||score<1)return '';
   const route=checkout(score,dartsLeft,doubleOut);
   const lead=preview?' Na następną kolejkę.':'';
-  return route?`${lead} Zejście: ${route.map(checkoutWords).join(', potem ')}.`:`${lead} Brak zejścia w ${dartsLeft===1?'jednej lotce':dartsLeft===2?'dwóch lotkach':'trzech lotkach'}.`;
+  return route?`${lead} Do końca: ${route.map(checkoutWords).join(', potem ')}.`:`${lead} Nie skończysz w ${dartsLeft===1?'jednej lotce':dartsLeft===2?'dwóch lotkach':'trzech lotkach'}.`;
 }
