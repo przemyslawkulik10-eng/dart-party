@@ -16,3 +16,10 @@ Przed wydaniem:
 3. Zastosować migrację wyłącznie do DART PARTY i sprawdzić RLS: konto A, konto B, użytkownik anonimowy oraz konflikty równoległego zapisu.
 4. Sprawdzić prawdziwe potwierdzenie rejestracji i reset hasła, ponowne logowanie oraz synchronizację na dwóch urządzeniach.
 5. Dopiero po tych kontrolach scalić i opublikować. Obecna produkcja pozostaje V01.11.
+
+## 2026-10-19 — pierwsze wejście na drugim urządzeniu
+- Ekran konta automatycznie synchronizuje dane przed pokazaniem formularza tworzenia profilu. Błąd pozostawia możliwość ponowienia synchronizacji, eksportu i wylogowania.
+- Po pobraniu danych ekran odświeża profil; nie proponuje tworzenia kolejnego, jeżeli istniejący profil został odzyskany.
+- Test Chrome obejmuje teraz usunięcie wyłącznie testowej lokalnej kopii konta i odzyskanie profilu z symulowanej chmury. Test przeszedł; nadal nie zastępuje testu prawdziwego Auth/SMTP/RLS.
+- 129 testów jednostkowych, build i diff check zakończone poprawnie.
+- Plan globalnej wersji Free/Premium zapisano w PLAN-PIERWSZEGO-WYDANIA.md. Następny krok: ustalić domenę/nadawcę poczty i zakończyć konta przed publikacją.
