@@ -1,0 +1,29 @@
+import {mnoznikState} from './mnoznik.js';
+import {mnoznikSparingState} from './mnoznik-sparing.js';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export const gameIcon=(name)=>`<img class="game-icon" src="/public/game-icons/${name}.svg" alt="" width="36" height="36">`;
+export function multiplierResults(data){
+ const id=data.profile.id;
+ const solo=(data.mnoznik||[]).map(m=>{if(m.profileId!==id)throw new Error('Dane należą do innego profilu.');const s=mnoznikState(m);return {id:m.id,kind:'solo',date:m.events.at(-1)?.at??m.createdAt,complete:s.finished,score:s.total,darts:s.darts,won:false,draw:false};});
+ const sparing=(data.mnoznikSparing||[]).map(m=>{const i=m.players.findIndex(p=>p.id===id);if(i<0)throw new Error('Dane należą do innego profilu.');const s=mnoznikSparingState(m);return {id:m.id,kind:'sparing',date:m.events.at(-1)?.at??m.createdAt,complete:s.finished,score:s.states[i].total,darts:s.states[i].darts,won:s.finished&&s.winners.length===1&&s.winners[0]===i,draw:s.finished&&s.winners.length>1&&s.winners.includes(i)};});
+ return [...solo,...sparing].sort((a,b)=>b.date-a.date);
+}
+export function dashboardSummary(data,st){
+ const multi=multiplierResults(data),sessions=[...st.competitions,...st.cyferkiResults,...multi,...data.trainings.map(s=>({date:s.endedAt??s.darts.at(-1)?.at??s.createdAt,darts:s.darts.length,complete:s.endedAt!==null})),...data.jdc.map(s=>({date:s.endedAt??s.darts.at(-1)?.at??s.createdAt,darts:s.darts.length,complete:s.endedAt!==null}))];
+ const matches=[...st.competitions,...st.cyferkiResults,...multi.filter(m=>m.kind==='sparing')];
+ return {multi,sessions:sessions.length,darts:sessions.reduce((n,s)=>n+s.darts,0),active:sessions.filter(s=>!s.complete).length,completed:matches.filter(s=>s.complete).length,wins:matches.filter(s=>s.won).length,lastAt:sessions.length?Math.max(...sessions.map(s=>typeof s.date==='string'?Date.parse(s.date):s.date)):null};
+}
+export function dashboardMarkup(data,st){
+ const s=dashboardSummary(data,st),finishedMulti=s.multi.filter(m=>m.complete),multiBest=finishedMulti.length?Math.max(...finishedMulti.map(m=>m.score)):null;
+ const games=[
+ ['jdc','JDC Challenge','trophy',data.jdc.length,st.jdcBest,'pkt · rekord','Trening · 57 lotek'],
+ ['cricket','Cricket','bullseye',st.competitions.filter(m=>m.mode==='cricket').length,null,'','Sparing · indywidualnie i drużyny'],
+ ['501','501','crosshair',st.competitions.filter(m=>m.mode==='501').length,null,'','Sparing · zejście do zera'],
+ ['301','301','crosshair',st.competitions.filter(m=>m.mode==='301').length,null,'','Sparing · zejście do zera'],
+ ['201','201','crosshair',st.competitions.filter(m=>m.mode==='201').length,null,'','Sparing · szybki mecz'],
+ ['cyferki','Cyferki','grid-3x3-gap',st.cyferkiResults.length,null,'','Sparing · zadeklarowane pola'],
+ ['mnoznik','Mnożnik 7–12','x-diamond',s.multi.length,multiBest,'pkt · rekord','Solo i sparing'],
+ ['sector-20','Sektor 20','activity',data.trainings.length,st.sector.accuracy,'% · celność','Trening · skupienie na celu']
+ ];
+ return `<div class="player-dashboard"><aside class="profile-identity"><div class="profile-avatar">${gameIcon('person-circle')}</div><span class="eyebrow">DART PARTY · ZAWODNIK</span><h1>${esc(data.profile.name)}</h1><p>Grasz od ${new Date(data.profile.createdAt).toLocaleDateString('pl-PL')}</p><div class="profile-local"><strong>Profil na tym urządzeniu</strong><p>Bez logowania. Wyniki z innych telefonów i tabletów nie są jeszcze synchronizowane.</p></div><button id="players-back">Zmień zawodnika</button></aside><div class="profile-main"><div class="profile-heading"><div><span class="eyebrow">TWOJA GRA. TWÓJ POSTĘP.</span><h2>Panel gracza</h2></div><button data-dashboard-details>Pełne statystyki ↓</button></div><section class="profile-kpis" aria-label="Podsumowanie gracza">${[[s.sessions,'Zapisane gry i treningi'],[s.darts,'Rzucone lotki'],[s.completed,'Zakończone sparingi'],[s.wins,'Zwycięstwa w sparingach']].map(([value,label])=>`<article><strong>${s.sessions?value:'—'}</strong><span>${label}</span></article>`).join('')}</section><section class="profile-activity"><div>${gameIcon('activity')}<strong>${s.lastAt?`Ostatnia aktywność: ${new Date(s.lastAt).toLocaleDateString('pl-PL')}`:'Zacznij swoją historię'}</strong></div><p>${s.sessions?`${s.active} gier lub treningów w toku. Wyniki liczymy z zapisanych lotek.`:'Brak zapisanych wyników. Wybierz grę poniżej — pierwsza lotka rozpocznie Twoją historię.'}</p></section><section class="profile-games"><div class="section-heading"><h2>Twoje gry</h2><span class="small">GRAJ · TRENUJ · WRACAJ</span></div><div class="profile-game-grid">${games.map(([key,name,icon,count,best,unit,desc])=>`<button class="profile-game" data-profile-game="${key}"><span class="game-icon-box game-${key}">${gameIcon(icon)}</span><span class="profile-game-copy"><strong>${name}</strong><small>${desc}</small><small>${count?`Zapisane: ${count}`:'Brak zapisanych wyników'}</small></span><span class="profile-game-result">${best===null?'Graj →':best}<small>${best===null?'':unit}</small></span></button>`).join('')}</div></section><section class="profile-multiplier"><h2>Mnożnik — ostatnie wyniki</h2><div class="training-actions"><button data-profile-game="mnoznik">Trening solo</button><button data-profile-game="mnoznik-sparing">Sparing z ekipą</button></div>${s.multi.length?s.multi.slice(0,8).map(m=>`<div class="saved-match"><div><strong>${m.score} pkt · ${m.kind==='solo'?'Solo':'Sparing'}</strong><p>${new Date(m.date).toLocaleDateString('pl-PL')} · ${m.darts}/36 lotek · ${m.complete?(m.won?'Wygrana':m.draw?'Remis':'Zakończone'):'W toku'}</p></div><button data-profile-game="${m.kind==='solo'?'mnoznik':'mnoznik-sparing'}">${m.complete?'Historia':'Wznów z historii'} →</button></div>`).join(''):'<p>Brak zapisanych wyników Mnożnika.</p>'}</section></div></div>`;
+}

@@ -467,3 +467,10 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Stałe kolory nazwisk w kartach, tabeli i nagłówku, również podczas walki o start. Karty pokazują drużynę.
 - Walidacja: 122/122 testów, build, diff-check; Chrome headless: wybór drużyn, start solo po bull-off, rzut/cofanie, wznowienie; 2/5/6 graczy i długie imię w 1920×1080, 1180×820, 1024×768, 820×1180 bez poziomego przepełnienia. Brak QA fizycznego tabletu i odsłuchu.
 - Lokalna gałąź codex/cricket-teams-colors. Bez push i wdrożenia. Pomiń walkę o środek / najsłabszy zaczyna rewanż pozostają poza tym zakresem.
+
+## 2026-10-18 — V 01.07: panel gracza i ikony
+- Stały przycisk Panel gracza; karta zawodnika, rzeczywiste liczniki, osiem kafelków gier/treningów z lokalnymi ikonami Bootstrap Icons (MIT).
+- Mnożnik solo/sparing w statystykach i eksporcie; obie wersje dostępne z panelu. Brak wyników opisany jawnie.
+- Starsze mecze przypisywane ręcznie do całego składu, bez dopasowania po imieniu. Lokalna kopia zapisu przed zmianą; zdarzenia i data meczu zachowane.
+- 125/125 testów, build, diff-check PASS. Browser: pusty profil, Mnożnik→profil, stare mecze, nawigacja gier, długie imię, ikony, 1920/1180/1024/820/390 px. Regresja Cricket 2/5/6 graczy PASS. Brak QA fizycznego tabletu i odsłuchu.
+- Mapa aplikacji zaakceptowana; osobne adresy, edycja avatarów, konta, zaproszenia, synchronizacja i rankingi pozostają następnymi etapami. Obecne profile nadal lokalne.

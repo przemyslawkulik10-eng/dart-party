@@ -19,7 +19,7 @@ export function throwMnoznik(m,value,now=Date.now()){const s=mnoznikState(m);if(
 export function undoMnoznik(m){mnoznikState(m);return {...m,events:m.events.slice(0,-1)};}
 export function loadMnoznik(){const all=JSON.parse(localStorage.getItem(MNOZNIK_KEY)||'[]');if(!Array.isArray(all))throw new Error('Nie można odczytać historii Mnożnika.');all.forEach(mnoznikState);if(new Set(all.map(m=>m.id)).size!==all.length)throw new Error('Powtórzony zapis Mnożnika.');return all;}
 export function saveMnoznik(m){mnoznikState(m);const all=loadMnoznik();localStorage.setItem(MNOZNIK_KEY,JSON.stringify([m,...all.filter(x=>x.id!==m.id)]));return m;}
-export function mountMnoznik(root,{onExit,toast,sparing=false,names=[]}){
+export function mountMnoznik(root,{onExit,toast,sparing=false,names=[],initialProfile=null}){
  if(sparing)return mountMnoznikSparing(root,{onExit,toast,names});
  let match=null,multiplier=1;const $=s=>root.querySelector(s),safe=fn=>{try{fn();}catch(e){toast(e.message);}};
  const store=m=>{saveMnoznik(m);match=m;};
@@ -29,5 +29,5 @@ export function mountMnoznik(root,{onExit,toast,sparing=false,names=[]}){
  $('[data-home]').onclick=()=>safe(home);const hit=value=>safe(()=>{const before=mnoznikState(match);store(throwMnoznik(match,value));multiplier=1;game();const after=mnoznikState(match);playSound(after.finished?'win':'hit');if(after.finished||after.phase!==before.phase||after.index!==before.index)speakTraining(cue(),after.finished);});root.querySelectorAll('[data-hit]').forEach(b=>b.onclick=()=>hit(Number(b.dataset.hit)));root.querySelectorAll('[data-score]').forEach(b=>b.onclick=()=>hit(Number(b.dataset.score)*multiplier));root.querySelectorAll('[data-bull]').forEach(b=>b.onclick=()=>hit(Number(b.dataset.bull)));root.querySelectorAll('[data-mult]').forEach(b=>b.onclick=()=>{multiplier=Number(b.dataset.mult);game();});if($('[data-miss]'))$('[data-miss]').onclick=()=>hit(0);$('[data-undo]').onclick=()=>safe(()=>{store(undoMnoznik(match));multiplier=1;stopSpeech();game();});$('[data-repeat]').onclick=()=>speakTraining(cue());if($('[data-again]'))$('[data-again]').onclick=()=>safe(()=>{store(createMnoznik({id:match.profileId,name:match.name}));game();speakTraining(cue());});
  }
  const history=()=>safe(home);root.addEventListener('mnoznik-history',history);
- safe(home);return ()=>{root.removeEventListener('mnoznik-history',history);stopSpeech();};
+ safe(home);if(initialProfile){const input=root.querySelector('input');if(input)input.value=initialProfile.name;}return ()=>{root.removeEventListener('mnoznik-history',history);stopSpeech();};
 }
