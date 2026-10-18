@@ -461,3 +461,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - W Sparing / zawody dodano Mnożnik7–12: edytowalny skład2–6, po3lotki każdy w cel, następnie po3lotki każdy na punkty. Sześć rund,36lotek na osobę.
 - Osobne wyniki/ranking/remisy, zapis każdej lotki, wznowienie i undo przez zmianę gracza. Zapisane mecze otwierają historię właściwego modułu.
 - 122/122 testów PASS, build i diff-check PASS. Brak sprawdzenia na fizycznym tablecie. Zmiany drużyn/kolorów pozostają oddzielne w drzewie. Wcześniejszy push blokował DNS github.com.
+
+## 2026-10-18 — integracja Cricket 2+2+1 i kolorów
+- Wybór wariantu drużynowego i ręczne przypisanie pięciu graczy przed walką o start. Drużyny zachowane po zmianie kolejności, wznowieniu i rewanżu. Podgląd kolejności i przycisk następnego gracza zgodne z silnikiem.
+- Stałe kolory nazwisk w kartach, tabeli i nagłówku, również podczas walki o start. Karty pokazują drużynę.
+- Walidacja: 122/122 testów, build, diff-check; Chrome headless: wybór drużyn, start solo po bull-off, rzut/cofanie, wznowienie; 2/5/6 graczy i długie imię w 1920×1080, 1180×820, 1024×768, 820×1180 bez poziomego przepełnienia. Brak QA fizycznego tabletu i odsłuchu.
+- Lokalna gałąź codex/cricket-teams-colors. Bez push i wdrożenia. Pomiń walkę o środek / najsłabszy zaczyna rewanż pozostają poza tym zakresem.

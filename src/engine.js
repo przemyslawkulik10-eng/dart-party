@@ -20,27 +20,63 @@ export function validDart(dart) {
 }
 export const dartLabel = dart => dart.number === 0 ? 'PUDŁO' : dart.number === 25 ? (dart.multiplier === 2 ? 'BULL 50' : 'BULL 25') : `${dart.multiplier === 3 ? 'T' : dart.multiplier === 2 ? 'D' : ''}${dart.number}`;
 
+export function cricketTeamOrder(match) {
+  if (!match.teams) return match.names.map((_, i) => i);
+  validateCricketTeams(match);
+  const groups = [0,1,2].map(team => match.teams.flatMap((t,i) => t===team ? [i] : []));
+  const order=[0,1].flatMap(round => groups.map(members => members[round % members.length]));
+  const first=order.indexOf(0);
+  return [...order.slice(first),...order.slice(0,first)];
+}
+function validateCricketTeams(match) {
+  if (match.teams === undefined) return;
+  if (match.mode!=='cricket' || match.names.length!==5 || !Array.isArray(match.teams) || match.teams.length!==5 || match.teams.some(t=>![0,1,2].includes(t)) || [0,1,2].map(t=>match.teams.filter(v=>v===t).length).sort().join(',')!=='1,2,2') throw new Error('Cricket drużynowy wymaga dwóch par i jednego gracza solo.');
+}
+export function configureCricketTeams(match, teams) {
+  if (match.events.length) throw new Error('Drużyny wybierz przed pierwszym rzutem.');
+  const next = {...match, teams:[...teams], updatedAt:new Date().toISOString()};
+  return validateMatch(next);
+}
+
 export function replay(match) {
+  validateCricketTeams(match);
+  const order = cricketTeamOrder(match);
+  const teamOf = i => match.teams ? match.teams[i] : i;
+  const representatives = match.names.map((_,i)=>i).filter((i,_,all)=>all.find(j=>teamOf(j)===teamOf(i))===i);
   const start = match.mode === 'cricket' ? 0 : Number(match.mode);
   const state = {
     players: match.names.map(name => ({ name, score: start, openingTriples: [], marks: Object.fromEntries(TARGETS.map(n => [n, 0])), darts: 0, scored: 0 })),
     current: 0, round: 1, leg:1, legStarter:0, legWinner:null, legWins:match.names.map(()=>0), turn: [], turnStart: start, turnPoints: 0, ready: false, bust: false, winner: null, visits: [],
   };
+  let orderPosition = 0;
+  state.current = order[0]; state.legStarter = order[0];
+  const syncTeams = () => {
+    if (!match.teams) return;
+    for (const i of representatives) for (let j=0;j<state.players.length;j++) if(teamOf(j)===teamOf(i)) {
+      state.players[j].marks = state.players[i].marks;
+      state.players[j].score = state.players[i].score;
+      state.players[j].openingTriples = state.players[i].openingTriples;
+    }
+  };
+  syncTeams();
   for (const event of match.events) {
     if (state.winner !== null) throw new Error('Mecz został zakończony.');
     if(event.type==='nextLeg'){
       if(state.legWinner===null)throw new Error('Najpierw zakończ leg.');
-      state.leg++;state.legStarter=(state.legStarter+1)%state.players.length;state.current=state.legStarter;
+      state.leg++;orderPosition=(state.leg-1)%order.length;state.legStarter=order[orderPosition];state.current=state.legStarter;
       state.round=1;state.turn=[];state.turnStart=start;state.turnPoints=0;state.ready=false;state.bust=false;state.legWinner=null;state.visits=[];
       for(const p of state.players){p.score=start;p.marks=Object.fromEntries(TARGETS.map(n=>[n,0]));p.openingTriples=[];p.darts=0;p.scored=0;}
+      syncTeams();
+      if(match.teams)state.winningTeam=null;
       continue;
     }
     if(state.legWinner!==null)throw new Error('Rozpocznij kolejny leg.');
     if (event.type === 'next') {
       if (!state.ready) throw new Error('Najpierw wpisz trzy rzuty.');
       state.visits.push({ player: state.current, round: state.round, darts: [...state.turn], bust: state.bust, points: state.bust ? 0 : state.turnPoints });
-      state.current = (state.current + 1) % state.players.length;
-      if (state.current === state.legStarter) state.round++;
+      orderPosition = (orderPosition + 1) % order.length;
+      state.current = order[orderPosition];
+      if ((match.teams && (state.visits.length % 3)===0) || (!match.teams && state.current === state.legStarter)) state.round++;
       state.turn = []; state.turnPoints = 0; state.ready = false; state.bust = false;
       state.turnStart = state.players[state.current].score;
       continue;
@@ -57,14 +93,18 @@ export function replay(match) {
         const before = player.marks[event.number];
         const extra = Math.max(0, before + event.multiplier - 3);
         player.marks[event.number] = Math.min(3, before + event.multiplier);
-        if (state.players.some((p, i) => i !== state.current && p.marks[event.number] < 3)) {
+        if (representatives.some(i => teamOf(i) !== teamOf(state.current) && state.players[i].marks[event.number] < 3)) {
           if(match.cricketScoring==='cutthroat') {
-            for(const [i,opponent] of state.players.entries()) {
-              if(i!==state.current && opponent.marks[event.number]<3){opponent.score+=extra*event.number;state.turnPoints+=extra*event.number;}
+            for(const i of representatives) {
+              const opponent=state.players[i];
+              if(teamOf(i)!==teamOf(state.current) && opponent.marks[event.number]<3){opponent.score+=extra*event.number;state.turnPoints+=extra*event.number;}
             }
-          } else {player.score += extra * event.number;state.turnPoints += extra * event.number;}
+          } else {player.score += extra * event.number;state.turnPoints += extra * event.number;
+            if(match.teams) for(const i of representatives) if(teamOf(i)===teamOf(state.current)) state.players[i].score=player.score;
+          }
         }
       }
+      syncTeams();
       if(match.cricketScoring==='cutthroat'){
         const winner=state.players.findIndex(candidate=>TARGETS.every(n=>candidate.marks[n]===3) && state.players.every(p=>candidate.score<=p.score));
         if(winner>=0)state.winner=winner;
@@ -85,7 +125,9 @@ export function replay(match) {
     }
     if (state.turn.length === 3) state.ready = true;
     if(state.winner!==null){
-      state.legWinner=state.winner;state.legWins[state.winner]++;
+      state.legWinner=state.winner;
+      for(let i=0;i<state.legWins.length;i++) if(teamOf(i)===teamOf(state.winner))state.legWins[i]++;
+      if(match.teams)state.winningTeam=teamOf(state.winner);
       if(state.legWins[state.winner]<(match.legsToWin||1))state.winner=null;
     }
   }

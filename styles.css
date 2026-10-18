@@ -303,3 +303,16 @@ body[data-view=game] button.most-used-field:hover:not(:disabled){background:#ffb
 body[data-view=game] .multiplier button{background:#254d3a;color:#eaf7e8;border:1px solid #78a886}
 body[data-view=game] .multiplier button:hover:not(:disabled){background:#376b4c}
 body[data-view=game] .multiplier button.selected{background:#91cf89;color:#102b19;border:2px solid #d4f2c8;box-shadow:inset 0 -3px 0 #417344}
+
+/* One subdued identity colour per player, shared by card, name and board lane. */
+body[data-view=game] #app .scoreboard .player-card.player-coloured{background:var(--player-muted);color:#f4f7fb;border-color:var(--player-accent);border-top:5px solid var(--player-accent)}
+body[data-view=game] #app .scoreboard .player-card.player-coloured .player-name{color:var(--player-accent)}
+body[data-view=game] #app .scoreboard .player-card.player-colour-active{background:var(--player-active);box-shadow:inset 0 0 0 3px var(--player-accent)}
+body[data-view=game] #app .player-card.player-colour-active .muted,body[data-view=game] #app .player-card.player-colour-active .player-checkout,body[data-view=game] #app .player-card.player-colour-active .player-checkout-title{color:#f4f7fb}
+body[data-view=game] #app .turn-header.player-coloured{background:var(--player-active);border-left:7px solid var(--player-accent);border-radius:10px;padding:10px 14px;margin-bottom:10px}
+body[data-view=game] #app .turn-header.player-coloured h2,body[data-view=game] #app .turn-header.player-coloured .eyebrow,body[data-view=game] #app .turn-header.player-coloured .pill{color:var(--player-accent)}
+body[data-view=game] #app .cricket-board tr .player-coloured{background:var(--player-muted);color:var(--player-accent)}
+body[data-view=game] #app .cricket-board tr .player-colour-active{background:var(--player-active);color:#f4f7fb;box-shadow:inset 3px 0 var(--player-accent),inset -3px 0 var(--player-accent)}
+body[data-view=game] #app .cricket-board tr th.player-colour-active{background:var(--player-accent);color:#102338;border-top:3px solid var(--player-accent)}
+body[data-view=game] #app .cricket-board tr td.player-colour-active.closed{color:var(--player-accent)}
+body[data-view=game] #app .cricket-board tr:last-child td.player-colour-active{border-bottom:3px solid var(--player-accent)}

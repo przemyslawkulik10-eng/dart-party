@@ -3,7 +3,7 @@ import {loadProfiles} from './profiles.js';
 import {loadTrainings,trainingStats} from './training.js';
 import {loadJdc,jdcStats} from './jdc.js';
 import {loadMatches} from './storage.js';
-import {replay} from './engine.js';
+import {replay,cricketTeamOrder} from './engine.js';
 export function playerData(profileId){
  const profile=loadProfiles().find(p=>p.id===profileId);if(!profile)throw new Error('Nie znaleziono profilu gracza.');
  return {profile,trainings:loadTrainings().filter(s=>s.profileId===profileId),jdc:loadJdc().filter(s=>s.profileId===profileId),matches:loadMatches().filter(m=>m.profileIds?.includes(profileId)),cyferki:loadCyferki().filter(m=>m.players.some(p=>p.id===profileId))};
@@ -22,7 +22,17 @@ export function playerStats(data){
  // Per-double attempts in full JDC tests; never infer the intended target in matches.
  for(const s of completedJdc)for(let i=18;i<39;i++){const number=i===38?25:i-17,d=s.darts[i],row=targets.get(number)||{number,attempts:0,hits:0};row.attempts++;if(d.number===number&&d.multiplier===2)row.hits++;targets.set(number,row);}
  const doubles=[...targets.values()].map(r=>({...r,accuracy:Math.round(r.hits/r.attempts*100)}));
- const competitions=matches.map(m=>{const state=replay(m),index=m.profileIds.indexOf(profile.id);let current=0,starter=0,darts=0;for(const e of m.events){if(e.type==='next')current=(current+1)%m.names.length;else if(e.type==='nextLeg'){starter=(starter+1)%m.names.length;current=starter;}else if(e.type==='dart'&&current===index)darts++;}return {id:m.id,date:m.updatedAt,mode:m.mode,complete:state.winner!==null,won:state.winner===index,darts,legWins:state.legWins[index]};});
+ const competitions=matches.map(m=>{
+  const state=replay(m),index=m.profileIds.indexOf(profile.id),order=cricketTeamOrder(m);
+  let position=0,starter=0,darts=0;
+  for(const e of m.events){
+   if(e.type==='next')position=(position+1)%order.length;
+   else if(e.type==='nextLeg'){starter=(starter+1)%order.length;position=starter;}
+   else if(e.type==='dart'&&order[position]===index)darts++;
+  }
+  const won=state.winner!==null && (m.teams ? m.teams[state.winner]===m.teams[index] : state.winner===index);
+  return {id:m.id,date:m.updatedAt,mode:m.mode,complete:state.winner!==null,won,darts,legWins:state.legWins[index],...(m.teams?{teamGame:true}: {})};
+ });
  const completedMatches=competitions.filter(m=>m.complete);
  const cyferkiResults=cyferki.map(m=>{const state=cyferkiState(m),index=m.players.findIndex(p=>p.id===profile.id);if(index<0)throw new Error('Dane należą do innego profilu.');const darts=state.history.filter(d=>d.player===index),hits=darts.filter(d=>d.hits>0).length;return {id:m.id,date:m.events.at(-1)?.at??m.createdAt,rules:{...m.rules},complete:state.finished,won:state.finished&&state.winners.length===1&&state.winners[0]===index,draw:state.finished&&state.winners.length>1&&state.winners.includes(index),score:state.scores[index],closures:state.closures[index],darts:darts.length,hits,accuracy:darts.length?Math.round(100*hits/darts.length):null};});
  const finishedCyferki=cyferkiResults.filter(m=>m.complete);

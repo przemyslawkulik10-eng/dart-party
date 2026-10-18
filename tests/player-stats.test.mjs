@@ -31,3 +31,19 @@ test('Cyferki stats isolate player throws, exclude unfinished games and export n
  const serialized=JSON.stringify(exportPlayer({...data,cyferki:[m]}));assert.ok(!serialized.includes('PRIVATE OPPONENT'));assert.ok(!serialized.includes(other));assert.ok(!serialized.includes('events'));
  assert.throws(()=>playerStats({...data,profile:{id:'33333333-3333-4333-8333-333333333333',name:'Other'}}));
 });
+
+test('team Cricket stats count only own darts but award both partners the team win',async()=>{
+ const {configureCricketTeams,nextPlayer,replay}=await import('../src/engine.js');
+ const ids=[profile.id,other,'33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','55555555-5555-4555-8555-555555555555'];
+ let m={...configureCricketTeams(createMatch(['A1','A2','B1','B2','C'],'cricket'),[0,0,1,1,2]),profileIds:ids};
+ const pass=()=>{while(!replay(m).ready)m=recordDart(m,0);m=nextPlayer(m);};
+ for(const n of [20,19,18])m=recordDart(m,n,3);
+ pass();pass();pass();
+ for(const n of [17,16,15])m=recordDart(m,n,3);
+ pass();pass();pass();m=recordDart(m,25,2);m=recordDart(m,25);
+ const stats=ids.map(id=>playerStats({profile:{id,name:'player'},trainings:[],jdc:[],matches:[m]}));
+ assert.deepEqual(stats.map(s=>s.competitions[0].darts),[5,3,3,3,6]);
+ assert.deepEqual(stats.map(s=>s.wins),[1,1,0,0,0]);
+ assert.deepEqual(stats.map(s=>s.competitions[0].legWins),[1,1,0,0,0]);
+ assert.ok(stats.every(s=>s.competitions[0].teamGame));
+});
