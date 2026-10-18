@@ -481,3 +481,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Duża karta gracza, sześć kafelków, wykres rozpoczętych rozgrywek z 14 dni, postępy JDC i wspólna historia 20 ostatnich zapisów. Inspiracja organizacją GoDartsPro, własne kolory/treści/implementacja; ikony Bootstrap MIT.
 - 127/127 testów i build PASS; browser: edycja/zdjęcie/usunięcie zdjęcia, ten sam ID i wynik, reload, menu/Escape, przełączanie bez utraty danych, pięć szerokości. Regresja panelu i przypisywania starych meczów PASS.
 - Nadal profile lokalne. Konta/synchronizacja i nowe logo niewdrożone w tym wydaniu.
+
+## 18.10.2026 — V 01.09: ustawienia X01
+- Autorski niebieski ekran przygotowania meczu 501/301/201: wariant, 1–3 wygrane legi, Double Out / dowolne zakończenie, 2–6 graczy, dźwięk, podsumowanie i zasady.
+- Zachowanie wpisanych imion i formatu przy zmianie wariantu, istniejąca walka o start i zapis bez zmian w silniku.
+- Weryfikacja lokalna: 127/127 testów, build, diff check; browser X01 dla 3 wariantów i 2/6 osób na 5 rozmiarach, regresja Cricket i profilu.
+- Nie dodano bota, online, nowych trybów kończenia ani nowego logo. Profile nadal lokalne.

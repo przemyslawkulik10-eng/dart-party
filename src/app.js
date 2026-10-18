@@ -1,3 +1,4 @@
+import {x01Setup} from './x01-setup.js';
 import {mountPlayerMenu} from './player-menu.js';
 import {selectedProfile} from './profiles.js';
 import {gameIcon} from './player-dashboard.js';
@@ -97,8 +98,13 @@ function renderSetup() {
     <div class="setup-grid"><section class="panel"><div class="section-heading"><div><div class="step">01 / WYBIERZ GRĘ</div><h2>W co dziś gramy?</h2></div><span class="pill">5 TRYBÓW</span></div><div class="mode-grid">${['501','301','201','cricket'].map(m => `<button class="mode ${mode===m?'selected':''}" data-mode="${m}" aria-pressed="${mode===m}"><strong>${m==='cricket'?'Cricket':m}</strong><span>${({501:'Klasyka dobrego wieczoru',301:'Krótsza droga do zera',201:'Szybka runda na rozgrzewkę',cricket:'Zamykaj pola. Dobijaj rywalom.'})[m]}</span></button>`).join('')}<button id="sparing-mnoznik" class="mode"><strong>Mnożnik 7–12</strong><span>2–6 graczy · trafienia × punkty · wybierz skład →</span></button></div><div class="leg-choice"><label for="legs-to-win">Format meczu</label><select id="legs-to-win">${[1,2,3].map(n=>`<option value="${n}" ${legsToWin===n?'selected':''}>${n===1?'Pojedynczy leg':`1 set · do ${n} wygranych legów`}</option>`).join('')}</select></div><div class="rules-choice">${mode!=='cricket'?`<label class="switch"><input id="double-out" type="checkbox" ${doubleOut?'checked':''}> Zakończenie Double Out</label><span class="small muted">${doubleOut?'Ostatnia lotka ×2':'Dowolne trafienie'}</span>`:`<div class="cricket-scoring" aria-label="Punktacja Cricket">${[['standard','+ Dla siebie'],['cutthroat','+ Przeciwnikom · najmniej wygrywa']].map(([v,label])=>`<button data-scoring="${v}" class="${cricketScoring===v?'primary':''}" aria-pressed="${cricketScoring===v}">${label}</button>`).join('')}</div>`}</div>${mode==='cricket'?`<label class="switch opening-choice"><input id="cricket-opening" type="checkbox" ${cricketOpening==='two-triples'?'checked':''}> Nasze zasady: 20 po zamknięciu dwóch pól (15–19)</label>`:''}${mode==='cricket'?`<label class="switch"><input id="cricket-teams" type="checkbox" ${teamMode?'checked':''}> Drużyny 2 + 2 + 1 (pięciu graczy)</label>`:''}<p class="mode-description">${mode==='cricket'?(cricketScoring==='cutthroat'?'Zamknij pola 15–20 i bull. Nadmiarowe trafienia dopisują punkty każdemu rywalowi z otwartym polem. Wygrywa najniższy wynik przy zamkniętych polach.':'Zamknij pola 15–20 i bull. Nadmiarowe trafienia dodają punkty Tobie, dopóki rywal ma pole otwarte. Wygrywa najwyższy wynik przy zamkniętych polach.'):doubleOut?'Zejdź dokładnie do zera, kończąc podwójnym polem lub bull 50. Przekroczenie wyniku albo pozostawienie 1 cofa całą kolejkę.':'Zejdź dokładnie do zera. Możesz skończyć dowolnym trafieniem. Przekroczenie wyniku cofa punkty całej kolejki.'}</p>${rulesPanel({mode,doubleOut,cricketScoring,cricketOpening,legsToWin})}</section>
     <section class="panel"><div class="section-heading"><div><div class="step">02 / WASZA EKIPA</div><h2>Kto staje przy tarczy?</h2></div><span class="pill">${names.length} / 6 GRACZY</span></div><div class="player-list">${names.map((name,i)=>`<div class="player-edit"><span class="avatar">0${i+1}</span><input data-player-name="${i}" aria-label="Imię gracza ${i+1}" maxlength="24" value="${esc(name)}"><button data-remove="${i}" aria-label="Usuń gracza ${i+1}" ${names.length<=2?'disabled':''}>−</button></div>`).join('')}</div><button id="add-player" class="add-player" ${names.length>=6?'disabled':''}>+ Dodaj gracza</button></section></div>
     <div class="setup-bottom"><p>Jeden tablet przy tarczy. Zapis po każdym rzucie.<br>Możecie wrócić do meczu w dowolnym momencie.</p><button id="start" class="primary start-button">Walka o start <span>↗</span></button></div>`;
+  if(mode!=='cricket'){
+    const resume=$('#resume')?.closest('.resume-banner')?.outerHTML||'';
+    $('#app').innerHTML=resume+x01Setup({mode,names,doubleOut,legsToWin,sound:soundEnabled()});
+    $('#setup-sound').onclick=()=>{readNames();toggleSound();renderSoundButton();renderSetup();};
+  }
   $('#sparing-mnoznik').onclick=()=>{readNames();leaveTraining();section='mnoznik';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountMnoznik($('#app'),{sparing:true,names,onExit:()=>{section='competition';renderSetup();},toast});};
-  document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{readNames();mode=b.dataset.mode;legsToWin=3;renderSetup();});
+  document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{readNames();mode=b.dataset.mode;renderSetup();});
   document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{readNames();names.splice(Number(b.dataset.remove),1);renderSetup();});
   $('#add-player').onclick=()=>{readNames(); if(names.length<6)names.push(''); renderSetup(); [...document.querySelectorAll('[data-player-name]')].at(-1)?.focus();};
   document.querySelectorAll('[data-scoring]').forEach(b=>b.onclick=()=>{readNames();cricketScoring=b.dataset.scoring;renderSetup();});
@@ -321,7 +327,7 @@ const soundButton=document.createElement('button');
 soundButton.id='sound-toggle';
 function renderSoundButton(){soundButton.disabled=false;soundButton.textContent=soundEnabled()?'Dźwięk: WŁ.':'Dźwięk: WYŁ.';soundButton.setAttribute('aria-pressed',String(soundEnabled()));soundButton.setAttribute('aria-label',soundEnabled()?'Wyłącz dźwięk':'Włącz dźwięk');}
 renderSoundButton();
-soundButton.onclick=()=>{toggleSound();renderSoundButton();};
+soundButton.onclick=()=>{toggleSound();renderSoundButton();if(document.body.dataset.view==='setup'&&mode!=='cricket'){readNames();renderSetup();}};
 document.querySelector('.top-actions').append(soundButton);
 
 mountPlayerMenu(document.querySelector('.top-actions'),{onNavigate:openPlayers,toast});
