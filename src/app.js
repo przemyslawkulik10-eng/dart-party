@@ -1,3 +1,4 @@
+import {homeMarkup} from './home-ui.js';
 import {x01Setup} from './x01-setup.js';
 import {mountPlayerMenu} from './player-menu.js';
 import {selectedProfile} from './profiles.js';
@@ -79,7 +80,9 @@ function renderHome(){
   leaveTraining();section=null;match=null;contest=null;if($('#sound-toggle'))renderSoundButton();document.body.dataset.view='home';
   $('#app').classList.remove('cricket-game','x01-game');
   const latest=allMatches().find(m=>replay(m).winner===null);
-  $('#app').innerHTML=`<section class="hero"><div><div class="eyebrow">TWÓJ TRENING. WASZA RYWALIZACJA.</div><h1>Każdy rzut<br><em>ma znaczenie.</em></h1><p>W tygodniu pracujesz nad celnością. W weekend sprawdzacie się przy tarczy.</p></div></section><div class="entry-modes"><button id="enter-training" class="entry-mode"><span class="eyebrow">TWÓJ CZAS PRZY TARCZY</span>${gameIcon('trophy')}<strong>Trening</strong><span>JDC Challenge, krótkie ćwiczenia i historia postępów. Ćwicz samodzielnie lub włącz opcjonalnego trenera.</span><b>Wybierz trening →</b></button><button id="enter-competition" class="entry-mode"><span class="eyebrow">WSPÓLNY SPARING</span>${gameIcon('bullseye')}<strong>Sparing / zawody</strong><span>Wpisz imiona i graj. Bez konta, e-maila i trenera. Wyniki zapisują się na tym urządzeniu.</span><b>Graj bez logowania →</b></button></div><section class="panel jdc-entry"><div><div class="eyebrow">NOWA GRA · 2–6 GRACZY</div><h2>${gameIcon('grid-3x3-gap')} Cyferki</h2><p>21 pól, trzy lotki i cel wybrany przez gracza. Zamykaj cyfry i zbieraj punkty.</p></div><button id="enter-cyferki" class="primary">Graj w Cyferki →</button></section><section class="panel jdc-entry"><div><div class="eyebrow">NOWA GRA · 36 LOTEK</div><h2>${gameIcon('x-diamond')} Mnożnik 7–12</h2><p>Trzy lotki w cel, trzy na punkty. Pomnóż trafienia przez wynik i pobij rekord!</p></div><button id="enter-mnoznik" class="primary">Graj w Mnożnik →</button></section><section class="panel jdc-entry"><div><h2>${gameIcon('person-circle')} Panel gracza</h2><p>Twoja historia, wyniki JDC i skuteczność podwójnych.</p></div><button id="enter-players">Otwórz panel gracza →</button></section>${latest?`<div class="resume-banner"><div><strong>Wasz mecz czeka</strong><p>${esc(latest.names.join(' · '))} · ${latest.mode==='cricket'?'Cricket':latest.mode}</p></div><button id="resume-home">Wznów mecz</button></div>`:''}`;
+  $('#app').innerHTML=homeMarkup({latest,profile:selectedProfile()});
+  document.querySelectorAll('[data-home-game]').forEach(button=>button.onclick=()=>{section='competition';mode=button.dataset.homeGame;match=null;contest=null;saveContest();renderSetup();});
+  $('#home-train-hero').onclick=()=>$('#enter-training').click();
   $('#enter-mnoznik').onclick=()=>{leaveTraining();section='mnoznik';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountMnoznik($('#app'),{onExit:renderHome,toast});};
   $('#enter-cyferki').onclick=()=>{leaveTraining();section='cyferki';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountCyferki($('#app'),{onExit:renderHome,toast});};
   $('#enter-players').onclick=openPlayers;

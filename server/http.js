@@ -1,7 +1,7 @@
 import {readFile,realpath} from 'node:fs/promises';
 import {resolve,extname,sep} from 'node:path';
 import {CoachError,coachConfigured,generateCoach} from './coach.js';
-const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.json':'application/json','.webmanifest':'application/manifest+json'};
+const types={'.png':'image/png','.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.json':'application/json','.webmanifest':'application/manifest+json'};
 export function publicPath(pathname){
  if(pathname==='/'||pathname==='/index.html')return 'index.html';
  if(pathname==='/styles.css')return 'styles.css';

@@ -487,3 +487,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Zachowanie wpisanych imion i formatu przy zmianie wariantu, istniejąca walka o start i zapis bez zmian w silniku.
 - Weryfikacja lokalna: 127/127 testów, build, diff check; browser X01 dla 3 wariantów i 2/6 osób na 5 rozmiarach, regresja Cricket i profilu.
 - Nie dodano bota, online, nowych trybów kończenia ani nowego logo. Profile nadal lokalne.
+
+## 18.10.2026 — V 01.10: nowy ekran główny
+- Baner z dostarczonym logo (oryginał PNG, okrągłe kadrowanie CSS), własne kafelki 501/301/201/Cricket/Cyferki/Mnożnik, trening, profil i instrukcja startu.
+- Bezpośrednie wejście do wybranego wariantu; zachowane wznowienie zapisanej gry i dotychczasowe wejścia.
+- Testy: 127/127, build, diff check; home-browser (wszystkie wejścia, PNG, wznowienie, 5 rozdzielczości), X01, Cricket 2/5/6 osób i profil.
+- Profile nadal lokalne; nie dodano logowania ani nowych gier.
