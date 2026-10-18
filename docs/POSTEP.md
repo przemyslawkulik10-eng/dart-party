@@ -493,3 +493,9 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Bezpośrednie wejście do wybranego wariantu; zachowane wznowienie zapisanej gry i dotychczasowe wejścia.
 - Testy: 127/127, build, diff check; home-browser (wszystkie wejścia, PNG, wznowienie, 5 rozdzielczości), X01, Cricket 2/5/6 osób i profil.
 - Profile nadal lokalne; nie dodano logowania ani nowych gier.
+
+## 18.10.2026 — V 01.11: biblioteka GRAJ
+- Podstrona ?page=graj z własnym banerem Mnożnika, katalogiem 8 istniejących gier/treningów, wyszukiwarką, filtrami, ulubionymi i ostatnio wybieranymi pozycjami.
+- Preferencje lokalne w osobnym kluczu dart-party-library-v1; otwarcie ustawień nie jest raportowane jako rozegrany mecz.
+- Wejście z menu Graj i przycisku Wszystkie gry i treningi; wznowienie meczu i bezpośrednie przejścia do 8 działających ekranów.
+- Testy: 127/127, build, diff check; library-browser (8 wejść, 5 rozmiarów, szukanie, filtry, ulubione po reload), regresja home/X01/Cricket/profil. Osobno potwierdzone wznowienie meczu z biblioteki.

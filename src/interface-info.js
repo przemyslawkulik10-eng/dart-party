@@ -1,4 +1,4 @@
-export const APP_VERSION='V 01.10';
+export const APP_VERSION='V 01.11';
 export const APP_UPDATED='18.10.2026';
 // Count recorded darts, not multipliers; undone darts are absent from events.
 export function mostUsedField(events){

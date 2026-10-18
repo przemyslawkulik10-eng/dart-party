@@ -1,0 +1,15 @@
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const assert=require('node:assert/strict');
+(async()=>{const b=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});try{
+ const p=await b.newPage();const base=process.env.DART_TEST_URL||'http://127.0.0.1:4188';const url=base+'/?page=graj';const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://*.supabase.co/**',r=>r.abort());
+ await p.goto(base);await p.locator('#open-library').click();assert(p.url().includes('page=graj'));assert.equal(await p.locator('.library-card').count(),8);
+ await p.locator('[data-category="solo"]').click();assert.equal(await p.locator('.library-card').count(),3);await p.locator('[data-category="party"]').click();assert.equal(await p.locator('.library-card').count(),6);
+ await p.locator('[data-category="all"]').click();await p.locator('#library-search').fill('JDC');assert.equal(await p.locator('.library-card').count(),1);
+ await p.locator('#library-search').fill('<script>');assert.equal(await p.locator('.library-card').count(),0);await p.locator('#library-clear').click();
+ await p.locator('[data-favorite="301"]').click();await p.reload();assert.equal(await p.locator('[data-favorite="301"]').getAttribute('aria-pressed'),'true');await p.locator('[data-category="favorites"]').click();assert.equal(await p.locator('.library-card').count(),1);await p.locator('[data-favorite="301"]').click();assert.equal(await p.locator('.library-card').count(),0);await p.locator('#library-clear').click();
+ for(const [width,height] of [[1920,1080],[1180,820],[1024,768],[820,1180],[390,844]]){await p.setViewportSize({width,height});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`overflow ${width}`);await p.screenshot({path:`/private/tmp/library-${width}.png`});}
+ await p.locator('#library-catalog').scrollIntoViewIfNeeded();await p.screenshot({path:'/private/tmp/library-cards-mobile.png'});
+ for(const id of ['501','301','201','cricket','cyferki','mnoznik','jdc','sector-20']){await p.goto(url);await p.locator(`#library-results [data-play="${id}"]`).click();assert.equal(await p.locator('.play-library').count(),0,id);assert(!p.url().includes('page=graj'));if(['501','301','201','cricket'].includes(id))assert.equal(await p.locator(`[data-mode="${id}"]`).getAttribute('aria-pressed'),'true');if(id==='jdc')assert((await p.locator('#app').innerText()).includes('JDC'));}
+ await p.goto(url);assert.equal(await p.locator('#library-recent [data-play]').count(),4);await p.locator('#library-home').click();assert.equal(await p.locator('.dp-home').count(),1);await p.locator('#open-library').click();await p.locator('#library-profile').click();assert.equal(await p.locator('.play-library').count(),0);assert.deepEqual(errors,[]);
+ console.log('PASS: all 8 routes, search/filter/empty state, favorites add/remove/reload, recent choices, home/profile navigation, 5 viewport sizes, no JS errors');
+ }finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});

@@ -1,3 +1,4 @@
+import {mountGameLibrary} from './game-library.js';
 import {homeMarkup} from './home-ui.js';
 import {x01Setup} from './x01-setup.js';
 import {mountPlayerMenu} from './player-menu.js';
@@ -76,12 +77,29 @@ function openPlayers(options={}){
     }
   }});
 }
+function libraryUrl(active){
+  const url=new URL(location.href);if(active)url.searchParams.set('page','graj');else url.searchParams.delete('page');url.hash='';history.replaceState(null,'',url.pathname+url.search);
+}
+function renderLibrary(){
+  leaveTraining();section='library';document.body.dataset.view='library';libraryUrl(true);
+  $('#app').classList.remove('cricket-game','x01-game');
+  const latest=allMatches().find(m=>replay(m).winner===null);
+  disposeTraining=mountGameLibrary($('#app'),{latest,toast,onHome:renderHome,onProfile:()=>{libraryUrl(false);openPlayers();},onResume:()=>{leaveTraining();libraryUrl(false);match=latest;contest=null;multiplier=1;renderGame();},onPlay:id=>{
+    leaveTraining();libraryUrl(false);match=null;contest=null;saveContest();window.speechSynthesis?.cancel();
+    if(['501','301','201','cricket'].includes(id)){section='competition';mode=id;renderSetup();}
+    else if(id==='cyferki'){section='cyferki';disposeTraining=mountCyferki($('#app'),{onExit:renderLibrary,toast});}
+    else if(id==='mnoznik'){section='mnoznik';disposeTraining=mountMnoznik($('#app'),{onExit:renderLibrary,toast});}
+    else{section='training';disposeTraining=mountTraining($('#app'),{onExit:renderLibrary,toast,names,initialName:selectedProfile()?.name||'',initialExercise:id});}
+  }});
+}
 function renderHome(){
+  libraryUrl(false);
   leaveTraining();section=null;match=null;contest=null;if($('#sound-toggle'))renderSoundButton();document.body.dataset.view='home';
   $('#app').classList.remove('cricket-game','x01-game');
   const latest=allMatches().find(m=>replay(m).winner===null);
   $('#app').innerHTML=homeMarkup({latest,profile:selectedProfile()});
   document.querySelectorAll('[data-home-game]').forEach(button=>button.onclick=()=>{section='competition';mode=button.dataset.homeGame;match=null;contest=null;saveContest();renderSetup();});
+  $('#open-library').onclick=renderLibrary;
   $('#home-train-hero').onclick=()=>$('#enter-training').click();
   $('#enter-mnoznik').onclick=()=>{leaveTraining();section='mnoznik';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountMnoznik($('#app'),{onExit:renderHome,toast});};
   $('#enter-cyferki').onclick=()=>{leaveTraining();section='cyferki';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountCyferki($('#app'),{onExit:renderHome,toast});};
@@ -322,7 +340,7 @@ try {
   if(draft){const candidate=createMatch(draft.names,draft.mode,draft.doubleOut,draft.cricketScoring,draft.cricketOpening,draft.legsToWin);if(draft.teams)configureCricketTeams(candidate,draft.teams);bullState(draft.names.length,draft.throws);contest=draft;}
 } catch {}
 if(location.hash==='#nowe-301'){section='competition';contest=null;const previous=allMatches()[0];if(previous)names=[...previous.names];mode='301';legsToWin=3;history.replaceState(null,'',location.pathname+location.search);}
-if(contest)renderContest();else renderSetup();
+if(contest)renderContest();else if(new URLSearchParams(location.search).get('page')==='graj')renderLibrary();else renderSetup();
 syncCloud().then(()=>{if(!contest&&!match&&document.body.dataset.view==='home')renderHome();});
 setInterval(()=>{if(!storageError)syncCloud();},60000);
 
