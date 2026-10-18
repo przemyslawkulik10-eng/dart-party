@@ -1,3 +1,5 @@
+import {mountPlayerMenu} from './player-menu.js';
+import {selectedProfile} from './profiles.js';
 import {gameIcon} from './player-dashboard.js';
 import { mountTeamSetup } from './team-setup-ui.js';
 import { applyPlayerColors } from './player-colors.js';
@@ -53,10 +55,11 @@ function update(next) {
 }
 function openModal(title, content) { $('#modal-content').innerHTML = `<div class="modal-heading"><h2>${title}</h2><button data-close aria-label="Zamknij">×</button></div>${content}`; if (!modal.open) modal.showModal(); $('[data-close]').onclick = () => modal.close(); }
 function readNames() { names = [...document.querySelectorAll('[data-player-name]')].map(el => el.value); }
-function openPlayers(){
+function openPlayers(options={}){
+  if(options instanceof Event)options={};
   leaveTraining();section='players';match=null;contest=null;saveContest();
   $('#app').classList.remove('cricket-game','x01-game');
-  disposeTraining=mountPlayers($('#app'),{onExit:renderHome,toast,onExercise:(exercise,profile)=>{
+  disposeTraining=mountPlayers($('#app'),{initialProfileId:options.pick?null:selectedProfile()?.id,initialTab:options.tab||'profile',onExit:renderHome,toast,onExercise:(exercise,profile)=>{
     leaveTraining();match=null;contest=null;saveContest();window.speechSynthesis?.cancel();
     if(['competition','501','301','201','cricket'].includes(exercise)){
       section='competition';if(exercise!=='competition')mode=exercise;
@@ -320,3 +323,5 @@ function renderSoundButton(){soundButton.disabled=false;soundButton.textContent=
 renderSoundButton();
 soundButton.onclick=()=>{toggleSound();renderSoundButton();};
 document.querySelector('.top-actions').append(soundButton);
+
+mountPlayerMenu(document.querySelector('.top-actions'),{onNavigate:openPlayers,toast});

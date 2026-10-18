@@ -474,3 +474,10 @@ Testy przeglądarkowe w `tests/browser-smoke.cjs` oraz `tests/cloud-smoke.cjs`. 
 - Starsze mecze przypisywane ręcznie do całego składu, bez dopasowania po imieniu. Lokalna kopia zapisu przed zmianą; zdarzenia i data meczu zachowane.
 - 125/125 testów, build, diff-check PASS. Browser: pusty profil, Mnożnik→profil, stare mecze, nawigacja gier, długie imię, ikony, 1920/1180/1024/820/390 px. Regresja Cricket 2/5/6 graczy PASS. Brak QA fizycznego tabletu i odsłuchu.
 - Mapa aplikacji zaakceptowana; osobne adresy, edycja avatarów, konta, zaproszenia, synchronizacja i rankingi pozostają następnymi etapami. Obecne profile nadal lokalne.
+
+## 2026-10-18 — V 01.08: osobisty panel zawodnika
+- Menu avatara: profil, gry, historia, statystyki, edycja i zmiana zawodnika. Wybrany profil zapamiętany lokalnie.
+- Edycja pseudonimu, ikony/własnego zdjęcia PNG/JPG/WebP do 500 KB, miasta, lotek i celu. Stały identyfikator zachowuje wyniki; nazwy starych meczów historyczne.
+- Duża karta gracza, sześć kafelków, wykres rozpoczętych rozgrywek z 14 dni, postępy JDC i wspólna historia 20 ostatnich zapisów. Inspiracja organizacją GoDartsPro, własne kolory/treści/implementacja; ikony Bootstrap MIT.
+- 127/127 testów i build PASS; browser: edycja/zdjęcie/usunięcie zdjęcia, ten sam ID i wynik, reload, menu/Escape, przełączanie bez utraty danych, pięć szerokości. Regresja panelu i przypisywania starych meczów PASS.
+- Nadal profile lokalne. Konta/synchronizacja i nowe logo niewdrożone w tym wydaniu.
