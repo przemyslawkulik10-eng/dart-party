@@ -1,7 +1,8 @@
+import {appStorage} from './account-storage.js';
 import { validateMatch } from './engine.js';
 const KEY = 'dart-party-matches-v1';
 export function loadMatches() {
-  const raw = localStorage.getItem(KEY);
+  const raw = appStorage.getItem(KEY);
   if (!raw) return [];
   const data = JSON.parse(raw);
   if (!Array.isArray(data)) throw new Error('Nie można odczytać zapisanych meczów.');
@@ -10,7 +11,7 @@ export function loadMatches() {
 export function saveMatch(match) {
   validateMatch(match);
   const all = loadMatches().filter(m => m.id !== match.id);
-  localStorage.setItem(KEY, JSON.stringify([match, ...all]));
+  appStorage.setItem(KEY, JSON.stringify([match, ...all]));
   return match;
 }
 export function mergeRemote(remote) {
@@ -23,5 +24,5 @@ export function mergeRemote(remote) {
       if (!existing || match.updatedAt > existing.updatedAt) byId.set(match.id, match);
     } catch { /* A malformed remote record must not erase local games. */ }
   }
-  localStorage.setItem(KEY, JSON.stringify([...byId.values()]));
+  appStorage.setItem(KEY, JSON.stringify([...byId.values()]));
 }

@@ -1,3 +1,4 @@
+import {appStorage} from './account-storage.js';
 import {mountMnoznikSparing} from './mnoznik-sparing.js';
 import {validProfileId,ensureProfiles,loadProfiles} from './profiles.js';
 import {playSound,speakTraining,stopSpeech} from './sound.js';
@@ -17,8 +18,8 @@ export function mnoznikState(m){
 }
 export function throwMnoznik(m,value,now=Date.now()){const s=mnoznikState(m);if(s.finished)throw new Error('Próba jest zakończona.');const next={...m,events:[...m.events,{type:s.phase,value,at:now}]};mnoznikState(next);return next;}
 export function undoMnoznik(m){mnoznikState(m);return {...m,events:m.events.slice(0,-1)};}
-export function loadMnoznik(){const all=JSON.parse(localStorage.getItem(MNOZNIK_KEY)||'[]');if(!Array.isArray(all))throw new Error('Nie można odczytać historii Mnożnika.');all.forEach(mnoznikState);if(new Set(all.map(m=>m.id)).size!==all.length)throw new Error('Powtórzony zapis Mnożnika.');return all;}
-export function saveMnoznik(m){mnoznikState(m);const all=loadMnoznik();localStorage.setItem(MNOZNIK_KEY,JSON.stringify([m,...all.filter(x=>x.id!==m.id)]));return m;}
+export function loadMnoznik(){const all=JSON.parse(appStorage.getItem(MNOZNIK_KEY)||'[]');if(!Array.isArray(all))throw new Error('Nie można odczytać historii Mnożnika.');all.forEach(mnoznikState);if(new Set(all.map(m=>m.id)).size!==all.length)throw new Error('Powtórzony zapis Mnożnika.');return all;}
+export function saveMnoznik(m){mnoznikState(m);const all=loadMnoznik();appStorage.setItem(MNOZNIK_KEY,JSON.stringify([m,...all.filter(x=>x.id!==m.id)]));return m;}
 export function mountMnoznik(root,{onExit,toast,sparing=false,names=[],initialProfile=null}){
  if(sparing)return mountMnoznikSparing(root,{onExit,toast,names});
  let match=null,multiplier=1;const $=s=>root.querySelector(s),safe=fn=>{try{fn();}catch(e){toast(e.message);}};

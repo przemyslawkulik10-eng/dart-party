@@ -1,3 +1,4 @@
+import {appStorage} from './account-storage.js';
 import {gameIcon} from './player-dashboard.js';
 export const LIBRARY_GAMES = [
  {id:'501',title:'501',tag:'Pełny dystans',art:'501',icon:'bullseye',group:'party',description:'Klasyczny mecz. Wybierz liczbę legów i sposób zakończenia.',players:'2–6 graczy'},
@@ -12,10 +13,10 @@ export const LIBRARY_GAMES = [
 const preferenceKey='dart-party-library-v1';
 const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const known=id=>LIBRARY_GAMES.some(g=>g.id===id);
-function readPreferences(){try{const data=JSON.parse(localStorage.getItem(preferenceKey)||'{}');return {favorites:Array.isArray(data.favorites)?[...new Set(data.favorites.filter(known))]:[],recent:Array.isArray(data.recent)?[...new Set(data.recent.filter(known))].slice(0,4):[]};}catch{return {favorites:[],recent:[]};}}
+function readPreferences(){try{const data=JSON.parse(appStorage.getItem(preferenceKey)||'{}');return {favorites:Array.isArray(data.favorites)?[...new Set(data.favorites.filter(known))]:[],recent:Array.isArray(data.recent)?[...new Set(data.recent.filter(known))].slice(0,4):[]};}catch{return {favorites:[],recent:[]};}}
 export function mountGameLibrary(root,{onPlay,onHome,onProfile,onResume,latest,toast}){
  let preferences=readPreferences(),category='all',query='';
- const save=()=>{try{localStorage.setItem(preferenceKey,JSON.stringify(preferences));}catch{toast('Nie można zapisać ulubionych na tym urządzeniu.');}};
+ const save=()=>{try{appStorage.setItem(preferenceKey,JSON.stringify(preferences));}catch{toast('Nie można zapisać ulubionych na tym urządzeniu.');}};
  function launch(id){if(!known(id))return;preferences.recent=[id,...preferences.recent.filter(x=>x!==id)].slice(0,4);save();onPlay(id);}
  root.innerHTML=`<div class="play-library"><nav class="home-nav" aria-label="Nawigacja"><button id="library-home">← Strona główna</button><span aria-current="page">GRAJ</span><button id="library-profile">Panel gracza →</button></nav><section class="library-hero"><div><div class="eyebrow">POLECAMY NA DZISIAJ · DART PARTY</div><h1>Celność.<br>Punkty.<br><em>Mnożnik.</em></h1><p>Trzy lotki w cel, trzy na punkty. Zagraj w Mnożnik 7–12 i sprawdź, ile potrafisz z nich wycisnąć.</p><div class="home-actions"><button class="primary" data-play="mnoznik">Zagraj w Mnożnik ↗</button><a class="library-browse" href="#library-catalog">Przeglądaj gry ↓</a></div></div><div class="library-poster" aria-hidden="true"><span>7 / 8 / 9 / 10 / 11 / 12</span><b>×</b><strong>TRAFIENIA<br>RAZY PUNKTY</strong><small>36 LOTEK · TWÓJ WYNIK</small></div></section>
  ${latest?`<section class="resume-banner"><div><strong>Wasz mecz czeka</strong><p>${esc(latest.mode)} · ${esc(latest.names.join(' · '))}</p></div><button id="library-resume" class="primary">Wznów mecz →</button></section>`:''}

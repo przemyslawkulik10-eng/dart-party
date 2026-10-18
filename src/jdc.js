@@ -1,3 +1,4 @@
+import {appStorage} from './account-storage.js';
 import {validDart} from './engine.js';
 import {validProfileId} from './profiles.js';
 export const JDC_KEY='dart-party-jdc-v1';
@@ -37,12 +38,12 @@ export function jdcStats(s){
  return {score,phases,throws:s.darts.length,complete:s.darts.length===57,grade:jdcGrade(score)};
 }
 export function loadJdc(){
- const data=JSON.parse(localStorage.getItem(JDC_KEY)||'[]');
+ const data=JSON.parse(appStorage.getItem(JDC_KEY)||'[]');
  if(!Array.isArray(data))throw new Error('Nie można odczytać historii JDC.');
  const sessions=data.map(validateJdc);if(new Set(sessions.map(s=>s.id)).size!==sessions.length)throw new Error('Powtórzony zapis JDC.');
  return sessions.sort((a,b)=>b.createdAt-a.createdAt);
 }
-export function saveJdc(s){validateJdc(s);const all=loadJdc();localStorage.setItem(JDC_KEY,JSON.stringify([s,...all.filter(x=>x.id!==s.id)]));return s;}
+export function saveJdc(s){validateJdc(s);const all=loadJdc();appStorage.setItem(JDC_KEY,JSON.stringify([s,...all.filter(x=>x.id!==s.id)]));return s;}
 export function jdcProgress(s,history){
  const previous=history.filter(x=>x.profileId===s.profileId&&x.id!==s.id&&x.endedAt!==null&&x.createdAt<=s.createdAt).sort((a,b)=>b.createdAt-a.createdAt);
  const scores=previous.map(x=>jdcStats(x).score);

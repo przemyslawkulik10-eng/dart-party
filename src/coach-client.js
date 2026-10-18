@@ -1,3 +1,4 @@
+import {appStorage} from './account-storage.js';
 import {loadJdc} from './jdc.js';
 import {loadTrainings} from './training.js';
 import {loadMatches} from './storage.js';
@@ -16,6 +17,6 @@ export async function requestCoach(session,signal){
  return data;
 }
 export function saveCoachReport(profileId,sessionId,report){
- const reports=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(reports))throw new Error('Nie można odczytać zapisów analiz AI.');
- localStorage.setItem(KEY,JSON.stringify([{profileId,sessionId,...report},...reports].slice(0,100)));
+ const reports=JSON.parse(appStorage.getItem(KEY)||'[]');if(!Array.isArray(reports))throw new Error('Nie można odczytać zapisów analiz AI.');
+ appStorage.setItem(KEY,JSON.stringify([{profileId,sessionId,...report},...reports].slice(0,100)));
 }
