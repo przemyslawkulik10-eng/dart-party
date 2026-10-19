@@ -1,3 +1,4 @@
+import {updateActivity} from './app-update.js';
 import {createDuel,duelPlayers,nextPlayer,previousPlayer,duelResult,saveNewDuel} from './jdc-duel.js';
 import {roundTargets,commitRound,maximumPossible,roundPrompt,roundFeedback,levelPanel,comparisonRows,roundHistory,historyPanel} from './jdc-round.js';
 import {speakTraining,stopSpeech,playSound,soundEnabled} from './sound.js';
@@ -38,6 +39,7 @@ export function mountJdc(root,{onExit,toast,names=[],initialName=''}){
   root.querySelectorAll('[data-jdc-open]').forEach(b=>b.onclick=()=>safe(()=>openSession(history.find(s=>s.id===b.dataset.jdcOpen))));
  }
  function game(notice=null){
+  updateActivity(current.id,true);
   root.classList.add("jdc-playing");
   stop();const targets=roundTargets(current),t=targets[0],st=jdcStats(current),draft=current.draft||[],double=t.phase===1;
   const lastRound=current.darts.length?roundHistory(current).at(-1):null;
@@ -72,6 +74,7 @@ export function mountJdc(root,{onExit,toast,names=[],initialName=''}){
   $('#jdc-coach').onchange=e=>safe(()=>{store({...current,coachEnabled:e.target.checked});game();});
  }
  function result(notice=null){
+  updateActivity(current.id,false);
   root.classList.remove("jdc-playing");
   stop();const st=jdcStats(current);let progress;try{progress=jdcProgress(current,loadJdc());}catch(e){toast(e.message);progress={count:0};}
   root.innerHTML=`${scoreboard()}<section class="panel training-result"><div class="eyebrow">JDC ZAKOŃCZONE · ${esc(current.name)}</div><h1>${st.score} pkt</h1><p>Poziom wyniku: <strong>${st.grade}</strong> · 57/57 lotek</p><p class="small">Poziom tej próby, nie oficjalny awans w akademii JDC.</p>${levelPanel(st.score)}${notice?.shanghai?'<aside class="jdc-celebration shanghai" role="status"><strong>SHANGHAI! +100</strong></aside>':''}<div class="jdc-phases">${st.phases.map((p,i)=>`<div><h2>${p.name}</h2><strong>${p.score} pkt</strong><p>${p.hits}/${p.throws} trafień celu${i===1?'':` · ${p.shanghais} Shanghai`}</p></div>`).join('')}</div>

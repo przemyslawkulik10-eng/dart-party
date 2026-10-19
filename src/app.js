@@ -1,3 +1,4 @@
+import {updateActivity,initUpdates} from './app-update.js';
 import {initAccounts,accountUser,logout} from './accounts.js';
 import {mountAccount} from './accounts-ui.js';
 import {appStorage} from './account-storage.js';
@@ -147,6 +148,7 @@ function renderSetup() {
   }catch(e){toast(e.message);}};
 }
 function saveContest() {
+  if(!contest)updateActivity("bull",false);
   try { if(contest)appStorage.setItem(contestKey,JSON.stringify(contest));else appStorage.removeItem(contestKey); }
   catch { toast('Nie udało się zapisać walki o start na tablecie.'); }
 }
@@ -158,6 +160,7 @@ function beginContest(players, gameMode, out, scoring='standard', opening='stand
   match=null;saveContest();renderContest();announcePlayer(contest.names[0]);
 }
 function renderContest() {
+  updateActivity("bull",true);
   leaveTraining();
   if($('#sound-toggle'))renderSoundButton();
   $('#app').classList.remove('cricket-game','x01-game');
@@ -216,6 +219,8 @@ function renderGame() {
   leaveTraining();
   if($('#sound-toggle'))renderSoundButton();
   document.body.dataset.view = "game";
+  updateActivity("bull",false);
+  updateActivity(match.id,storageError || replay(match).winner===null);
   const state = replay(match), player = state.players[state.current], cricket = match.mode==='cricket', won = state.legWinner!==null, blocked = state.ready||won;
   $('#app').classList.toggle('cricket-game',cricket&&!won);
   $('#app').classList.toggle('x01-game',!cricket&&!won);
@@ -370,3 +375,5 @@ if(accountUser()){
  };
  document.querySelector('.top-actions').append(logoutButton);
 }
+
+initUpdates();

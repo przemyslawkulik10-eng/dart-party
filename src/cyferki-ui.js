@@ -1,3 +1,4 @@
+import {updateActivity} from './app-update.js';
 import {CYFERKI_FIELDS,createCyferki,cyferkiState,chooseCyferki,throwCyferki,undoCyferki,loadCyferki,saveCyferki} from './cyferki.js';
 import {ensureProfiles,loadProfiles} from './profiles.js';
 import {speakTraining,stopSpeech,playSound} from './sound.js';
@@ -17,7 +18,7 @@ export function mountCyferki(root,{onExit,toast}){
   $('#cy-setup').onsubmit=e=>{e.preventDefault();safe(()=>{const names=[...root.querySelectorAll('[name=player]')].map(x=>x.value.trim()).filter(Boolean);if(names.length<2)throw new Error('Wpisz co najmniej dwóch graczy.');store(createCyferki(ensureProfiles(names),{scoring:$('#cy-scoring').value,progress:$('#cy-progress').value}));game();speakTraining(match.players[0].name+'. Wybierz pierwszą cyfrę.');});};
   root.querySelectorAll('[data-cy-open]').forEach(b=>b.onclick=()=>safe(()=>{match=games.find(m=>m.id===b.dataset.cyOpen);game();}));
  }
- function game(){const s=cyferkiState(match);root.classList.add('cyferki-playing');const active=match.players[s.current];
+ function game(){const s=cyferkiState(match);updateActivity(match.id,!s.finished);root.classList.add('cyferki-playing');const active=match.players[s.current];
   root.innerHTML=`<header class="cy-heading"><div><div class="eyebrow">CYFERKI · ${s.closed.length}/21 PÓL ZAMKNIĘTYCH</div><h1>${s.finished?(s.winners.length>1?'Remis: ':'Wygrywa ')+s.winners.map(i=>esc(match.players[i].name)).join(' i '):esc(active.name)}</h1><p>${s.finished?'Wszystkie pola zamknięte.':s.target===null?`${esc(match.players[s.chooser].name)}, wybierz cyfrę ${s.pendingNext?'dla '+esc(match.players[(s.current+1)%match.players.length].name):'dla siebie'}.`:`Cel: ${s.target===25?'BULL':s.target} · Twój postęp: ${s.marks[s.current][s.target]||0}/3`}</p></div><button id="cy-home">Zapisz i wróć</button></header>
   <section class="cy-scores">${match.players.map((p,i)=>`<article class="${!s.finished&&s.current===i?'active':''}"><strong>${esc(p.name)}</strong><b>${s.scores[i]} pkt</b><small>${s.closures[i]} zamkniętych${s.target!==null?' · cel '+(s.marks[i][s.target]||0)+'/3':''}</small></article>`).join('')}</section>
   ${s.finished?'':`<section class="panel cy-controls"><div class="cy-turn"><h2>${s.target===null?'Wybierz otwartą cyfrę':`Rzucasz w ${s.target===25?'BULL':s.target}`}</h2><div class="cy-darts" aria-label="${s.dartsLeft} lotek w ręce">${[0,1,2].map(i=>`<span class="${i<s.dartsLeft?'':'used'}"><svg viewBox="0 0 40 80" aria-hidden="true"><path d="M20 74V48M20 30V17" stroke="currentColor" stroke-width="3"/><path d="M15 30H25V50H15Z M20 2L4 10V25L20 17L36 25V10Z" fill="currentColor"/></svg></span>`).join('')}<b>${s.dartsLeft}/3</b></div></div>

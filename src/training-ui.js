@@ -1,3 +1,4 @@
+import {updateActivity} from './app-update.js';
 import {speakTraining,stopSpeech,playSound,soundEnabled} from './sound.js';
 import {sectorPrompt,sectorTurn,sectorResult} from './training-audio.js';
 import {rulesPanel} from './game-rules.js';
@@ -42,6 +43,7 @@ export function mountTraining(root,{onExit,toast,names=[],initialName='',initial
   finally{if(coachRequest===controller)coachRequest=null;if(!disposed && $('#ask-coach'))$('#ask-coach').disabled=false;}
  }
  function game(){
+  updateActivity(current.id,true);
   stop();const stats=trainingStats(current),paused=current.runningSince===null;
   root.innerHTML=`<div class="game-title"><div><div class="eyebrow">TRENING · ${esc(current.name)}</div><h1>Celuj w <span class="training-target">20</span></h1><p>Cały sektor 20. Rzucaj w swoim tempie.</p></div><strong id="training-clock" class="training-clock" aria-label="Pozostały czas">${clock(remainingTime(current))}</strong></div>
   <div class="training-stats"><span><strong>${stats.hits}/${stats.throws}</strong> trafień</span><span><strong>${stats.accuracy??'—'}${stats.accuracy===null?'':'%'}</strong> celności</span><span>${paused?'PAUZA':'SESJA TRWA'}</span></div>
@@ -61,6 +63,7 @@ export function mountTraining(root,{onExit,toast,names=[],initialName='',initial
   if(!paused)timer=setInterval(()=>{if(disposed)return;const left=remainingTime(current);$('#training-clock').textContent=clock(left);if(!left){stop();safely(()=>{store(finishTraining(current));result(true);});}},500);
  }
  function result(announce=false){
+  updateActivity(current.id,false);
   stop();if(announce){playSound('win');speakTraining(sectorResult(current));}const st=trainingStats(current);
   root.innerHTML=`<section class="panel training-result"><div class="eyebrow">TRENING ZAKOŃCZONY · ${esc(current.name)}</div><h1>Na dziś wystarczy.</h1><p>Cel: sektor 20 · czas aktywny ${clock(current.durationMs-current.remainingMs)}</p><div class="training-stats"><span><strong>${st.hits}/${st.throws}</strong> trafień</span><span><strong>${st.accuracy??'—'}${st.accuracy===null?'':'%'}</strong> celności</span></div><p>${st.throws?'Wynik zapisany. Kolejna sesja pozwoli porównać celność.':'Sesja zapisana bez rzutów. Nie wyliczamy z niej celności.'}</p><button id="training-home" class="primary">Wróć do treningów</button></section>`;
   $('#training-home').onclick=home;
