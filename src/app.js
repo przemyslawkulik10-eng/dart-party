@@ -50,9 +50,10 @@ let syncingTimer;
 const modal = $('#modal');
 function toast(text) { $('#toast').textContent = text; $('#toast').classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 4000); }
 function allMatches() { try { return loadMatches(); } catch { storageError = true; return []; } }
+function saveNotice(text=''){const el=$('#save-status');el.textContent=text;el.hidden=!text;}
 function persist(next) {
-  try { saveMatch(next); storageError = false; $('#save-status').textContent = 'Zapisano na tablecie'; }
-  catch { storageError = true; $('#save-status').textContent = 'Błąd zapisu — pobierz kopię'; toast('Brak zapisu na tablecie. Pobierz kopię meczu w „Zapisane mecze”.'); }
+  try { saveMatch(next); storageError = false; saveNotice(); }
+  catch { storageError = true; saveNotice('Nie udało się zapisać wyniku na urządzeniu. Pobierz kopię w „Zapisane mecze”.'); toast('Brak zapisu na tablecie. Pobierz kopię meczu w „Zapisane mecze”.'); }
   if (!storageError) { clearTimeout(syncingTimer); syncingTimer = setTimeout(syncCloud, 500); }
 }
 function update(next) {
@@ -337,13 +338,13 @@ function showHistory() {
   if($('#sync'))$('#sync').onclick=async()=>{$('#sync').disabled=true;await syncCloud();showHistory();};
 }
 $('#history-button').onclick=()=>{if(section==='cyferki')$('#app').dispatchEvent(new Event('cyferki-history'));else if(section==='mnoznik')$('#app').dispatchEvent(new Event('mnoznik-history'));else showHistory();};
-$('#player-panel-button').onclick=openPlayers;
+
 $('#other-game').onclick=()=>{leaveTraining();match=null;contest=null;saveContest();renderHome();};
 $('.brand').onclick=e=>{e.preventDefault();if(contest){renderContest();return;}match=null;renderHome();};
 $('#rules-button').onclick=()=>openModal('Jak gramy?',`<div class="modal-copy"><h3>Walka o start</h3><p>Każdy rzuca trzy lotki. Bull to 25 lub 50 punktów, pozostałe pola to 0. Najwyższa suma daje start. Remisujący liderzy rozgrywają kolejną serię trzech lotek od zera, aż zostanie jeden zwycięzca. Pozostali grają w kolejności z listy.</p><h3>501 / 301 / 201</h3><p>Każdy zaczyna od wybranej liczby punktów. Trzy lotki w kolejce, potem „Następny gracz”. Wygrywa pierwszy wynik równy zero. Przekroczenie zera anuluje punkty całej kolejki.</p><p><strong>Double Out:</strong> ostatnia lotka musi trafić w podwójne pole lub bull 50. Wynik 1 oraz zejście do zera bez podwójnego pola także anulują kolejkę. Start jest zawsze dowolny (Straight In).</p><h3>Cricket</h3><p>Gramy na polach 15–20 i bull. Trzy trafienia zamykają pole. ×2 liczy się jako dwa, ×3 jako trzy. Nadmiar trafień daje punkty, jeśli choć jeden rywal ma pole otwarte. Zdobyte punkty nigdy nie znikają po zamknięciu pola przez innych.</p><p>Wygrywa gracz, który zamknie wszystkie pola i ma co najmniej tyle punktów co każdy przeciwnik. Bull 25 to jedno trafienie, bull 50 to dwa. Pozostałe pola wpisuj jako „PUDŁO / 0”.</p><h3>Cricket · punkty przeciwnikom</h3><p>Nadmiarowe trafienia dopisują pełną wartość każdemu rywalowi, który nie zamknął tego pola. Gracz rzucający nie dostaje tych punktów. Wygrywa gracz z zamkniętymi wszystkimi polami i wynikiem nie wyższym od żadnego rywala. Podsumowanie kolejki pokazuje sumę punktów dopisanych wszystkim rywalom.</p><h3>Nasze zasady Cricket</h3><p>Każdy gracz odblokowuje dwudziestkę po zamknięciu dwóch różnych pól 15–19. Liczą się wszystkie trafienia: trzy pojedyncze, pojedyncza z podwójną albo potrójna. Wcześniejsze trafienie w 20 liczy się jako pudło. Opcję wybieracie przed nowym meczem.</p><h3>Szanghaj</h3><p>Pojedyncza, podwójna i potrójna tego samego pola 1–20 w jednej kolejce, w dowolnej kolejności: okrzyk, fanfara i ekran celebracji. Punkty liczymy zgodnie z wybranym trybem.</p><h3>Legi</h3><p>Domyślnie gramy jeden set do 3 wygranych legów. Pierwsza osoba z trzema wygranymi legami wygrywa set. Po wygranym legu wybierz „Następny leg”: punkty wracają do wartości początkowej, wynik legów zostaje. Rozpoczynający zmienia się kolejno między graczami. Walka o start jest tylko przed pierwszym legiem.</p><h3>Wpisywanie i zapis</h3><p>Wybierz ×2 lub ×3, a następnie numer. Mnożnik pozostaje wybrany do końca kolejki; przy zmianie gracza wraca do ×1. Przyciski BULL zawsze oznaczają 25 i 50, niezależnie od mnożnika. „Cofnij rzut” przywraca stan sprzed ostatniej lotki, także po zmianie gracza i zwycięstwie.</p><p>Zapis na tablecie działa bez konta. Nie czyść danych przeglądarki, jeśli chcesz zachować mecze i dostęp do kopii w chmurze. Pobraną kopię JSON możesz wczytać na innym urządzeniu.</p></div>`);
 $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('Pełny ekran nie jest dostępny w tej przeglądarce.');}};
 modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)modal.close();}});
-onCloudStatus(text=>{if(!storageError)$('#save-status').textContent=text;});
+onCloudStatus(text=>{if(!storageError)saveNotice(text.includes('niedostępna')?'Wynik zapisano na urządzeniu. Kopia w chmurze jest chwilowo niedostępna.':'');});
 try {
   const draft=JSON.parse(appStorage.getItem(contestKey));
   if(draft){const candidate=createMatch(draft.names,draft.mode,draft.doubleOut,draft.cricketScoring,draft.cricketOpening,draft.legsToWin);if(draft.teams)configureCricketTeams(candidate,draft.teams);bullState(draft.names.length,draft.throws);contest=draft;}
@@ -361,19 +362,9 @@ renderSoundButton();
 soundButton.onclick=()=>{toggleSound();renderSoundButton();if(document.body.dataset.view==='setup'&&mode!=='cricket'){readNames();renderSetup();}};
 document.querySelector('.top-actions').append(soundButton);
 
-mountPlayerMenu(document.querySelector('.top-actions'),{onNavigate:openPlayers,toast});
-
-const accountLink=document.createElement('a');accountLink.href='/?page=konto';accountLink.className='account-link';accountLink.textContent=accountUser()?'Ustawienia konta':'Zaloguj się';document.querySelector('.top-actions').append(accountLink);
-
-if(accountUser()){
- const logoutButton=document.createElement('button');
- logoutButton.id='header-logout';logoutButton.type='button';logoutButton.className='account-logout';logoutButton.textContent='Wyloguj się';
- logoutButton.onclick=async()=>{
-  logoutButton.disabled=true;logoutButton.textContent='Wylogowywanie…';
-  try{await logout();location.assign('/?page=konto');}
-  catch(error){toast(error.message);logoutButton.disabled=false;logoutButton.textContent='Wyloguj się';}
- };
- document.querySelector('.top-actions').append(logoutButton);
-}
+mountPlayerMenu(document.querySelector('.top-actions'),{
+ user:accountUser(),onNavigate:openPlayers,toast,
+ onLogout:async()=>{await logout();location.assign('/?page=konto');}
+});
 
 initUpdates();

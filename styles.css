@@ -389,3 +389,20 @@ body[data-view=game] #player-panel-button{display:none}
 .app-update p{margin:6px 0 0;font-size:14px;color:#bfd0e2}
 .app-update button{flex-shrink:0;min-height:48px}
 @media(max-width:540px){.app-update{flex-direction:column;align-items:stretch;bottom:12px;padding:16px;gap:12px}}
+
+/* One account entry; save notices are shown only when action is needed. */
+.account-entry{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #44cfff;border-radius:12px;min-height:48px;padding:12px 18px;font-weight:700}
+.player-menu-links a{display:block;text-decoration:none;color:var(--ink);padding:14px 18px;min-height:48px;border-top:1px solid #29435e;font-size:14px;font-weight:650;border-radius:6px}
+.player-menu-links a:hover{background:#173a60}
+.player-menu-links [data-account-email]{font-size:13px;font-weight:400;margin-bottom:14px;text-transform:none}
+.player-menu-links small{margin:0 0 4px}
+#save-status{max-width:1280px;margin:12px auto;padding:14px 20px;border:1px solid #ffa43d;border-radius:12px;color:#ffd39c;background:#35291d;font-size:14px;text-align:left}
+#save-status[hidden]{display:none!important}
+#save-status:not([hidden]){display:block!important}
+body[data-view=game] .player-account{display:block}
+@media(max-width:740px){#save-status{margin:12px 18px}.account-entry{padding:10px 14px}.top-actions{gap:8px}}
+.top-actions{justify-content:flex-end;gap:8px}
+.top-actions>button:not(.icon-button),.top-actions>.account-entry{font-size:14px;padding:10px 14px}
+.top-actions>.player-account{margin-left:4px}
+@media(max-width:740px){.top-actions{justify-content:flex-start}.top-actions>button:not(.icon-button),.top-actions>.account-entry{font-size:12px;padding:9px 11px}}
+body:not([data-view=game]):not([data-view=training]) #fullscreen,body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
