@@ -6,7 +6,7 @@ create table public.dart_player_accounts (
  updated_at timestamptz not null default now()
 );
 alter table public.dart_player_accounts enable row level security;
-revoke all on public.dart_player_accounts from anon;
+revoke all on public.dart_player_accounts from anon, authenticated;
 grant select, insert, update on public.dart_player_accounts to authenticated;
 create policy player_account_read on public.dart_player_accounts for select to authenticated using (
  owner_id = (select auth.uid()) and coalesce((select auth.jwt()->>'is_anonymous'),'true') = 'false'
