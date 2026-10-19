@@ -1,0 +1,4 @@
+<!doctype html><html><meta charset="utf-8"><title>Rozmiary panelu konta</title><body><h1>Kontrola układu</h1><ul id="results"></ul><script>
+addEventListener('message',e=>{if(e.origin!==location.origin)return;const li=document.createElement('li');li.textContent=JSON.stringify(e.data);document.querySelector('#results').append(li);});
+for(const [w,h] of [[1920,1080],[1180,820],[1024,768],[820,1180],[390,844]]){const iframe=document.createElement('iframe');iframe.width=w;iframe.height=h;iframe.src='/public/auth-panel-preview.html';document.body.append(iframe);}
+</script></body></html>

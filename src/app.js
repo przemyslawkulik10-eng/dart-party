@@ -1,4 +1,4 @@
-import {initAccounts,accountUser} from './accounts.js';
+import {initAccounts,accountUser,logout} from './accounts.js';
 import {mountAccount} from './accounts-ui.js';
 import {appStorage} from './account-storage.js';
 import {mountGameLibrary} from './game-library.js';
@@ -358,4 +358,15 @@ document.querySelector('.top-actions').append(soundButton);
 
 mountPlayerMenu(document.querySelector('.top-actions'),{onNavigate:openPlayers,toast});
 
-const accountLink=document.createElement('a');accountLink.href='/?page=konto';accountLink.className='account-link';accountLink.textContent=accountUser()?'Moje konto':'Zaloguj się';document.querySelector('.top-actions').append(accountLink);
+const accountLink=document.createElement('a');accountLink.href='/?page=konto';accountLink.className='account-link';accountLink.textContent=accountUser()?'Ustawienia konta':'Zaloguj się';document.querySelector('.top-actions').append(accountLink);
+
+if(accountUser()){
+ const logoutButton=document.createElement('button');
+ logoutButton.id='header-logout';logoutButton.type='button';logoutButton.className='account-logout';logoutButton.textContent='Wyloguj się';
+ logoutButton.onclick=async()=>{
+  logoutButton.disabled=true;logoutButton.textContent='Wylogowywanie…';
+  try{await logout();location.assign('/?page=konto');}
+  catch(error){toast(error.message);logoutButton.disabled=false;logoutButton.textContent='Wyloguj się';}
+ };
+ document.querySelector('.top-actions').append(logoutButton);
+}

@@ -1,0 +1,24 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles.css"><title>Test panelu konta — bez połączenia z Supabase</title><body><p id="test-result">Test w toku…</p><main id="fixture"></main><script type="module">
+import {mountAuthPanel} from '/src/auth-panel.js';
+const root=document.querySelector('#fixture');let signups=0,logins=0;
+const assert=(v,m)=>{if(!v)throw Error(m);};
+const click=sel=>root.querySelector(sel).click();
+const submit=async()=>{await root.querySelector('form').onsubmit({preventDefault(){}});};
+const mount=()=>mountAuthPanel(root,{login:async()=>{logins++;},signup:async()=>{signups++;},resetPassword:async()=>{},onLogin(){}});
+try{
+ mount();assert(root.querySelector('[data-mode=login]').getAttribute('aria-pressed')==='true','Login selected');
+ click('[data-mode=signup]');assert(root.querySelector('button[type=submit]').textContent==='Utwórz konto','Signup CTA');
+ const f=root.querySelector('form');f.elements.email.value='test@example.com';f.elements.password.value='fixture-only-123';f.elements.confirm.value='not-matching';
+ await submit();assert(signups===0,'Mismatch must not call signup');
+ f.elements.confirm.value='fixture-only-123';f.elements.confirm.dispatchEvent(new Event('input'));await submit();
+ assert(signups===1&&root.querySelector('h1').textContent==='Sprawdź pocztę'&&!root.querySelector('[type=password]'),'Success replaces form and clears passwords');
+ click('[data-mode=login]');assert(root.querySelector('[name=email]').value==='test@example.com','Preserve email');assert(root.querySelector('[name=password]').value==='','Clear password');
+ root.querySelector('[name=password]').value='fixture-only-123';await submit();assert(logins===1,'Login called');
+ click('[data-mode=reset]');assert(!root.querySelector('[name=password]'),'Reset without password');await submit();assert(root.querySelector('h1').textContent==='Sprawdź pocztę','Reset success');
+ mountAuthPanel(root,{login:async()=>{throw Error('Test błędu połączenia');},signup:async()=>{},resetPassword:async()=>{},onLogin(){}});
+ root.querySelector('[name=email]').value='test@example.com';root.querySelector('[name=password]').value='fixture-only-123';await submit();
+ assert(root.querySelector('[role=alert]').textContent==='Test błędu połączenia'&&!root.querySelector('[type=submit]').disabled,'Recover after error');
+ document.querySelector('#test-result').textContent='PASS: rejestracja, różne hasła, potwierdzenie, logowanie, reset, błąd i ponowna próba. Bez wysyłki maili.';
+ mount();click('[data-mode=signup]');
+}catch(e){document.querySelector('#test-result').textContent='FAIL: '+e.message;}
+</script></body></html>
