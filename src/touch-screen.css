@@ -1,0 +1,97 @@
+/* Shared-screen controls. Phone layouts retain their compact, scrollable layout. */
+@media (min-width:741px){
+ :root{--touch-size:56px;--touch-font:20px;--touch-copy:18px;--touch-gap:12px}
+ body{font-size:var(--touch-font)}
+ body :is(button,input:not([type=checkbox]):not([type=radio]),select,summary,[role=button]){min-height:var(--touch-size)!important;font-size:var(--touch-font);touch-action:manipulation}
+ body button{min-width:var(--touch-size);line-height:1.25;padding:12px 18px}
+ body :is(input,select){font-size:var(--touch-font)!important}
+ body :is(input[type=checkbox],input[type=radio]){width:30px;height:30px;min-height:30px!important;flex-shrink:0}
+ body :is(label,.switch){min-height:var(--touch-size);font-size:var(--touch-copy);line-height:1.45}
+ body summary{display:flex;align-items:center;cursor:pointer;padding:12px 8px}
+ body :is(p,li,.small,.muted,.game-meta,.pill,.eyebrow,.step,.auth-hint,.auth-description,.profile-kpis span,.profile-local strong,.mode span,.checkout-rule,.checkout-legend,.dart-slot small,.turn-total,.opening-status,.score-caption,.leg-score){font-size:var(--touch-copy)!important;line-height:1.45}
+ body :is(.top-actions,.actions,.action-row,.special-keys,.training-actions,.dialog-actions,.profile-subnav,.home-nav,.multiplier){gap:var(--touch-gap);flex-wrap:wrap}
+ body :is(.top-actions>button,.account-entry,.player-menu-toggle,.player-menu-links button,.player-menu-links a,.auth-switch button,.auth-submit,.auth-text-button,.saved-match button,.home-nav a,.home-nav button){font-size:var(--touch-font)!important;min-height:var(--touch-size);padding:12px 18px}
+ body :is(.account-panel a,.install-card a,.install-dialog a,.home-nav a){display:inline-flex;align-items:center;min-height:var(--touch-size)}
+ body .topbar{max-width:none;padding:16px 24px;gap:24px;align-items:center}
+ body .brand{flex-shrink:0;font-size:28px}
+ body .top-actions{justify-content:flex-end}
+ body .player-menu-toggle{max-width:320px}
+ body .player-menu-links{width:360px;max-height:75dvh;overflow:auto}
+ body :is(main,footer){max-width:1800px}
+ body main{padding:32px}
+ body :is(.panel,.account-panel,.profile-form){padding:28px}
+ body .account-panel{max-width:900px}
+ body .auth-panel{max-width:720px}
+ body .auth-panel label{font-size:var(--touch-font)}
+ body .account-panel .password-toggle{width:var(--touch-size);height:var(--touch-size);padding:12px;right:2px}
+ body .account-panel .password-field input{padding-right:calc(var(--touch-size) + 12px)}
+ body :is(.install-close,[data-close]){width:var(--touch-size);height:var(--touch-size);font-size:32px;padding:0}
+ body dialog{width:min(1000px,94vw);max-width:94vw;max-height:92dvh;overflow:auto;padding:28px}
+ body .install-dialog{width:min(1000px,94vw)}
+ body :is(h1,.auth-panel h1){font-size:clamp(40px,3.5vw,68px);line-height:1.12}
+ body :is(h2,.profile-heading h2){font-size:clamp(28px,2.2vw,42px);line-height:1.2}
+ body :is(h3,.profile-game-copy strong,.saved-match strong){font-size:24px}
+ body :is(.profile-game small,.profile-game-result small,.profile-game-copy small,.library-card small){font-size:var(--touch-copy)}
+ body .profile-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body .profile-kpis strong{font-size:44px}
+ body .profile-game-grid{grid-template-columns:1fr}
+ body .saved-match{gap:20px;flex-wrap:wrap}
+ body .saved-match p{max-width:none}
+ body .profile-identity h1{overflow-wrap:anywhere;font-size:36px}
+ body .profile-dashboard,body .player-dashboard{grid-template-columns:minmax(240px,.32fr) minmax(0,1fr)}
+ body .install-card{max-width:1600px;margin:28px 32px 48px}
+ body .install-card h2{font-size:36px}
+ body .app-update{width:min(960px,calc(100% - 40px));gap:24px;padding:24px}
+ body .app-update strong{font-size:24px}
+ body .number-grid{gap:var(--touch-gap)}
+ body .number-grid button{font-size:32px}
+ body .player-name{overflow-wrap:anywhere;line-height:1.25}
+ body .game-title{flex-wrap:wrap;gap:16px}
+ body .game-title>div:last-child{display:flex;gap:12px;flex-wrap:wrap}
+ /* Let content grow instead of clipping controls under the old fixed-height board. */
+ body:has(#app.x01-game) .topbar,body:has(#app.cricket-game) .topbar{height:auto;min-height:88px;padding:12px 20px}
+ body[data-view=game] :is(#app.x01-game,#app.cricket-game){height:auto;min-height:calc(100dvh - 112px);padding:16px;gap:16px}
+ body[data-view=game] #app.x01-game .play-grid{min-height:580px;align-items:stretch}
+ body[data-view=game] #app.x01-game .number-grid{grid-template-rows:repeat(4,minmax(var(--touch-size),1fr))}
+ body[data-view=game] :is(#app.x01-game,#app.cricket-game) :is(.special-keys button,.action-row button,.multiplier button){font-size:var(--touch-font);padding:12px}
+ body[data-view=game] #app.x01-game .scoreboard:has(.player-card:nth-child(4)){grid-template-columns:repeat(3,minmax(0,1fr))}
+ body[data-view=game] #app.x01-game .scoreboard .player-name{font-size:clamp(24px,2vw,38px)}
+ body[data-view=game] #app.x01-game .scoreboard:has(.player-card:nth-child(4)) .player-name{font-size:24px}
+ body[data-view=game] #app.x01-game .scoreboard .player-score{font-size:clamp(52px,5vw,96px)}
+ body[data-view=game] .cricket-layout{min-height:620px;grid-template-columns:minmax(0,1.5fr) minmax(360px,1fr);gap:20px}
+ body[data-view=game] .cricket-controls .number-grid{max-height:none;grid-auto-rows:minmax(var(--touch-size),1fr)}
+ body[data-view=game] .cricket-layout .current-panel .cricket-board td{height:64px}
+ body[data-view=game] .cricket-layout .current-panel .cricket-board th{overflow-wrap:anywhere;line-height:1.2}
+ body[data-view=game] .cricket-layout.many-players .current-panel .cricket-board th{font-size:22px}
+ body[data-view=game] .cricket-layout.many-players .current-panel .cricket-board td{font-size:40px}
+ body[data-view=game] .cricket-layout.many-players .current-panel .cricket-board th.field-col{width:11%}
+ body[data-view=game] .cricket-controls :is(.special-keys button,.action-row button){font-size:var(--touch-font)}
+ body .library-favorite{width:var(--touch-size);height:var(--touch-size)}
+ body .library-card{padding-right:calc(var(--touch-size) + 20px)}
+ body .profile-subnav button{flex:1 1 auto}
+ body .auth-guest{font-size:var(--touch-copy);align-items:center}
+}
+@media(min-width:1200px){:root{--touch-size:64px;--touch-font:22px;--touch-copy:20px;--touch-gap:16px}}
+@media(min-width:1800px){:root{--touch-size:72px;--touch-font:24px;--touch-copy:22px}body[data-view=game] #app.x01-game .scoreboard:has(.player-card:nth-child(4)){grid-template-columns:repeat(var(--players),minmax(0,1fr))}}
+@media(min-width:741px) and (max-width:1100px){
+ body .topbar{flex-wrap:wrap}body .top-actions{justify-content:flex-start}
+ body .setup-grid,body .player-dashboard{grid-template-columns:1fr}
+ body[data-view=game] .cricket-layout{grid-template-columns:1fr}
+ body[data-view=game] .cricket-controls{grid-template-columns:1fr;grid-template-rows:auto;gap:16px}
+ body[data-view=game] .cricket-controls .keypad-panel{grid-column:auto;grid-row:auto}
+ body[data-view=game] .cricket-turn-details{grid-column:auto;grid-row:auto}
+ body[data-view=game] #app.x01-game .play-grid{grid-template-columns:1fr;grid-template-rows:auto auto}
+ body[data-view=game] #app.x01-game .current-panel{display:flex;min-height:380px}
+ body[data-view=game] #app.x01-game .keypad-panel{min-height:550px}
+ body .install-dialog-grid{grid-template-columns:1fr 220px}
+}
+@media(pointer:coarse){button,a,summary,input,select{-webkit-tap-highlight-color:#44cfff55}button:active{filter:brightness(1.2)} }
+@media(min-width:741px){body a:not(.brand){font-size:var(--touch-font)!important}body :is(.library-card-copy>span,.library-card-copy>small,.home-game-copy>span,.home-game-copy>small){font-size:var(--touch-copy)}}
+@media(min-width:1101px){
+ body[data-view=game] .cricket-layout{align-items:start}
+ body[data-view=game] .cricket-layout .current-panel .cricket-board{flex:none}
+ body[data-view=game] .cricket-layout .cricket-board table{height:auto}
+ body[data-view=game] .cricket-controls .scoreboard{grid-template-columns:repeat(3,minmax(0,1fr))}
+ body[data-view=game] .cricket-controls .player-name{font-size:18px}
+}
+@media(min-width:741px){body .checkout-route li{font-size:32px!important}}
