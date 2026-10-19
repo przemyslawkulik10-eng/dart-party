@@ -405,4 +405,4 @@ body[data-view=game] .player-account{display:block}
 .top-actions>button:not(.icon-button),.top-actions>.account-entry{font-size:14px;padding:10px 14px}
 .top-actions>.player-account{margin-left:4px}
 @media(max-width:740px){.top-actions{justify-content:flex-start}.top-actions>button:not(.icon-button),.top-actions>.account-entry{font-size:12px;padding:9px 11px}}
-body:not([data-view=game]):not([data-view=training]) #fullscreen,body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
+body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
