@@ -1,3 +1,4 @@
+import {appStorage} from './account-storage.js';
 import {validProfileId} from './profiles.js';
 import { validDart } from './engine.js';
 export const TRAINING_KEY='dart-party-training-v1';
@@ -36,14 +37,14 @@ export function validateTraining(s){
   return s;
 }
 export function loadTrainings(){
-  const data=JSON.parse(localStorage.getItem(TRAINING_KEY)||'[]');
+  const data=JSON.parse(appStorage.getItem(TRAINING_KEY)||'[]');
   if(!Array.isArray(data))throw new Error('Nie można odczytać treningów.');
   return data.map(validateTraining).sort((a,b)=>b.createdAt-a.createdAt);
 }
 export function saveTraining(s){
   validateTraining(s);
   const all=loadTrainings();
-  localStorage.setItem(TRAINING_KEY,JSON.stringify([s,...all.filter(x=>x.id!==s.id)]));
+  appStorage.setItem(TRAINING_KEY,JSON.stringify([s,...all.filter(x=>x.id!==s.id)]));
   return s;
 }
 

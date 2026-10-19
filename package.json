@@ -1,1 +1,1 @@
-{"name":"dart-party","version":"1.0.0","private":true,"type":"module","scripts":{"test":"node --test tests/*.test.mjs","build":"node scripts/build.mjs","dev":"node scripts/serve.mjs"},"engines":{"node":">=22"}}
+{"name":"dart-party","version":"1.0.0","private":true,"type":"module","scripts":{"test":"node --test tests/*.test.mjs","build":"node scripts/build.mjs","dev":"node scripts/serve.mjs"},"engines":{"node":">=22"},"dependencies":{"@supabase/supabase-js":"2.118.0"},"devDependencies":{"esbuild":"0.28.2"}}

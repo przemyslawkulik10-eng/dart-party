@@ -1,3 +1,4 @@
+import {appStorage} from './account-storage.js';
 import {validProfileId} from './profiles.js';
 export const CYFERKI_KEY='dart-party-cyferki-v1';
 export const CYFERKI_FIELDS=[...Array.from({length:20},(_,i)=>20-i),25];
@@ -32,5 +33,5 @@ function append(m,event,now){const next={...m,events:[...m.events,{...event,at:n
 export const chooseCyferki=(m,target,now=Date.now())=>append(m,{type:'choose',target},now);
 export const throwCyferki=(m,hits,now=Date.now())=>append(m,{type:'throw',hits},now);
 export function undoCyferki(m){cyferkiState(m);return {...m,events:m.events.slice(0,-1)};}
-export function loadCyferki(){const all=JSON.parse(localStorage.getItem(CYFERKI_KEY)||'[]');if(!Array.isArray(all))throw new Error('Nieprawidłowa historia Cyferek.');all.forEach(cyferkiState);if(new Set(all.map(m=>m.id)).size!==all.length)throw new Error('Powtórzony zapis Cyferek.');return all;}
-export function saveCyferki(m){cyferkiState(m);const all=loadCyferki();localStorage.setItem(CYFERKI_KEY,JSON.stringify([m,...all.filter(x=>x.id!==m.id)]));return m;}
+export function loadCyferki(){const all=JSON.parse(appStorage.getItem(CYFERKI_KEY)||'[]');if(!Array.isArray(all))throw new Error('Nieprawidłowa historia Cyferek.');all.forEach(cyferkiState);if(new Set(all.map(m=>m.id)).size!==all.length)throw new Error('Powtórzony zapis Cyferek.');return all;}
+export function saveCyferki(m){cyferkiState(m);const all=loadCyferki();appStorage.setItem(CYFERKI_KEY,JSON.stringify([m,...all.filter(x=>x.id!==m.id)]));return m;}

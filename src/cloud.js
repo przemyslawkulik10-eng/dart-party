@@ -1,3 +1,4 @@
+import {accountOwner} from './account-storage.js';
 import { config } from './config.js';
 import { loadMatches, mergeRemote } from './storage.js';
 const AUTH_KEY = 'dart-party-auth-v1';
@@ -40,6 +41,7 @@ export function syncCloud() {
   return task;
 }
 async function runSync() {
+  if (accountOwner()) { listener('Konto gracza · synchronizuj w Koncie'); return; }
   if (!configured) { listener('Zapis na tablecie'); return; }
   if (!navigator.onLine) { listener('Zapis na tablecie · bez internetu'); return; }
   try {
@@ -48,11 +50,13 @@ async function runSync() {
     // Restore before uploading, so an empty browser never overwrites remote data.
     if (!restored) {
       const rows = await api('/rest/v1/dart_matches?select=state&order=updated_at.desc&limit=500', { token: auth.access_token });
+      if(accountOwner())return;
       mergeRemote(rows || []);
       restored = true;
     }
     do {
       again = false;
+      if(accountOwner())return;
       const batch = loadMatches();
       const before = JSON.stringify(batch);
       for (const match of batch) {

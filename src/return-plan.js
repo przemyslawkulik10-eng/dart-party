@@ -1,3 +1,4 @@
+import {appStorage} from './account-storage.js';
 import {playerStats} from './player-stats.js';
 const DAY=86400000;
 export function returnPlan(data,now=Date.now()){
@@ -17,12 +18,12 @@ export function returnPlan(data,now=Date.now()){
 }
 export const RETURN_CHOICE_KEY='dart-party-return-choice-v1';
 export function loadReturnChoice(profileId){
- const data=JSON.parse(localStorage.getItem(RETURN_CHOICE_KEY)||'{}');
+ const data=JSON.parse(appStorage.getItem(RETURN_CHOICE_KEY)||'{}');
  if(!data||typeof data!=='object'||Array.isArray(data)||Object.values(data).some(v=>typeof v!=='boolean'))throw new Error('Nie można odczytać ustawień planu.');
  return data[profileId]===true;
 }
 export function saveReturnChoice(profileId,enabled){
  loadReturnChoice(profileId);
- const data=JSON.parse(localStorage.getItem(RETURN_CHOICE_KEY)||'{}');
- localStorage.setItem(RETURN_CHOICE_KEY,JSON.stringify({...data,[profileId]:!!enabled}));
+ const data=JSON.parse(appStorage.getItem(RETURN_CHOICE_KEY)||'{}');
+ appStorage.setItem(RETURN_CHOICE_KEY,JSON.stringify({...data,[profileId]:!!enabled}));
 }

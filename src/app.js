@@ -1,3 +1,6 @@
+import {initAccounts,accountUser} from './accounts.js';
+import {mountAccount} from './accounts-ui.js';
+import {appStorage} from './account-storage.js';
 import {mountGameLibrary} from './game-library.js';
 import {homeMarkup} from './home-ui.js';
 import {x01Setup} from './x01-setup.js';
@@ -19,6 +22,7 @@ import { bullState } from './bull-off.js';
 import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch, isShanghai, isThreeTriples, nextLeg, enableDoubleOut, configureCricketTeams, cricketTeamOrder } from './engine.js';
 import { loadMatches, saveMatch } from './storage.js';
 import { syncCloud, onCloudStatus, cloudEnabled } from './cloud.js';
+await initAccounts();
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const versionLabel=document.createElement('small');versionLabel.className='app-version';versionLabel.textContent=`${APP_VERSION} · ${APP_UPDATED}`;$('.brand').append(versionLabel);
@@ -143,7 +147,7 @@ function renderSetup() {
   }catch(e){toast(e.message);}};
 }
 function saveContest() {
-  try { if(contest)localStorage.setItem(contestKey,JSON.stringify(contest));else localStorage.removeItem(contestKey); }
+  try { if(contest)appStorage.setItem(contestKey,JSON.stringify(contest));else appStorage.removeItem(contestKey); }
   catch { toast('Nie udało się zapisać walki o start na tablecie.'); }
 }
 function beginContest(players, gameMode, out, scoring='standard', opening='standard', targetLegs=1, sessionType='competition', teams) {
@@ -336,11 +340,12 @@ $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await docum
 modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)modal.close();}});
 onCloudStatus(text=>{if(!storageError)$('#save-status').textContent=text;});
 try {
-  const draft=JSON.parse(localStorage.getItem(contestKey));
+  const draft=JSON.parse(appStorage.getItem(contestKey));
   if(draft){const candidate=createMatch(draft.names,draft.mode,draft.doubleOut,draft.cricketScoring,draft.cricketOpening,draft.legsToWin);if(draft.teams)configureCricketTeams(candidate,draft.teams);bullState(draft.names.length,draft.throws);contest=draft;}
 } catch {}
 if(location.hash==='#nowe-301'){section='competition';contest=null;const previous=allMatches()[0];if(previous)names=[...previous.names];mode='301';legsToWin=3;history.replaceState(null,'',location.pathname+location.search);}
-if(contest)renderContest();else if(new URLSearchParams(location.search).get('page')==='graj')renderLibrary();else renderSetup();
+const requestedPage=new URLSearchParams(location.search).get('page');
+if(requestedPage==='konto')mountAccount($('#app'));else if(requestedPage==='profil')openPlayers();else if(contest)renderContest();else if(requestedPage==='graj')renderLibrary();else renderSetup();
 syncCloud().then(()=>{if(!contest&&!match&&document.body.dataset.view==='home')renderHome();});
 setInterval(()=>{if(!storageError)syncCloud();},60000);
 
@@ -352,3 +357,5 @@ soundButton.onclick=()=>{toggleSound();renderSoundButton();if(document.body.data
 document.querySelector('.top-actions').append(soundButton);
 
 mountPlayerMenu(document.querySelector('.top-actions'),{onNavigate:openPlayers,toast});
+
+const accountLink=document.createElement('a');accountLink.href='/?page=konto';accountLink.className='account-link';accountLink.textContent=accountUser()?'Moje konto':'Zaloguj się';document.querySelector('.top-actions').append(accountLink);
