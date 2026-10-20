@@ -372,5 +372,5 @@ mountPlayerMenu(document.querySelector('.top-actions'),{
  onLogout:async()=>{await logout();location.assign('/?page=konto');}
 });
 
-try{for(const p of loadProfiles()){if(!p.virtualCoach)continue;for(const plan of validateCoach(p.virtualCoach).plans)for(const task of plan.tasks)updateActivity(task.id,!taskState(task).complete&&(task.events.length>0||!task.paused));}}catch{ /* Invalid coach data is reported when its owner opens the coach. */ }
+try{for(const p of loadProfiles()){for(const m of p.coachMatches||[])updateActivity(m.id,replay(m).winner===null);if(!p.virtualCoach)continue;for(const plan of validateCoach(p.virtualCoach).plans)for(const task of plan.tasks)updateActivity(task.id,!plan.archived&&!taskState(task).complete&&(task.events.length>0||!task.paused));}}catch{ /* Invalid coach data is reported when its owner opens the coach. */ }
 initUpdates();

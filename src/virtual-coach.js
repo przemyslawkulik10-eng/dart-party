@@ -41,7 +41,7 @@ export function validateCoach(coach){
    if(!validProfileId(task.id)||ids.has(task.id)||typeof task.paused!=='boolean'||typeof task.reason!=='string'||!Number.isFinite(task.goal)||task.goal<0||task.goal>(task.kind==='scoring'?180:task.kind==='checkout'?10:30))throw Error('Nieprawidłowe zadanie trenera.');
    ids.add(task.id);complete=taskState(task).complete&&complete;
   }
-  if(!complete){active++;if(plan!==coach.plans.at(-1))throw Error('Aktywny plan musi być ostatnim planem.');}
+  if(!complete&&!plan.archived){active++;if(plan!==coach.plans.at(-1))throw Error('Aktywny plan musi być ostatnim planem.');}
  }
  if(active>1)throw Error('Zapis zawiera więcej niż jeden aktywny plan.');
  return coach;
@@ -50,7 +50,7 @@ export function coachResults(coach){
  validateCoach(coach);
  return coach.plans.flatMap(plan=>plan.tasks.map(task=>({...task,state:taskState(task),planId:plan.id}))).filter(t=>t.state.complete).sort((a,b)=>Date.parse(b.state.completedAt)-Date.parse(a.state.completedAt));
 }
-export function activeCoachPlan(coach){return coach.plans.find(p=>p.tasks.some(t=>!taskState(t).complete))||null;}
+export function activeCoachPlan(coach){return coach.plans.find(p=>!p.archived&&p.tasks.some(t=>!taskState(t).complete))||null;}
 const median=values=>{const v=[...values].sort((a,b)=>a-b),i=Math.floor(v.length/2);return v.length%2?v[i]:(v[i-1]+v[i])/2;};
 function recentResults(coach,at){return coachResults(coach).filter(t=>Date.parse(t.state.completedAt)<=Date.parse(at)&&Date.parse(t.state.completedAt)>=Date.parse(at)-30*86400000);}
 export function createCoachPlan(coach,minutes=20,at=nowISO()){

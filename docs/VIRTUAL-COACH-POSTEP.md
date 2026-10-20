@@ -29,3 +29,8 @@ Wejście: Panel gracza → Virtual Coach. Źródło: release-accounts, gałąź 
 - Przed wydaniem: wspólny test na sprzęcie, reset hasła/synchronizacja z wcześniejszego checkpointu i wyraźna zgoda na push/main. Następnie pilotaż planów z realnymi graczami.
 
 Odtworzenie QA: node tests/coach-layout-fixture.mjs, następnie SERVE_DIR=/tmp/dart-coach-layout PORT=4192 npm run dev. Otwórz /public/coach-qa.html?w=1180&h=820&scene=game. Dane generowane są wyłącznie na oddzielnym lokalnym origin. Dostępne sceny: home/game/empty/completed.
+
+## Zmiana kierunku — luźna gra, 20.10.2026
+Pierwszy ekran proponuje 201/301/501 jeden na jeden z wirtualnym przeciwnikiem. Jeden leg; zwykłe zakończenie lub Double Out do wyboru. Trzy ręcznie wybierane poziomy bota (prosty model losowy, bez udawania automatycznej diagnozy). Po meczu rewanż, dobrowolne ćwiczenia albo koniec. Ćwiczenia schowane w rozwijanej sekcji; brak deklaracji dni i możliwość odłożenia planu bez utraty lotek.
+Mecze zapisywane w profilu jako coachMatches, z kontrolą właściciela i konfliktu innej karty. Nie są meczami z ludźmi ani wynikami bota w statystykach gracza. Wznowienie na stronie coacha. Cofnięcie usuwa odpowiedź bota i ostatnią ludzką lotkę. Średnia wyłącznie z lotek gracza, z ostatnich 30 dni; brak procentu checkoutów bez informacji o zamierzonym celu. Dwie–trzy gry to wstępna próbka, nie pełna diagnoza. coachMatches jest częścią istniejącego dokumentu profilu; rzeczywista synchronizacja dwóch urządzeń pozostaje niezweryfikowana. Bez migracji i publikacji.
+Walidacja: 158 testów, build; izolowany test w przeglądarce 201 aż do wygranej, kolejka bota, ekran wyboru po meczu; pięć szerokości bez poziomego przepełnienia. Nie testowano fizycznego dotyku.

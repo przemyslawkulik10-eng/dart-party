@@ -435,3 +435,6 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
 @media(max-width:740px){.coach-playing .coach-game-heading{flex-direction:row;gap:12px}.coach-playing .coach-current{max-width:95px}.coach-playing .coach-current strong{font-size:28px}.coach-playing .coach-current span{font-size:11px}.coach-playing .coach-game-heading h2{font-size:24px}}
 .coach-drill-grid,.coach-info,.coach-entry{min-width:0}
 @media(min-width:1000px){.coach-drill-grid{display:grid;grid-template-columns:minmax(240px,.8fr) minmax(0,1.6fr);gap:24px;align-items:start}.coach-info{position:sticky;top:12px}.coach-playing .coach-game-heading{position:static;display:block}.coach-playing .coach-current{text-align:left;margin-top:16px}.coach-entry .training-actions{gap:8px}.coach-entry .training-actions button{font-size:14px;padding:10px 14px}.coach-entry .keypad-head h3{font-size:18px}}
+/* Coach match choices retain touch-sized controls. */
+.virtual-coach [data-match-level],.virtual-coach [data-match-out]{display:block;width:100%;min-height:56px;padding:12px;border:1px solid #55749b;border-radius:12px;background:#142b4e;color:#fff;font:inherit;}
+.virtual-coach [data-warmup]{min-width:140px;}
