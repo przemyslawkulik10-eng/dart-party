@@ -1,3 +1,4 @@
+import {mountVirtualCoach} from './virtual-coach-ui.js';
 import {updateActivity,initUpdates} from './app-update.js';
 import {initAccounts,accountUser,logout} from './accounts.js';
 import {mountAccount} from './accounts-ui.js';
@@ -6,7 +7,8 @@ import {mountGameLibrary} from './game-library.js';
 import {homeMarkup} from './home-ui.js';
 import {x01Setup} from './x01-setup.js';
 import {mountPlayerMenu} from './player-menu.js';
-import {selectedProfile} from './profiles.js';
+import {selectedProfile,loadProfiles} from './profiles.js';
+import {validateCoach,taskState} from './virtual-coach.js';
 import {gameIcon} from './player-dashboard.js';
 import { mountTeamSetup } from './team-setup-ui.js';
 import { applyPlayerColors } from './player-colors.js';
@@ -70,7 +72,9 @@ function openPlayers(options={}){
   $('#app').classList.remove('cricket-game','x01-game');
   disposeTraining=mountPlayers($('#app'),{initialProfileId:options.pick?null:selectedProfile()?.id,initialTab:options.tab||'profile',onExit:renderHome,toast,onExercise:(exercise,profile)=>{
     leaveTraining();match=null;contest=null;saveContest();window.speechSynthesis?.cancel();
-    if(['competition','501','301','201','cricket'].includes(exercise)){
+    if(exercise==='virtual-coach'){
+      section='coach';disposeTraining=mountVirtualCoach($('#app'),{profile,onExit:openPlayers,toast,onExercise:(_exercise,p)=>{leaveTraining();section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialName:p.name,initialExercise:_exercise});}});
+    }else if(['competition','501','301','201','cricket'].includes(exercise)){
       section='competition';if(exercise!=='competition')mode=exercise;
       names=[profile.name,...names.filter(n=>n.trim().toLocaleUpperCase('pl')!==profile.name.toLocaleUpperCase('pl'))].slice(0,6);
       if(names.length<2)names.push('');renderSetup();
@@ -368,4 +372,5 @@ mountPlayerMenu(document.querySelector('.top-actions'),{
  onLogout:async()=>{await logout();location.assign('/?page=konto');}
 });
 
+try{for(const p of loadProfiles()){if(!p.virtualCoach)continue;for(const plan of validateCoach(p.virtualCoach).plans)for(const task of plan.tasks)updateActivity(task.id,!taskState(task).complete&&(task.events.length>0||!task.paused));}}catch{ /* Invalid coach data is reported when its owner opens the coach. */ }
 initUpdates();

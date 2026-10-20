@@ -1,6 +1,6 @@
 import {buildCoachContext} from '../src/coach-context.js';
 export class CoachError extends Error{constructor(status,message){super(message);this.status=status;}}
-const schema={type:'object',additionalProperties:false,properties:{summary:{type:'string'},focus:{type:'string'},exerciseId:{type:'string',enum:['sector-20','jdc']},tip:{type:'string'},reason:{type:'string'}},required:['summary','focus','exerciseId','tip','reason']};
+const schema={type:'object',additionalProperties:false,properties:{summary:{type:'string'},focus:{type:'string'},exerciseId:{type:'string',enum:['sector-20','jdc','scoring','singles','doubles','checkout']},tip:{type:'string'},reason:{type:'string'}},required:['summary','focus','exerciseId','tip','reason']};
 export const coachConfigured=(env=process.env)=>Boolean(env.OPENAI_API_KEY && env.OPENAI_MODEL);
 export async function generateCoach(payload,{env=process.env,fetchImpl=fetch}={}){
  if(!coachConfigured(env))throw new CoachError(503,'Trener AI nie jest jeszcze skonfigurowany. Możesz trenować samodzielnie.');
@@ -12,7 +12,7 @@ export async function generateCoach(payload,{env=process.env,fetchImpl=fetch}={}
  try{
   const data=await response.json();if(data.status!=='completed')throw new Error();
   const text=data.output?.flatMap(item=>item.content||[]).filter(c=>c.type==='output_text').map(c=>c.text).join('');
-  const advice=JSON.parse(text);if(!['sector-20','jdc'].includes(advice.exerciseId)||Object.keys(advice).length!==5||['summary','focus','tip','reason'].some(k=>typeof advice[k]!=='string'||!advice[k].trim()||advice[k].length>1000))throw new Error();
+  const advice=JSON.parse(text);if(!context.availableExercises.some(e=>e.id===advice.exerciseId)||Object.keys(advice).length!==5||['summary','focus','tip','reason'].some(k=>typeof advice[k]!=='string'||!advice[k].trim()||advice[k].length>1000))throw new Error();
   return {version:1,provider:'OpenAI',model:env.OPENAI_MODEL,createdAt:Date.now(),advice,evidence:{trainingThrows:context.training.throws,trainingHits:context.training.hits,completedMatches:context.competition.length,jdcSessions:context.jdc.completed}};
  }catch{throw new CoachError(502,'Trener nie zwrócił poprawnej analizy. Spróbuj ponownie później.');}
 }

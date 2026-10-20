@@ -46,7 +46,7 @@ export function replay(match) {
   const start = match.mode === 'cricket' ? 0 : Number(match.mode);
   const state = {
     players: match.names.map(name => ({ name, score: start, openingTriples: [], marks: Object.fromEntries(TARGETS.map(n => [n, 0])), darts: 0, scored: 0 })),
-    current: 0, round: 1, leg:1, legStarter:0, legWinner:null, legWins:match.names.map(()=>0), turn: [], turnStart: start, turnPoints: 0, ready: false, bust: false, winner: null, visits: [],
+    current: 0, round: 1, leg:1, legStarter:0, legWinner:null, legWins:match.names.map(()=>0), turn: [], turnStart: start, turnPoints: 0, ready: false, bust: false, winner: null, visits: [], achievements: [],
   };
   let orderPosition = 0;
   state.current = order[0]; state.legStarter = order[0];
@@ -124,6 +124,14 @@ export function replay(match) {
       }
     }
     if (state.turn.length === 3) state.ready = true;
+    // Derived from saved darts: undo removes an achievement and replay never duplicates it.
+    if (match.mode !== 'cricket' && !state.bust && state.turn.length === 3) {
+      const kind = [180,140].includes(state.turnPoints) ? String(state.turnPoints) :
+        match.doubleOut && state.turnStart === 170 && state.winner === state.current ? '170' : null;
+      if (kind) state.achievements.push({kind, player:state.current, leg:state.leg, round:state.round,
+        at:typeof event.at === 'string' && Number.isFinite(Date.parse(event.at)) ? event.at : null,
+        darts:state.turn.map(d=>({...d}))});
+    }
     if(state.winner!==null){
       state.legWinner=state.winner;
       for(let i=0;i<state.legWins.length;i++) if(teamOf(i)===teamOf(state.winner))state.legWins[i]++;
@@ -135,7 +143,7 @@ export function replay(match) {
 }
 
 export function recordDart(match, number, multiplier = 1) {
-  const next = { ...match, events: [...match.events, { type: 'dart', number, multiplier }], updatedAt: new Date().toISOString() };
+  const next = { ...match, events: [...match.events, { type: 'dart', number, multiplier, at: new Date().toISOString() }], updatedAt: new Date().toISOString() };
   replay(next);
   return next;
 }

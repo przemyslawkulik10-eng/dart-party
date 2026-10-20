@@ -1,7 +1,8 @@
+import {validateCoach,coachSummary,COACH_LABELS,activeCoachPlan} from './virtual-coach.js';
 import {jdcInsights} from './jdc-insights.js';
 import {validateJdc,jdcStats} from './jdc.js';
 import {validateTraining,trainingStats} from './training.js';
-import {validateMatch,replay} from './engine.js';
+import {validateMatch,replay,cricketTeamOrder} from './engine.js';
 import {validProfileId} from './profiles.js';
 // Numbers are computed here. The language model interprets, never calculates scores.
 export function buildCoachContext(payload){
@@ -19,9 +20,11 @@ export function buildCoachContext(payload){
  const sessions=practice.sort((a,b)=>a.createdAt-b.createdAt).map(s=>{const st=trainingStats(s);throws+=st.throws;hits+=st.hits;return {date:new Date(s.createdAt).toISOString().slice(0,10),target:20,throws:st.throws,hits:st.hits,accuracy:st.accuracy,completed:s.endedAt!==null};});
  const competition=matches.map(m=>{
   const state=replay(m);if(state.winner===null)throw new Error('Analiza zawodów jest dostępna po zakończeniu meczu.');
-  const idx=m.profileIds.indexOf(payload.profileId);let current=0,starter=0;const darts=[];
-  for(const e of m.events){if(e.type==='next')current=(current+1)%m.names.length;else if(e.type==='nextLeg'){starter=(starter+1)%m.names.length;current=starter;}else if(e.type==='dart'&&current===idx)darts.push(e);}
-  return {date:m.updatedAt.slice(0,10),mode:m.mode,scoring:m.cricketScoring||'standard',doubleOut:m.doubleOut,throws:darts.length,triples:darts.filter(d=>d.multiplier===3).length,recordedZeros:darts.filter(d=>d.number===0).length,won:state.winner===idx,targetKnown:false};
+  const idx=m.profileIds.indexOf(payload.profileId);let position=0,starter=0;const order=cricketTeamOrder(m),darts=[];
+  for(const e of m.events){if(e.type==='next')position=(position+1)%order.length;else if(e.type==='nextLeg'){starter=(starter+1)%order.length;position=starter;}else if(e.type==='dart'&&order[position]===idx)darts.push(e);}
+  return {date:m.updatedAt.slice(0,10),mode:m.mode,scoring:m.cricketScoring||'standard',doubleOut:m.doubleOut,throws:darts.length,triples:darts.filter(d=>d.multiplier===3).length,recordedZeros:darts.filter(d=>d.number===0).length,won:m.teams?m.teams[state.winner]===m.teams[idx]:state.winner===idx,targetKnown:false};
  });
- return {scope:'dart-training',jdc:{sessions:jdcSessions,completed:jdcSessions.length,last30Days:jdcInsights(jdc,payload.profileId,30)},training:{sessions,throws,hits,accuracy:throws?Math.round(hits/throws*100):null},competition,limitations:['Brak pomiaru techniki ciała.','Zamiar rzutu w meczu jest nieznany.','Zera w Cricket mogą oznaczać niepunktujące pola.','Historia ograniczona do 30 treningów sektora 20, 30 prób JDC i 20 zakończonych meczów.','Wynik próby JDC nie jest oficjalnym stopniem akademii.','JDC ma 57 lotek; nie przerywaj próby limitem czasu i nie porównuj surowych punktów różnych etapów jako celności.'],availableExercises:[{id:'sector-20',target:20,description:'Celowanie w cały sektor 20; maksymalnie 15 minut.'},{id:'jdc',description:'Pełna próba JDC: 57 lotek, z możliwością przerwy i wznowienia.'}]};
+ const virtual=payload.virtualCoach?validateCoach(payload.virtualCoach):null;
+ const virtualContext=virtual?{summary:coachSummary(virtual),tasks:activeCoachPlan(virtual)?.tasks.map(t=>({kind:t.kind,goal:t.goal,reason:t.reason}))||[],note:'Progi i cele są orientacyjnymi regułami produktu, nie oceną sportową.'}:null;
+ return {virtualCoach:virtualContext,scope:'dart-training',jdc:{sessions:jdcSessions,completed:jdcSessions.length,last30Days:jdcInsights(jdc,payload.profileId,30)},training:{sessions,throws,hits,accuracy:throws?Math.round(hits/throws*100):null},competition,limitations:['Brak pomiaru techniki ciała.','Zamiar rzutu w meczu jest nieznany.','Zera w Cricket mogą oznaczać niepunktujące pola.','Historia ograniczona do 30 treningów sektora 20, 30 prób JDC i 20 zakończonych meczów.','Wynik próby JDC nie jest oficjalnym stopniem akademii.','JDC ma 57 lotek; nie przerywaj próby limitem czasu i nie porównuj surowych punktów różnych etapów jako celności.'],availableExercises:[...(virtual?Object.entries(COACH_LABELS).map(([id,description])=>({id,description})):[]),{id:'sector-20',target:20,description:'Celowanie w cały sektor 20; maksymalnie 15 minut.'},{id:'jdc',description:'Pełna próba JDC: 57 lotek, z możliwością przerwy i wznowienia.'}]};
 }
