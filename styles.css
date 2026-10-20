@@ -438,3 +438,5 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
 /* Coach match choices retain touch-sized controls. */
 .virtual-coach [data-match-level],.virtual-coach [data-match-out]{display:block;width:100%;min-height:56px;padding:12px;border:1px solid #55749b;border-radius:12px;background:#142b4e;color:#fff;font:inherit;}
 .virtual-coach [data-warmup]{min-width:140px;}
+.virtual-coach .coach-conversation select{display:block;width:100%;min-height:56px;padding:12px;border:1px solid #55749b;border-radius:12px;background:#142b4e;color:#fff;font:inherit;}
+.virtual-coach .coach-conversation [data-reply],.virtual-coach [data-feeling-reply]{line-height:1.6;}
