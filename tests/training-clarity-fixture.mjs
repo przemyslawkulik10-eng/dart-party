@@ -24,7 +24,7 @@ if(scene==='result'||scene==='profile'){
  const now=Date.now(),s=createTraining(profile.name,15,now-900000,true);s.profileId=profile.id;s.darts=Array.from({length:31},(_,i)=>({number:i%3===2?0:20,multiplier:1,target:20,at:now-890000+i*1000,...(i%3===2?{unknownMiss:true}:{})}));saveTraining(finishTraining(s,now));resultId=s.id;
 }
 if(scene==='match'){const {createMatch}=await import('./engine.js');const {saveMatch}=await import('./storage.js');saveMatch(createMatch(['QA A','QA B'],'501'));await import('./app.js');}
-else if(scene==='profile')mountPlayers(root,{...options,initialProfileId:profile.id});
+else if(scene==='profile')mountPlayers(root,{...options,initialProfileId:profile.id,onExercise:(exercise,p)=>mountVirtualCoach(root,{...options,profile:p,initialMode:exercise.startsWith('coach-')?exercise.slice(6):'301'})});
 else if(scene==='mnoznik')mountMnoznik(root,options);
 else if(scene==='sparing')mountMnoznikSparing(root,options);
 else if(scene==='cyferki')mountCyferki(root,options);

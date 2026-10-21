@@ -67,14 +67,18 @@ function update(next) {
 }
 function openModal(title, content) { $('#modal-content').innerHTML = `<div class="modal-heading"><h2>${title}</h2><button data-close aria-label="Zamknij">×</button></div>${content}`; if (!modal.open) modal.showModal(); $('[data-close]').onclick = () => modal.close(); }
 function readNames() { names = [...document.querySelectorAll('[data-player-name]')].map(el => el.value); }
+function openSoloCoach(profile,initialMode='301'){
+ leaveTraining();section='coach';match=null;contest=null;window.speechSynthesis?.cancel();
+ disposeTraining=mountVirtualCoach($('#app'),{profile,initialMode,onExit:openPlayers,toast,onExercise:(_exercise,p)=>{leaveTraining();section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialName:p.name,initialExercise:_exercise});}});
+}
 function openPlayers(options={}){
   if(options instanceof Event)options={};
   leaveTraining();section='players';match=null;contest=null;saveContest();
   $('#app').classList.remove('cricket-game','x01-game');
   disposeTraining=mountPlayers($('#app'),{initialProfileId:options.pick?null:selectedProfile()?.id,initialTab:options.tab||'profile',onExit:renderHome,toast,onExercise:(exercise,profile)=>{
     leaveTraining();match=null;contest=null;saveContest();window.speechSynthesis?.cancel();
-    if(exercise==='virtual-coach'){
-      section='coach';disposeTraining=mountVirtualCoach($('#app'),{profile,onExit:openPlayers,toast,onExercise:(_exercise,p)=>{leaveTraining();section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialName:p.name,initialExercise:_exercise});}});
+    if(exercise==='virtual-coach'||['coach-201','coach-301','coach-501'].includes(exercise)){
+      openSoloCoach(profile,exercise.startsWith('coach-')?exercise.slice(6):'301');
     }else if(['competition','501','301','201','cricket'].includes(exercise)){
       section='competition';if(exercise!=='competition')mode=exercise;
       names=[profile.name,...names.filter(n=>n.trim().toLocaleUpperCase('pl')!==profile.name.toLocaleUpperCase('pl'))].slice(0,6);
@@ -111,6 +115,7 @@ function renderHome(){
   $('#app').innerHTML=homeMarkup({latest,profile:selectedProfile()});
   document.querySelectorAll('[data-home-game]').forEach(button=>button.onclick=()=>{section='competition';mode=button.dataset.homeGame;match=null;contest=null;saveContest();renderSetup();});
   $('#open-library').onclick=renderLibrary;
+  $('#home-coach').onclick=()=>{const profile=selectedProfile();if(profile)openSoloCoach(profile);else openPlayers();};
   $('#home-train-hero').onclick=()=>$('#enter-training').click();
   $('#enter-mnoznik').onclick=()=>{leaveTraining();section='mnoznik';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountMnoznik($('#app'),{onExit:renderHome,toast});};
   $('#enter-cyferki').onclick=()=>{leaveTraining();section='cyferki';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountCyferki($('#app'),{onExit:renderHome,toast});};

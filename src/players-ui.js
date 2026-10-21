@@ -56,7 +56,7 @@ export function mountPlayers(root,{onExit,toast,onExercise,initialProfileId=null
   root.querySelectorAll('[data-profile-section]').forEach(button=>button.onclick=()=>{
     const tab=button.dataset.profileSection;if(tab==='coach'){onExercise?.('virtual-coach',data.profile);return;}if(tab==='settings'){safe(()=>edit(id));return;}
     if(tab==='profile')$('.profile-identity').scrollIntoView({behavior:'smooth'});
-    if(tab==='games')$('.profile-games').scrollIntoView({behavior:'smooth'});
+    if(tab==='games')$('.profile-solo').scrollIntoView({behavior:'smooth'});
     if(tab==='history')$('.profile-history').scrollIntoView({behavior:'smooth'});
     if(tab==='stats'){$('#profile-details').open=true;$('#profile-details').scrollIntoView({behavior:'smooth'});}
   });
@@ -70,5 +70,5 @@ export function mountPlayers(root,{onExit,toast,onExercise,initialProfileId=null
   root.querySelectorAll('[data-development-exercise]').forEach(b=>b.onclick=()=>onExercise?.(b.dataset.developmentExercise,data.profile));
   $('#players-back').onclick=()=>{selectProfile(null);window.dispatchEvent(new Event('dart-profile-change'));home();};$('#player-export').onclick=()=>safe(()=>{const blob=new Blob([JSON.stringify(exportPlayer(data),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`dart-party-gracz-${data.profile.id}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
  }
- if(initialProfileId){safe(()=>{detail(initialProfileId,['stats','history'].includes(initialTab));if(initialTab==='settings')edit(initialProfileId);if(initialTab==='games')$('.profile-games').scrollIntoView();if(initialTab==='stats')$('#profile-details').scrollIntoView();if(initialTab==='history')$('.profile-history').scrollIntoView();});}else home();return ()=>{};
+ if(initialProfileId){safe(()=>{detail(initialProfileId,['stats','history'].includes(initialTab));if(initialTab==='settings')edit(initialProfileId);if(initialTab==='games')$('.profile-solo').scrollIntoView();if(initialTab==='stats')$('#profile-details').scrollIntoView();if(initialTab==='history')$('.profile-history').scrollIntoView();});}else home();return ()=>{};
 }
