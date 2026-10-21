@@ -353,7 +353,8 @@ try {
 } catch {}
 if(location.hash==='#nowe-301'){section='competition';contest=null;const previous=allMatches()[0];if(previous)names=[...previous.names];mode='301';legsToWin=3;history.replaceState(null,'',location.pathname+location.search);}
 const requestedPage=new URLSearchParams(location.search).get('page');
-if(requestedPage==='konto')mountAccount($('#app'));else if(requestedPage==='profil')openPlayers();else if(contest)renderContest();else if(requestedPage==='graj')renderLibrary();else renderSetup();
+if(requestedPage==='konto')mountAccount($('#app'));else if(requestedPage==='profil')openPlayers();else if(requestedPage==='home')renderHome();else if(contest)renderContest();else if(requestedPage==='graj')renderLibrary();else renderSetup();
+const loginNotice=sessionStorage.getItem('dart-party-login-notice');if(loginNotice){sessionStorage.removeItem('dart-party-login-notice');toast(loginNotice);}
 syncCloud().then(()=>{if(!contest&&!match&&document.body.dataset.view==='home')renderHome();});
 setInterval(()=>{if(!storageError)syncCloud();},60000);
 

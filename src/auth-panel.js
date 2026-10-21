@@ -40,7 +40,7 @@ export function mountAuthPanel(root,{login,signup,resetPassword,onLogin}){
    try{
     if(register){await signup(email,form.elements.password.value);mode='sent';render(true);}
     else if(reset){await resetPassword(email);mode='reset-sent';render(true);}
-    else{await login(email,form.elements.password.value);onLogin();}
+    else{await login(email,form.elements.password.value);await onLogin();}
    }catch(error){status.setAttribute('role','alert');status.textContent=error.message;}
    finally{pending=false;form.removeAttribute('aria-busy');buttons.forEach(b=>b.disabled=false);}
   };
