@@ -1,3 +1,4 @@
+import {trainingProfile,playerRoster,rosterProfiles} from './training-profile.js';
 import {remainingDarts} from './dart-progress.js';
 import {updateActivity} from './app-update.js';
 import {CYFERKI_FIELDS,createCyferki,cyferkiState,chooseCyferki,throwCyferki,undoCyferki,loadCyferki,saveCyferki} from './cyferki.js';
@@ -5,18 +6,19 @@ import {ensureProfiles,loadProfiles} from './profiles.js';
 import {speakTraining,stopSpeech,playSound} from './sound.js';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hitLabel=r=>r.hits===0?'Pudło':r.target===25?(r.hits===2?'BULL 50':'BULL 25'):'SDT'[r.hits-1]+r.target;
-export function mountCyferki(root,{onExit,toast}){
+export function mountCyferki(root,{onExit,toast,initialProfile=null}){
+ const getProfile=trainingProfile(initialProfile);
  let match=null;const $=s=>root.querySelector(s);const safe=fn=>{try{fn();}catch(e){toast(e.message);}};
- const store=m=>{saveCyferki(m);match=m;};
+ const store=m=>{getProfile();saveCyferki(m);match=m;};
  function home(){stopSpeech();root.classList.remove('cyferki-playing');document.body.dataset.view='training';
-  const games=loadCyferki(),profiles=loadProfiles();
+  const player=getProfile(),games=loadCyferki(),profiles=loadProfiles();
   root.innerHTML=`<section class="hero"><div><div class="eyebrow">WASZA GRA · JEDNA TARCZA</div><h1>Cyferki</h1><p>Wybieraj cele. Zamykaj pola. Zostaw wyzwanie następnemu graczowi.</p></div><button id="cy-exit">Wróć</button></section>
-  <form id="cy-setup" class="panel"><h2>Kto gra?</h2><div class="cy-names">${Array.from({length:6},(_,i)=>`<label>Gracz ${i+1}${i>1?' · opcjonalnie':''}<input name="player" maxlength="24" list="cy-profiles" ${i<2?'required':''} placeholder="${['Przemek','Mikołaj'][i]||'Imię'}"></label>`).join('')}</div><datalist id="cy-profiles">${profiles.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist>
+  <form id="cy-setup" class="panel"><h2>Kto gra?</h2><div class="cy-names">${Array.from({length:6},(_,i)=>`<label>Gracz ${i+1}${i>1?' · opcjonalnie':''}<input name="player" value="${esc(i===0&&player?player.name:'')}" ${i===0&&player?'readonly aria-label="Twój profil"':''} maxlength="24" list="cy-profiles" ${i<2?'required':''} placeholder="${['Przemek','Mikołaj'][i]||'Imię'}"></label>`).join('')}</div><datalist id="cy-profiles">${profiles.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist>
   <div class="training-form"><label>Punktacja<select id="cy-scoring" required><option value="">Wybierz zasady</option><option value="hits">Każde trafienie: S = 1, D = 2, T = 3</option><option value="closures">1 punkt za zamknięte pole</option></select></label><label>Po powrocie do tej samej cyfry<select id="cy-progress" required><option value="">Wybierz zasady</option><option value="player">Gracz pamięta swoje trafienia</option><option value="turn">Każda tura zaczyna od 0/3</option></select></label></div>
   <p>2–6 osób, po 3 lotki. Cel wybieracie dowolnie spośród 20–1 i 25. Zamknięte pole wypada dla wszystkich. Zamknięcie przed końcem tury: wybierasz kolejne pole dla siebie. Zamknięcie ostatnią lotką: wybierasz pole następnej osobie. Niezamknięty cel zostaje dla kolejnego gracza, który ma własny postęp.</p><p>BULL 25 = 1 trafienie, środek 50 = 2. Trzeba zebrać 3, jak na innych polach. Gra kończy się po zamknięciu wszystkich 21 pól; wygrywa najwyższy wynik. Przy punktacji za trafienia liczymy pełne S/D/T, również nadwyżkę przy zamknięciu.</p><button class="primary" type="submit">Zaczynamy Cyferki →</button></form>
   <section class="panel"><h2>Zapisane Cyferki</h2>${games.map(m=>{const s=cyferkiState(m);return `<div class="saved-match"><div><strong>${m.players.map(p=>esc(p.name)).join(' · ')}</strong><p>${s.closed.length}/21 zamkniętych pól · ${new Date(m.createdAt).toLocaleString('pl-PL')}</p></div><button data-cy-open="${m.id}">${s.finished?'Wynik':'Wznów'}</button></div>`;}).join('')||'<p>Tu wrócicie do rozpoczętej gry i zakończonych wyników.</p>'}</section>`;
   $('#cy-exit').onclick=onExit;
-  $('#cy-setup').onsubmit=e=>{e.preventDefault();safe(()=>{const names=[...root.querySelectorAll('[name=player]')].map(x=>x.value.trim()).filter(Boolean);if(names.length<2)throw new Error('Wpisz co najmniej dwóch graczy.');store(createCyferki(ensureProfiles(names),{scoring:$('#cy-scoring').value,progress:$('#cy-progress').value}));game();speakTraining(match.players[0].name+'. Wybierz pierwszą cyfrę.');});};
+  $('#cy-setup').onsubmit=e=>{e.preventDefault();safe(()=>{const names=[...root.querySelectorAll('[name=player]')].map(x=>x.value.trim()).filter(Boolean);if(names.length<2)throw new Error('Wpisz co najmniej dwóch graczy.');store(createCyferki(rosterProfiles(names,getProfile()),{scoring:$('#cy-scoring').value,progress:$('#cy-progress').value}));game();speakTraining(match.players[0].name+'. Wybierz pierwszą cyfrę.');});};
   root.querySelectorAll('[data-cy-open]').forEach(b=>b.onclick=()=>safe(()=>{match=games.find(m=>m.id===b.dataset.cyOpen);game();}));
  }
  function game(){const s=cyferkiState(match);updateActivity(match.id,!s.finished);root.classList.add('cyferki-playing');const active=match.players[s.current];

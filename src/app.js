@@ -1,3 +1,4 @@
+import {playerRoster,rosterProfiles} from './training-profile.js';
 import {remainingDarts} from './dart-progress.js';
 import {mountVirtualCoach} from './virtual-coach-ui.js';
 import {updateActivity,initUpdates} from './app-update.js';
@@ -86,7 +87,7 @@ function openPlayers(options={}){
     }else if(exercise==='mnoznik'||exercise==='mnoznik-sparing'){
       section='mnoznik';disposeTraining=mountMnoznik($('#app'),{onExit:openPlayers,toast,sparing:exercise==='mnoznik-sparing',names:[profile.name],initialProfile:profile});
     }else if(exercise==='cyferki'){
-      section='cyferki';disposeTraining=mountCyferki($('#app'),{onExit:openPlayers,toast});
+      section='cyferki';disposeTraining=mountCyferki($('#app'),{onExit:openPlayers,toast,initialProfile:profile});
     }else{
       section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialProfile:profile,initialName:profile.name,initialExercise:exercise});
     }
@@ -129,6 +130,7 @@ function renderSetup() {
   if(section!=='competition')return renderHome();
   $('#app').classList.remove('cricket-game','x01-game');
   document.body.dataset.view = "setup";
+  const setupPlayer=selectedProfile();if(setupPlayer)names=playerRoster(names,setupPlayer);
   const latest = allMatches().find(m => replay(m).winner === null);
   $('#app').innerHTML = `${latest ? `<div class="resume-banner"><div><strong>Wasz mecz czeka.</strong><p>${latest.mode === 'cricket' ? cricketName(latest) : latest.mode} · ${latest.names.length} graczy · runda ${replay(latest).round}</p></div><button class="primary" id="resume">Wznów mecz ↗</button></div>` : ''}
     <section class="hero"><div><div class="eyebrow">WSPÓLNA GRA</div><h1>Dobra ekipa.<br><em>Celny wieczór.</em></h1><p>Wybierzcie grę, ustawcie skład. Liczymy wyniki. Trener i komentarze pozostają wyłączone.</p></div><div class="hero-badge"><strong>3</strong><span>lotki w dłoni.<br>Cała gra przed Wami.</span></div></section>
@@ -140,6 +142,7 @@ function renderSetup() {
     $('#app').innerHTML=resume+x01Setup({mode,names,doubleOut,legsToWin,sound:soundEnabled()});
     $('#setup-sound').onclick=()=>{readNames();toggleSound();renderSoundButton();renderSetup();};
   }
+  if(setupPlayer){const own=$('[data-player-name="0"]');own.readOnly=true;own.setAttribute('aria-label','Twój profil');const remove=$('[data-remove="0"]');if(remove)remove.disabled=true;}
   $('#sparing-mnoznik').onclick=()=>{readNames();leaveTraining();section='mnoznik';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountMnoznik($('#app'),{sparing:true,names,onExit:()=>{section='competition';renderSetup();},toast});};
   document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{readNames();mode=b.dataset.mode;renderSetup();});
   document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{readNames();names.splice(Number(b.dataset.remove),1);renderSetup();});
@@ -166,7 +169,7 @@ function saveContest() {
 function beginContest(players, gameMode, out, scoring='standard', opening='standard', targetLegs=1, sessionType='competition', teams) {
   let valid=createMatch(players,gameMode,out,scoring,opening,targetLegs);
   if(teams)valid=configureCricketTeams(valid,teams);
-  const profiles=ensureProfiles(valid.names);
+  const profiles=rosterProfiles(valid.names,selectedProfile());
   contest={...(valid.teams?{teams:valid.teams}:{}),sessionType,profileIds:profiles.map(p=>p.id),names:valid.names,mode:valid.mode,doubleOut:valid.doubleOut,cricketScoring:valid.cricketScoring,cricketOpening:valid.cricketOpening,legsToWin:valid.legsToWin,throws:[]};
   match=null;saveContest();renderContest();announcePlayer(contest.names[0]);
 }
