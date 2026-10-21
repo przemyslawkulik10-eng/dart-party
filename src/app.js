@@ -69,7 +69,7 @@ function openModal(title, content) { $('#modal-content').innerHTML = `<div class
 function readNames() { names = [...document.querySelectorAll('[data-player-name]')].map(el => el.value); }
 function openSoloCoach(profile,initialMode='301'){
  leaveTraining();section='coach';match=null;contest=null;window.speechSynthesis?.cancel();
- disposeTraining=mountVirtualCoach($('#app'),{profile,initialMode,onExit:openPlayers,toast,onExercise:(_exercise,p)=>{leaveTraining();section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialName:p.name,initialExercise:_exercise});}});
+ disposeTraining=mountVirtualCoach($('#app'),{profile,initialMode,onExit:openPlayers,toast,onExercise:(_exercise,p)=>{leaveTraining();section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialProfile:p,initialName:p.name,initialExercise:_exercise});}});
 }
 function openPlayers(options={}){
   if(options instanceof Event)options={};
@@ -88,7 +88,7 @@ function openPlayers(options={}){
     }else if(exercise==='cyferki'){
       section='cyferki';disposeTraining=mountCyferki($('#app'),{onExit:openPlayers,toast});
     }else{
-      section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialName:profile.name,initialExercise:exercise});
+      section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialProfile:profile,initialName:profile.name,initialExercise:exercise});
     }
   }});
 }

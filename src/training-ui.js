@@ -1,3 +1,4 @@
+import {trainingProfile} from './training-profile.js';
 import {remainingDarts} from './dart-progress.js';
 import {trainingSummaryMarkup} from './training-summary.js';
 import {updateActivity} from './app-update.js';
@@ -12,27 +13,28 @@ import {dartLabel} from './engine.js';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const coachChoice=checked=>`<div class="training-coach"><label class="switch"><input id="training-coach" type="checkbox" ${checked?'checked':''}> Wirtualny trener — chcę wskazówki</label><p class="small">Bez zaznaczenia ćwiczysz samodzielnie. Możesz zmienić wybór w trakcie sesji.</p><p class="small muted">Podstawowe wskazówki są dostępne od razu. Analizę AI uruchamiasz osobnym przyciskiem; wymaga połączenia z usługą.</p></div>`;
 const clock=ms=>`${Math.floor(Math.ceil(ms/1000)/60)}:${String(Math.ceil(ms/1000)%60).padStart(2,'0')}`;
-export function mountTraining(root,{onExit,toast,names=[],initialName='',initialExercise=null}){
+export function mountTraining(root,{onExit,toast,names=[],initialName='',initialExercise=null,initialProfile=null}){
+ const getProfile=trainingProfile(initialProfile);
  let current=null,timer=null,disposed=false,coachRequest=null,coachReport=null,jdcCleanup=null;
  const $=s=>root.querySelector(s);
  function stop(){clearInterval(timer);timer=null;if(coachRequest){coachRequest.abort();coachRequest=null;}}
  function safely(fn){try{fn();}catch(e){toast(e.message);}}
- function store(next){saveTraining(next);current=next;}
+ function store(next){getProfile();saveTraining(next);current=next;}
  function home(){
   stopSpeech();jdcCleanup?.();jdcCleanup=null;stop();document.body.dataset.view='training';root.classList.remove('cricket-game','x01-game');
-  let sessions,profiles;
-  try{sessions=loadTrainings();profiles=loadProfiles();}catch(e){root.innerHTML='<section class="panel"><h1>Nie można odczytać treningów</h1><p>Istniejący zapis pozostaje zachowany.</p><button id="training-back">Wróć</button></section>';$('#training-back').onclick=onExit;toast(e.message);return;}
+  let sessions,profiles,player;
+  try{player=getProfile();sessions=loadTrainings().filter(s=>!player||s.profileId===player.id);profiles=loadProfiles();}catch(e){root.innerHTML='<section class="panel"><h1>Nie można odczytać treningów</h1><p>Istniejący zapis pozostaje zachowany.</p><button id="training-back">Wróć</button></section>';$('#training-back').onclick=onExit;toast(e.message);return;}
   const active=sessions.filter(s=>s.endedAt===null);
   root.innerHTML=`<section class="hero"><div><div class="eyebrow">TRENING · TWÓJ ROZWÓJ</div><h1>Przygotuj się do sparingu.</h1><p>Pełna próba JDC lub krótkie ćwiczenie celności. Wybierz swój trening.</p></div><button id="training-back">Wróć</button></section>
   <section class="panel jdc-entry"><div><div class="eyebrow">GŁÓWNY SPRAWDZIAN POSTĘPÓW</div><h2>JDC Challenge</h2><p>57 lotek · Shanghai, podwójne i BULL. Wynik, rekord i historia każdego etapu.</p></div><button id="open-jdc" class="primary">Trenuj JDC →</button></section>
   ${active.map(s=>`<div class="resume-banner"><div><strong>${esc(s.name)} · rozpoczęty trening</strong><p>${s.darts.length} lotek · ${clock(remainingTime(s))} do końca</p></div><button data-resume-training="${esc(s.id)}">Wznów trening</button></div>`).join('')}
   <section class="panel"><div class="eyebrow">TRENING JEDNEGO CELU</div><h2>Wybierz cel. Rzuć trzy lotki.</h2><p>Dla pól 15–20 trafienie pojedyncze, podwójne i potrójne liczy się jako jeden celny rzut. W treningu środka wybierasz 25 lub 50 — obie części BULL liczą się jako trafienie celu. Wpisuj każdą lotkę: trafienie celu albo „Poza celem”. Nie liczymy punktów.</p>
-  ${coachChoice(false)}<div class="training-form"><label>Twoje imię<input id="training-name" maxlength="24" list="training-names" placeholder="Np. Przemek"></label><datalist id="training-names">${[...new Set([...names,...profiles.map(p=>p.name),...sessions.map(s=>s.name)])].map(n=>`<option value="${esc(n)}"></option>`).join('')}</datalist><label>Cel treningu<select id="training-target">${TRAINING_TARGETS.map(n=>`<option value="${n}">${n===25?'BULL — 25 / 50':n}</option>`).join('')}</select></label><label>Czas sesji<select id="training-duration"><option value="5">5 minut</option><option value="10">10 minut</option><option value="15" selected>15 minut</option></select></label><button id="training-start" class="primary">Znam cel — zaczynam →</button></div><p class="small">Możesz zrobić pauzę lub skończyć wcześniej. Treningi zapisują się na tym urządzeniu, osobno od meczów.</p></section>
+  ${coachChoice(false)}<div class="training-form">${player?`<div><span>Trenujesz jako</span><strong>${esc(player.name)}</strong><p class="small">Wynik zapisze się na Twoim profilu.</p></div>`:'<label>Twoje imię<input id="training-name" maxlength="24" list="training-names" placeholder="Np. Przemek"></label>'}<datalist id="training-names">${[...new Set([...names,...profiles.map(p=>p.name),...sessions.map(s=>s.name)])].map(n=>`<option value="${esc(n)}"></option>`).join('')}</datalist><label>Cel treningu<select id="training-target">${TRAINING_TARGETS.map(n=>`<option value="${n}">${n===25?'BULL — 25 / 50':n}</option>`).join('')}</select></label><label>Czas sesji<select id="training-duration"><option value="5">5 minut</option><option value="10">10 minut</option><option value="15" selected>15 minut</option></select></label><button id="training-start" class="primary">Znam cel — zaczynam →</button></div><p class="small">Możesz zrobić pauzę lub skończyć wcześniej. Treningi zapisują się na tym urządzeniu, osobno od meczów.</p></section>
   <section class="panel training-history"><h2>Ostatnie treningi</h2>${sessions.filter(s=>s.endedAt!==null).slice(0,12).map(s=>{const st=trainingStats(s);return `<div class="saved-match"><div><strong>${esc(s.name)} · ${st.accuracy??'—'}${st.accuracy===null?'':'%'}</strong><p>${st.hits}/${st.throws} trafień · ${trainingTargetLabel(s)} · ${new Date(s.createdAt).toLocaleDateString('pl-PL')}</p></div><button data-result="${esc(s.id)}">Wynik</button></div>`;}).join('')||'<p>Pierwsza sesja będzie początkiem Twojej historii.</p>'}</section>`;
-  $('#training-name').value=initialName;
+  if($('#training-name'))$('#training-name').value=initialName;
   $('#training-back').onclick=onExit;
-  $('#open-jdc').onclick=()=>{stop();jdcCleanup=mountJdc(root,{onExit:home,toast,names,initialName});};
-  $('#training-start').onclick=()=>safely(()=>{const name=$('#training-name').value.trim();if(active.some(s=>s.name.toLocaleLowerCase('pl-PL')===name.toLocaleLowerCase('pl-PL')))throw new Error('Masz rozpoczęty trening. Wznów go z listy.');const [profile]=ensureProfiles([name]);store({...createTraining(profile.name,Number($('#training-duration').value),Date.now(),$('#training-coach').checked),profileId:profile.id,inputMode:'target-only',target:Number($('#training-target').value)>=25?25:Number($('#training-target').value)});coachReport=null;game();playSound('turn');speakTraining(sectorPrompt(current));});
+  $('#open-jdc').onclick=()=>{stop();jdcCleanup=mountJdc(root,{onExit:home,toast,names,initialName,initialProfile:player});};
+  $('#training-start').onclick=()=>safely(()=>{const profile=getProfile()||ensureProfiles([$('#training-name').value.trim()])[0];if(active.some(s=>s.profileId===profile.id))throw new Error('Masz rozpoczęty trening. Wznów go z listy.');store({...createTraining(profile.name,Number($('#training-duration').value),Date.now(),$('#training-coach').checked),profileId:profile.id,inputMode:'target-only',target:Number($('#training-target').value)>=25?25:Number($('#training-target').value)});coachReport=null;game();playSound('turn');speakTraining(sectorPrompt(current));});
   root.querySelectorAll('[data-resume-training]').forEach(b=>b.onclick=()=>safely(()=>{coachReport=null;current=sessions.find(s=>s.id===b.dataset.resumeTraining);if(!remainingTime(current)){store(finishTraining(current));result(true);}else {store(resumeTraining(current));game();playSound('turn');speakTraining(sectorPrompt(current));}}));
   root.querySelectorAll('[data-result]').forEach(b=>b.onclick=()=>{current=sessions.find(s=>s.id===b.dataset.result);result();});
  }
