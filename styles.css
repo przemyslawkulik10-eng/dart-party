@@ -440,3 +440,22 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
 .virtual-coach [data-warmup]{min-width:140px;}
 .virtual-coach .coach-conversation select{display:block;width:100%;min-height:56px;padding:12px;border:1px solid #55749b;border-radius:12px;background:#142b4e;color:#fff;font:inherit;}
 .virtual-coach .coach-conversation [data-reply],.virtual-coach [data-feeling-reply]{line-height:1.6;}
+
+/* Coach invitation and live partner, scoped to the coach only. */
+.coach-welcome{display:grid;grid-template-columns:180px minmax(0,1fr);align-items:center;gap:40px;background:radial-gradient(ellipse at top left,#214c75,#10243f 70%);border-color:#557fa3}
+.coach-welcome h2{font-size:clamp(30px,4vw,54px);line-height:1.15;margin:12px 0;overflow-wrap:anywhere}
+.coach-presence{display:grid;place-items:center;width:144px;height:144px;border:1px solid #6be2d6;border-radius:50%;font-size:100px;color:#7ce7dd;box-shadow:0 0 60px #61dacc20;background:#123b53}
+.virtual-coach .coach-play{display:flex;justify-content:space-between;align-items:center;width:min(100%,420px);min-height:84px;font-size:30px;margin-top:24px;padding:18px 28px}
+.coach-game-options{max-width:640px}.coach-other{display:flex;gap:12px;flex-wrap:wrap}.coach-other [data-free]{flex-basis:100%}
+.virtual-coach button[aria-pressed=true]{border-color:#85ece1;box-shadow:inset 0 0 0 2px #85ece1}
+.coach-scoreboard{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:0}.coach-scoreboard article{opacity:.7}.coach-scoreboard article.is-current{opacity:1;border-color:#85ece1;background:#163d5d}.coach-scoreboard strong{font-size:clamp(42px,6vw,76px)}
+.coach-says{border-left:3px solid #85ece1;padding:12px 20px;margin:20px 0;background:#102d53;border-radius:0 16px 16px 0}.coach-says p{margin:4px 0;font-size:clamp(18px,2vw,24px)}
+.coach-dart-slots{display:flex;gap:12px;margin:16px 0}.coach-dart-slots span{display:grid;place-items:center;border:1px solid #55749b;border-radius:12px;min-width:64px;min-height:56px;font-size:24px}.coach-dart-slots .has-dart{color:#85ece1;background:#153b56;animation:coach-dart-in .25s ease-out}
+.coach-bot-stage{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:24px 0}.coach-bot-stage .coach-presence{width:64px;height:64px;font-size:48px}
+@keyframes coach-dart-in{from{transform:translateY(6px);opacity:.3}to{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){.coach-dart-slots .has-dart{animation:none}}
+@media(max-width:740px){.coach-welcome{grid-template-columns:1fr;gap:20px}.coach-welcome>.coach-presence{width:72px;height:72px;font-size:54px}.coach-scoreboard h2{font-size:20px}.coach-scoreboard{gap:10px}.coach-scoreboard article{padding:12px}.coach-bot-stage{gap:12px}}
+
+.sector-buttons,.training-position-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:20px 0}.sector-buttons button{display:grid;gap:8px;min-height:96px}.sector-buttons button strong{font-size:32px}.sector-buttons [data-sector-miss]{grid-column:1/-1;background:#ffa43d;color:#15243b}.training-position-grid article{padding:20px;border:1px solid #55749b;border-radius:16px;background:#102d53}.training-position-grid strong{font-size:32px;color:#6ee4dc}.training-analysis{margin:24px 0}.training-analysis p{line-height:1.6}.latest-training{margin:20px 0}.remaining-darts .used{visibility:hidden}.sector-entry .dart-slot strong{overflow-wrap:anywhere}
+@media(max-width:740px){.sector-buttons{gap:8px}.sector-buttons button{padding:12px 6px}.sector-buttons button strong{font-size:24px}.training-position-grid{grid-template-columns:1fr}.sector-entry .dart-slot strong{font-size:20px}}
+.sector-buttons.bull-target{grid-template-columns:repeat(2,minmax(0,1fr))}

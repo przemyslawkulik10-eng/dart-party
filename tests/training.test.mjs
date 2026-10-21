@@ -40,7 +40,7 @@ test('coach is opt-in, can be disabled, and survives saved sessions',async()=>{
  let s=createTraining('A',5,1000);assert.equal(s.coachEnabled,false);assert.equal(trainingAdvice(s),'');
  const legacy={...s};delete legacy.coachEnabled;assert.equal(trainingAdvice(validateTraining(legacy)),'');
  s={...s,coachEnabled:true};for(const n of [20,1,20])s=recordTrainingDart(s,n,1,2000);
- assert.match(trainingAdvice(s),/2\/3/);
+ assert.match(trainingAdvice(s),/2 trafień z 3/);
  assert.equal(validateTraining(JSON.parse(JSON.stringify(s))).coachEnabled,true);
  assert.equal(trainingAdvice({...s,coachEnabled:false}),'');
  assert.throws(()=>validateTraining({...s,coachEnabled:'yes'}));

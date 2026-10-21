@@ -16,7 +16,7 @@ export function playerStats(data){
  const {profile,trainings,jdc,matches,cyferki=[]}=data;
  if(trainings.some(s=>s.profileId!==profile.id)||jdc.some(s=>s.profileId!==profile.id)||matches.some(m=>!m.profileIds?.includes(profile.id)))throw new Error('Dane należą do innego profilu.');
  const completedTraining=trainings.filter(s=>s.endedAt!==null),completedJdc=jdc.filter(s=>s.endedAt!==null).sort((a,b)=>a.createdAt-b.createdAt);
- const sector=completedTraining.reduce((a,s)=>{const st=trainingStats(s);return {throws:a.throws+st.throws,hits:a.hits+st.hits};},{throws:0,hits:0});
+ const sector=completedTraining.filter(s=>s.target===20).reduce((a,s)=>{const st=trainingStats(s);return {throws:a.throws+st.throws,hits:a.hits+st.hits};},{throws:0,hits:0});
  sector.accuracy=sector.throws?Math.round(100*sector.hits/sector.throws):null;
  const jdcResults=completedJdc.map(s=>({id:s.id,date:s.createdAt,...jdcStats(s)}));
  const targets=new Map(),actualHits=new Map();let trainingDarts=0;

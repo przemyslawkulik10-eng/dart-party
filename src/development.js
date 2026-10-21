@@ -11,7 +11,7 @@ export function development(data,now=Date.now()){
  const trainings=data.trainings.filter(s=>s.endedAt!==null&&s.endedAt<=now&&s.darts.length);
  const jdc=data.jdc.filter(s=>s.endedAt!==null&&s.endedAt<=now);
  const stats=playerStats({...data,trainings,jdc,matches:data.matches.filter(m=>m.updatedAt<=now)});
- const precision=trainings.filter(s=>s.darts.length>=30&&trainingStats(s).hits/s.darts.length>=0.5).length;
+ const precision=trainings.filter(s=>s.target===20&&s.darts.length>=30&&trainingStats(s).hits/s.darts.length>=0.5).length;
  const criteria=[
   {name:'Poznaj swoją grę',description:'Ukończ jedną próbę JDC.',value:jdc.length,goal:1},
   {name:'Powtarzalny cel',description:'W 3 sesjach po minimum 30 lotek traf co najmniej połowę w sektor 20.',value:precision,goal:3},
