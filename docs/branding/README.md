@@ -23,3 +23,11 @@ Ikony zastosowano na kartach strony głównej i biblioteki, w panelu gracza oraz
 Weryfikacja: 186/186 testów jednostkowych, build, diff check; Chrome na zbudowanej aplikacji z danymi syntetycznymi. Sprawdzono przypisanie/ładowanie obrazów i otwieranie właściwych trybów ze strony głównej, biblioteki oraz przełączanie w ustawieniach. Pięć rozmiarów: 1920×1080, 1180×820, 1024×768, 820×1180, 390×844; ustawienia dla 2 i 6 graczy z długim imieniem, panel pustego profilu. Brak poziomego overflow i błędów JS. Zrzuty: `evidence/x01-icons-20261022/`; obejrzano karty na 1180 i ustawienia na 390. Bez testu fizycznego dotyku.
 
 Zmiana lokalna po `b29ebbe`, bez push, publikacji i migracji.
+
+## Ikona Cricket — 22.10.2026
+
+Użytkownik wskazał grafikę z tabelą 20–15/BULL i napisem CRICKET jako ikonę tej gry. Oryginał: `dart-party-cricket-source.webp`; eksport PNG 512×512: `public/game-icons/cricket.png`. Bez retuszu, przycinania ani zmiany kolorów.
+
+Zastosowano na stronie głównej, w bibliotece, panelu gracza i wyborze trybu w ustawieniach Cricket. Wspólny moduł obrazów nazywa się teraz `src/game-artwork.js` (zastępuje `src/x01-icons.js`); zachowano grafiki 501/301/201. W mobilnych ustawieniach Cricket skorygowano minimalną szerokość paneli, kolumn kart i wielkość napisów, ponieważ widok wychodził poza ekran 390 px. Zasady i dane gry pozostają bez zmian.
+
+Weryfikacja: 186/186 testów, build i diff check; Chrome na pięciu rozmiarach ekranu. Sprawdzono obrazy wszystkich czterech gier, wejście do Cricket ze strony głównej i biblioteki, ustawienia Cricket, profil oraz regresję wyboru X01 i ustawienia 2/6 osób. Po poprawce brak poziomego overflow i błędów JS. Obejrzano karty na 1180 oraz ustawienia Cricket na 390. Zrzuty syntetyczne: `evidence/cricket-icon-20261022/`. Bez fizycznego testu dotyku, push, publikacji i migracji.

@@ -1,4 +1,4 @@
-import {hasX01Icon,x01Icon} from './x01-icons.js';
+import {hasGameArtwork,gameArtwork} from './game-artwork.js';
 import {trainingTargetLabel} from './training.js';
 import {taskState,COACH_LABELS} from './virtual-coach.js';
 import {achievementsMarkup} from './player-achievements.js';
@@ -7,7 +7,7 @@ import {validAvatarImage} from './profiles.js';
 import {mnoznikState} from './mnoznik.js';
 import {mnoznikSparingState} from './mnoznik-sparing.js';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export const gameIcon=(name)=>hasX01Icon(name)?x01Icon(name):`<img class="game-icon" src="/public/game-icons/${name}.svg" alt="" width="36" height="36">`;
+export const gameIcon=(name)=>hasGameArtwork(name)?gameArtwork(name):`<img class="game-icon" src="/public/game-icons/${name}.svg" alt="" width="36" height="36">`;
 export function multiplierResults(data){
  const id=data.profile.id;
  const solo=(data.mnoznik||[]).map(m=>{if(m.profileId!==id)throw new Error('Dane należą do innego profilu.');const s=mnoznikState(m);return {id:m.id,kind:'solo',date:m.events.at(-1)?.at??m.createdAt,complete:s.finished,score:s.total,darts:s.darts,won:false,draw:false};});
@@ -34,7 +34,7 @@ export function dashboardMarkup(data,st){
  const soloGames=`<section class="panel profile-solo"><div class="eyebrow">JESTEŚ SAM? GRAMY WE DWOJE.</div><h2>Zagraj z trenerem</h2><p>Ty rzucasz do tarczy, trener jest wirtualnym przeciwnikiem. Wystarczy jedna osoba.</p><div class="training-actions">${[201,301,501].map(n=>`<button class="primary" data-profile-game="coach-${n}">${n} · z trenerem →</button>`).join('')}</div><p class="small">Wybierasz tempo przeciwnika i zasady zakończenia. Możesz też tylko się rozgrzać albo zakończyć.</p></section>`;
  const games=[
  ['jdc','JDC Challenge','trophy',data.jdc.length,st.jdcBest,'pkt · rekord','Trening · 57 lotek'],
- ['cricket','Cricket','bullseye',st.competitions.filter(m=>m.mode==='cricket').length,null,'','Sparing · indywidualnie i drużyny'],
+ ['cricket','Cricket','cricket',st.competitions.filter(m=>m.mode==='cricket').length,null,'','Sparing · indywidualnie i drużyny'],
  ['501','501','501',st.competitions.filter(m=>m.mode==='501').length,null,'','Z ekipą · 2–6 osób'],
  ['301','301','301',st.competitions.filter(m=>m.mode==='301').length,null,'','Z ekipą · 2–6 osób'],
  ['201','201','201',st.competitions.filter(m=>m.mode==='201').length,null,'','Z ekipą · 2–6 osób'],
