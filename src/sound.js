@@ -2,7 +2,7 @@ let context;
 let enabled=true;
 try { enabled=localStorage.getItem('dart-party-sound')!=='off'; } catch {}
 export const soundEnabled=()=>enabled;
-export function toggleSound(){enabled=!enabled;try{localStorage.setItem('dart-party-sound',enabled?'on':'off');}catch{}if(enabled)playSound('turn');else {try{window.speechSynthesis?.cancel();}catch{}}return enabled;}
+export function toggleSound(){enabled=!enabled;try{localStorage.setItem('dart-party-sound',enabled?'on':'off');}catch{}if(enabled)playSound('turn');else {try{window.speechSynthesis?.cancel();}catch{}}try{window.dispatchEvent(new Event('dart-sound-change'));}catch{}return enabled;}
 export function playSound(kind){
   if(!enabled)return;
   try{

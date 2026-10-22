@@ -370,6 +370,7 @@ const soundButton=document.createElement('button');
 soundButton.id='sound-toggle';
 function renderSoundButton(){soundButton.disabled=false;soundButton.textContent=soundEnabled()?'Dźwięk: WŁ.':'Dźwięk: WYŁ.';soundButton.setAttribute('aria-pressed',String(soundEnabled()));soundButton.setAttribute('aria-label',soundEnabled()?'Wyłącz dźwięk':'Włącz dźwięk');}
 renderSoundButton();
+window.addEventListener('dart-sound-change',renderSoundButton);
 soundButton.onclick=()=>{toggleSound();renderSoundButton();if(document.body.dataset.view==='setup'&&mode!=='cricket'){readNames();renderSetup();}};
 document.querySelector('.top-actions').append(soundButton);
 
