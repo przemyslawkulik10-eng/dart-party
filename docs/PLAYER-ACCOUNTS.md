@@ -1,5 +1,19 @@
 # Konta graczy — stan roboczy
 
+## 2026-10-22 — trwałe logowanie, poprawka lokalna
+
+Gałąź `codex/persistent-login`, punkt wyjścia `eb5e784`. Ta sekcja zastępuje starszy opis przechowywania sesji poniżej. Pozostałe akapity są historyczne; nie wyznaczają obecnego stanu produkcji ani migracji.
+
+- Sesja konta gracza jest zapisywana w `localStorage`, z automatycznym odświeżaniem tokenów przez SDK. Zamknięcie karty/przeglądarki nie kończy logowania. „Wyloguj się” usuwa sesję tego urządzenia; nie usuwa wyników ani profili.
+- Obecna sesja z `sessionStorage` przechodzi jednorazowo do trwałej pamięci. Znacznik przejścia zapobiega przywróceniu wylogowanego konta przez starszą kartę. Istniejąca trwała sesja ma pierwszeństwo.
+- Wylogowanie lub zmiana konta w drugiej karcie przeładowuje widok, żeby nie pozostawić interfejsu poprzedniego gracza. Odświeżenie tokenu tego samego konta nie przeładowuje gry.
+- Weryfikacja: 186/186 testów jednostkowych, `npm run build`, `git diff --check`. `tests/persistent-login-browser.cjs` używa prawdziwego Chrome, tymczasowego profilu, lokalnego serwera i wyłącznie symulowanego Auth/API: logowanie formularzem, zamknięcie/otwarcie karty, pełny restart przeglądarki, odświeżenie wygasłego tokenu, wylogowanie obu kart, ponowny start bez logowania, zachowanie danych gościa i konta, przeniesienie starej sesji i blokada jej ponownego przywrócenia.
+- Bez publikacji, push, migracji, prawdziwego konta, konfiguracji Supabase i płatnych wywołań. Nie testowano fizycznego tabletu ani zainstalowanej PWA. Usunięcie danych przeglądarki lub unieważnienie sesji przez usługę nadal może wymagać logowania. Obecna weryfikacja użytkownika przy starcie wymaga dostępności Auth; ta poprawka nie dodaje logowania offline.
+
+Odtworzenie testu przeglądarkowego: `PLAYWRIGHT_MODULE=<ścieżka do playwright> node tests/persistent-login-browser.cjs`. Serwer wybiera wolny port i zamyka się po teście; profil zawiera wyłącznie dane syntetyczne i jest usuwany po teście.
+
+## Historia prac
+
 Gałąź: feature/player-accounts. Nie opublikowano na produkcji.
 
 Zaimplementowano ekran /?page=konto, logowanie, rejestrację, odzyskiwanie hasła, oddzielną pamięć konta, tworzenie profilu, eksport kopii oraz ręczną synchronizację z kontrolą rewizji. Konto wymaga synchronizacji po grze i przed zmianą urządzenia. Dane gościa pozostają w oryginalnej pamięci. Import historii gościa do konta nie został dodany.

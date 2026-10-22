@@ -1,25 +1,44 @@
 import {createClient} from './vendor/supabase.js';
 import {config} from './config.js';
 import {useAccount,accountOwner,workspace,replaceWorkspace,validateWorkspace} from './account-storage.js';
+import {SESSION_KEY,persistentSessionStorage} from './account-session.js';
 let client,user=null,recovery=false;
+let initialized=false,authAction=false,reloading=false;
+function sessionChanged(session){
+ if(initialized&&!authAction&&!reloading&&(session?.user?.id||null)!==(user?.id||null)){
+  reloading=true;
+  // Rebuild the whole UI for the new account; never reuse another player's view.
+  location.reload();
+ }
+}
 export const accountsEnabled=()=>!!config.supabaseUrl&&!!config.supabaseKey;
 export const accountUser=()=>user;
 export const recoveringPassword=()=>recovery;
 export function accountClient(){
  if(!accountsEnabled())throw Error('Logowanie wymaga skonfigurowanej chmury.');
- if(!client){client=createClient(config.supabaseUrl,config.supabaseKey,{auth:{storage:sessionStorage,storageKey:'dart-party-player-session',flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});client.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')recovery=true;});}
+ if(!client){
+  client=createClient(config.supabaseUrl,config.supabaseKey,{auth:{storage:persistentSessionStorage(),storageKey:SESSION_KEY,flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
+  client.auth.onAuthStateChange((event,session)=>{
+   if(event==='PASSWORD_RECOVERY')recovery=true;
+   if(event!=='INITIAL_SESSION')sessionChanged(session);
+  });
+  window.addEventListener('storage',event=>{
+   if(event.storageArea!==localStorage||(event.key!==SESSION_KEY&&event.key!==null))return;
+   try{sessionChanged(JSON.parse(localStorage.getItem(SESSION_KEY)||'null'));}catch{sessionChanged(null);}
+  });
+ }
  return client;
 }
 function fail(error){if(error){const messages={invalid_credentials:'Nieprawidłowy e-mail lub hasło.',email_not_confirmed:'Potwierdź adres e-mail przed logowaniem.',over_email_send_rate_limit:'Limit wysyłki e-maili. Spróbuj później.',email_address_not_authorized:'Wysyłka e-maili do zawodników nie jest jeszcze skonfigurowana.',weak_password:'Użyj mocniejszego hasła (minimum 10 znaków).'};throw Error(messages[error.code]||'Operacja konta nie powiodła się. Sprawdź połączenie i spróbuj ponownie.');}}
 export async function initAccounts(){
  if(!accountsEnabled())return;
- try{const c=accountClient(),{data,error}=await c.auth.getUser();if(error||!data.user||data.user.is_anonymous)return;user=data.user;useAccount(user.id);}catch{useAccount(null);}
+ try{const c=accountClient(),{data,error}=await c.auth.getUser();if(error||!data.user||data.user.is_anonymous)return;user=data.user;useAccount(user.id);}catch{useAccount(null);}finally{initialized=true;}
 }
-export async function login(email,password){const {data,error}=await accountClient().auth.signInWithPassword({email,password});fail(error);if(!data.user||data.user.is_anonymous)throw Error('Nieprawidłowe konto gracza.');user=data.user;useAccount(user.id);}
+export async function login(email,password){authAction=true;try{const {data,error}=await accountClient().auth.signInWithPassword({email,password});fail(error);if(!data.user||data.user.is_anonymous)throw Error('Nieprawidłowe konto gracza.');user=data.user;useAccount(user.id);}finally{authAction=false;}}
 export async function signup(email,password){if(password.length<10)throw Error('Hasło musi mieć co najmniej 10 znaków.');const {error}=await accountClient().auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/?page=konto'}});fail(error);}
 export async function resetPassword(email){const {error}=await accountClient().auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/?page=konto'});fail(error);}
 export async function changePassword(password){if(password.length<10)throw Error('Hasło musi mieć co najmniej 10 znaków.');const {error}=await accountClient().auth.updateUser({password});fail(error);recovery=false;}
-export async function logout(){const {error}=await accountClient().auth.signOut({scope:'local'});fail(error);user=null;useAccount(null);}
+export async function logout(){authAction=true;try{const {error}=await accountClient().auth.signOut({scope:'local'});fail(error);user=null;useAccount(null);}finally{authAction=false;}}
 const metaKey=id=>'dart-party-account-sync:'+id;
 const json=x=>JSON.stringify(x);
 function meta(id){try{return JSON.parse(localStorage.getItem(metaKey(id))||'null');}catch{return null;}}
