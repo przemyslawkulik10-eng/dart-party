@@ -469,3 +469,14 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
 
 /* Approved DART PARTY logo: keep the complete artwork and header footprint. */
 .brand-icon img{display:block;width:1em;height:1em;object-fit:contain;border-radius:18%}
+
+/* Player-supplied X01 artwork: preserve the full image and original colours. */
+.x01-icon{display:block;width:48px;height:48px;object-fit:contain;flex:none;border-radius:10px}
+.home-game-art.x01-art{background:#101420;filter:none;padding:10px;min-height:150px}
+.home-game-art.x01-art .x01-icon{width:100%;height:180px;max-width:100%;border-radius:0}
+.game-icon-box:has(.x01-icon){background:transparent}
+.game-icon-box .x01-icon{width:100%;height:auto}
+.x01-emblem.x01-emblem-art{border:0;border-radius:0;box-shadow:none}
+.x01-emblem-art .x01-icon{width:100%;height:100%}
+.x01-variants .x01-icon{width:80px;height:80px;max-width:100%;align-self:center}
+@media(max-width:740px){.home-game-art.x01-art .x01-icon{height:130px}.x01-variants .x01-icon{width:64px;height:64px}}

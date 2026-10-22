@@ -1,3 +1,4 @@
+import {hasX01Icon,x01Icon} from './x01-icons.js';
 import {trainingTargetLabel} from './training.js';
 import {taskState,COACH_LABELS} from './virtual-coach.js';
 import {achievementsMarkup} from './player-achievements.js';
@@ -6,7 +7,7 @@ import {validAvatarImage} from './profiles.js';
 import {mnoznikState} from './mnoznik.js';
 import {mnoznikSparingState} from './mnoznik-sparing.js';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export const gameIcon=(name)=>`<img class="game-icon" src="/public/game-icons/${name}.svg" alt="" width="36" height="36">`;
+export const gameIcon=(name)=>hasX01Icon(name)?x01Icon(name):`<img class="game-icon" src="/public/game-icons/${name}.svg" alt="" width="36" height="36">`;
 export function multiplierResults(data){
  const id=data.profile.id;
  const solo=(data.mnoznik||[]).map(m=>{if(m.profileId!==id)throw new Error('Dane należą do innego profilu.');const s=mnoznikState(m);return {id:m.id,kind:'solo',date:m.events.at(-1)?.at??m.createdAt,complete:s.finished,score:s.total,darts:s.darts,won:false,draw:false};});
@@ -34,9 +35,9 @@ export function dashboardMarkup(data,st){
  const games=[
  ['jdc','JDC Challenge','trophy',data.jdc.length,st.jdcBest,'pkt · rekord','Trening · 57 lotek'],
  ['cricket','Cricket','bullseye',st.competitions.filter(m=>m.mode==='cricket').length,null,'','Sparing · indywidualnie i drużyny'],
- ['501','501','crosshair',st.competitions.filter(m=>m.mode==='501').length,null,'','Z ekipą · 2–6 osób'],
- ['301','301','crosshair',st.competitions.filter(m=>m.mode==='301').length,null,'','Z ekipą · 2–6 osób'],
- ['201','201','crosshair',st.competitions.filter(m=>m.mode==='201').length,null,'','Z ekipą · 2–6 osób'],
+ ['501','501','501',st.competitions.filter(m=>m.mode==='501').length,null,'','Z ekipą · 2–6 osób'],
+ ['301','301','301',st.competitions.filter(m=>m.mode==='301').length,null,'','Z ekipą · 2–6 osób'],
+ ['201','201','201',st.competitions.filter(m=>m.mode==='201').length,null,'','Z ekipą · 2–6 osób'],
  ['cyferki','Cyferki','grid-3x3-gap',st.cyferkiResults.length,null,'','Sparing · zadeklarowane pola'],
  ['mnoznik','Mnożnik 7–12','x-diamond',s.multi.length,multiBest,'pkt · rekord','Solo i sparing'],
  ['sector-20','Trening celności','activity',data.trainings.length,null,'','15–20 · BULL 25/50']
