@@ -68,9 +68,19 @@ function update(next) {
 }
 function openModal(title, content) { $('#modal-content').innerHTML = `<div class="modal-heading"><h2>${title}</h2><button data-close aria-label="Zamknij">×</button></div>${content}`; if (!modal.open) modal.showModal(); $('[data-close]').onclick = () => modal.close(); }
 function readNames() { names = [...document.querySelectorAll('[data-player-name]')].map(el => el.value); }
+function openGameCoach(id,profile=selectedProfile()){
+ if(!profile){toast('Wybierz swój profil, aby zapisać wyniki gry z trenerem.');openPlayers();return;}
+ if(['501','301','201','cricket'].includes(id)){openSoloCoach(profile,id);return;}
+ leaveTraining();section='training';match=null;contest=null;saveContest();
+ $('#app').classList.remove('cricket-game','x01-game');
+ const options={onExit:openPlayers,toast,initialProfile:profile,coachMode:true};
+ if(id==='cyferki')disposeTraining=mountCyferki($('#app'),options);
+ else if(id==='mnoznik')disposeTraining=mountMnoznik($('#app'),options);
+ else disposeTraining=mountTraining($('#app'),{...options,names,initialExercise:id,initialCoach:true});
+}
 function openSoloCoach(profile,initialMode='301'){
  leaveTraining();section='coach';match=null;contest=null;window.speechSynthesis?.cancel();
- disposeTraining=mountVirtualCoach($('#app'),{profile,initialMode,onExit:openPlayers,toast,onExercise:(_exercise,p)=>{leaveTraining();section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialProfile:p,initialName:p.name,initialExercise:_exercise});}});
+ disposeTraining=mountVirtualCoach($('#app'),{profile,initialMode,onExit:openPlayers,toast,onExercise:(_exercise,p)=>{if(_exercise.startsWith('coach-'))return openGameCoach(_exercise.slice(6),p);leaveTraining();section='training';disposeTraining=mountTraining($('#app'),{onExit:openPlayers,toast,names,initialProfile:p,initialName:p.name,initialExercise:_exercise});}});
 }
 function openPlayers(options={}){
   if(options instanceof Event)options={};
@@ -78,7 +88,8 @@ function openPlayers(options={}){
   $('#app').classList.remove('cricket-game','x01-game');
   disposeTraining=mountPlayers($('#app'),{initialProfileId:options.pick?null:selectedProfile()?.id,initialTab:options.tab||'profile',onExit:renderHome,toast,onExercise:(exercise,profile)=>{
     leaveTraining();match=null;contest=null;saveContest();window.speechSynthesis?.cancel();
-    if(exercise==='virtual-coach'||['coach-201','coach-301','coach-501'].includes(exercise)){
+    if(exercise.startsWith('coach-')){openGameCoach(exercise.slice(6),profile);
+    }else if(exercise==='virtual-coach'){
       openSoloCoach(profile,exercise.startsWith('coach-')?exercise.slice(6):'301');
     }else if(['competition','501','301','201','cricket'].includes(exercise)){
       section='competition';if(exercise!=='competition')mode=exercise;
@@ -100,7 +111,7 @@ function renderLibrary(){
   leaveTraining();section='library';document.body.dataset.view='library';libraryUrl(true);
   $('#app').classList.remove('cricket-game','x01-game');
   const latest=allMatches().find(m=>replay(m).winner===null);
-  disposeTraining=mountGameLibrary($('#app'),{latest,toast,onHome:renderHome,onProfile:()=>{libraryUrl(false);openPlayers();},onResume:()=>{leaveTraining();libraryUrl(false);match=latest;contest=null;multiplier=1;renderGame();},onPlay:id=>{
+  disposeTraining=mountGameLibrary($('#app'),{latest,toast,onCoach:id=>{libraryUrl(false);openGameCoach(id);},onHome:renderHome,onProfile:()=>{libraryUrl(false);openPlayers();},onResume:()=>{leaveTraining();libraryUrl(false);match=latest;contest=null;multiplier=1;renderGame();},onPlay:id=>{
     leaveTraining();libraryUrl(false);match=null;contest=null;saveContest();window.speechSynthesis?.cancel();
     if(['501','301','201','cricket'].includes(id)){section='competition';mode=id;renderSetup();}
     else if(id==='cyferki'){section='cyferki';disposeTraining=mountCyferki($('#app'),{onExit:renderLibrary,toast});}
@@ -133,7 +144,7 @@ function renderSetup() {
   const setupPlayer=selectedProfile();if(setupPlayer)names=playerRoster(names,setupPlayer);
   const latest = allMatches().find(m => replay(m).winner === null);
   $('#app').innerHTML = `${latest ? `<div class="resume-banner"><div><strong>Wasz mecz czeka.</strong><p>${latest.mode === 'cricket' ? cricketName(latest) : latest.mode} · ${latest.names.length} graczy · runda ${replay(latest).round}</p></div><button class="primary" id="resume">Wznów mecz ↗</button></div>` : ''}
-    <section class="hero"><div><div class="eyebrow">WSPÓLNA GRA</div><h1>Dobra ekipa.<br><em>Celny wieczór.</em></h1><p>Wybierzcie grę, ustawcie skład. Liczymy wyniki. Trener i komentarze pozostają wyłączone.</p></div><div class="hero-badge"><strong>3</strong><span>lotki w dłoni.<br>Cała gra przed Wami.</span></div></section>
+    <section class="hero"><div><div class="eyebrow">WSPÓLNA GRA</div><h1>Dobra ekipa.<br><em>Celny wieczór.</em></h1><p>Wybierz grę ze znajomymi i ustaw skład albo naciśnij „Graj z trenerem”, jeśli grasz sam.</p></div><div class="hero-badge"><strong>3</strong><span>lotki w dłoni.<br>Cała gra przed Wami.</span></div></section>
     <div class="setup-grid"><section class="panel"><div class="section-heading"><div><div class="step">01 / WYBIERZ GRĘ</div><h2>W co dziś gramy?</h2></div><span class="pill">5 TRYBÓW</span></div><div class="mode-grid">${['501','301','201','cricket'].map(m => `<button class="mode ${mode===m?'selected':''}" data-mode="${m}" aria-pressed="${mode===m}"><strong>${m==='cricket'?'Cricket':m}</strong><span>${({501:'Klasyka dobrego wieczoru',301:'Krótsza droga do zera',201:'Szybka runda na rozgrzewkę',cricket:'Zamykaj pola. Dobijaj rywalom.'})[m]}</span></button>`).join('')}<button id="sparing-mnoznik" class="mode"><strong>Mnożnik 7–12</strong><span>2–6 graczy · trafienia × punkty · wybierz skład →</span></button></div><div class="leg-choice"><label for="legs-to-win">Format meczu</label><select id="legs-to-win">${[1,2,3].map(n=>`<option value="${n}" ${legsToWin===n?'selected':''}>${n===1?'Pojedynczy leg':`1 set · do ${n} wygranych legów`}</option>`).join('')}</select></div><div class="rules-choice">${mode!=='cricket'?`<label class="switch"><input id="double-out" type="checkbox" ${doubleOut?'checked':''}> Zakończenie Double Out</label><span class="small muted">${doubleOut?'Ostatnia lotka ×2':'Dowolne trafienie'}</span>`:`<div class="cricket-scoring" aria-label="Punktacja Cricket">${[['standard','+ Dla siebie'],['cutthroat','+ Przeciwnikom · najmniej wygrywa']].map(([v,label])=>`<button data-scoring="${v}" class="${cricketScoring===v?'primary':''}" aria-pressed="${cricketScoring===v}">${label}</button>`).join('')}</div>`}</div>${mode==='cricket'?`<label class="switch opening-choice"><input id="cricket-opening" type="checkbox" ${cricketOpening==='two-triples'?'checked':''}> Nasze zasady: 20 po zamknięciu dwóch pól (15–19)</label>`:''}${mode==='cricket'?`<label class="switch"><input id="cricket-teams" type="checkbox" ${teamMode?'checked':''}> Drużyny 2 + 2 + 1 (pięciu graczy)</label>`:''}<p class="mode-description">${mode==='cricket'?(cricketScoring==='cutthroat'?'Zamknij pola 15–20 i bull. Nadmiarowe trafienia dopisują punkty każdemu rywalowi z otwartym polem. Wygrywa najniższy wynik przy zamkniętych polach.':'Zamknij pola 15–20 i bull. Nadmiarowe trafienia dodają punkty Tobie, dopóki rywal ma pole otwarte. Wygrywa najwyższy wynik przy zamkniętych polach.'):doubleOut?'Zejdź dokładnie do zera, kończąc podwójnym polem lub bull 50. Przekroczenie wyniku albo pozostawienie 1 cofa całą kolejkę.':'Zejdź dokładnie do zera. Możesz skończyć dowolnym trafieniem. Przekroczenie wyniku cofa punkty całej kolejki.'}</p>${rulesPanel({mode,doubleOut,cricketScoring,cricketOpening,legsToWin})}</section>
     <section class="panel"><div class="section-heading"><div><div class="step">02 / WASZA EKIPA</div><h2>Kto staje przy tarczy?</h2></div><span class="pill">${names.length} / 6 GRACZY</span></div><div class="player-list">${names.map((name,i)=>`<div class="player-edit"><span class="avatar">0${i+1}</span><input data-player-name="${i}" aria-label="Imię gracza ${i+1}" maxlength="24" value="${esc(name)}"><button data-remove="${i}" aria-label="Usuń gracza ${i+1}" ${names.length<=2?'disabled':''}>−</button></div>`).join('')}</div><button id="add-player" class="add-player" ${names.length>=6?'disabled':''}>+ Dodaj gracza</button></section></div>
     <div class="setup-bottom"><p>Jeden tablet przy tarczy. Zapis po każdym rzucie.<br>Możecie wrócić do meczu w dowolnym momencie.</p><button id="start" class="primary start-button">Walka o start <span>↗</span></button></div>`;
@@ -142,6 +153,7 @@ function renderSetup() {
     $('#app').innerHTML=resume+x01Setup({mode,names,doubleOut,legsToWin,sound:soundEnabled()});
     $('#setup-sound').onclick=()=>{readNames();toggleSound();renderSoundButton();renderSetup();};
   }
+  const coachEntry=document.createElement('button');coachEntry.className='primary';coachEntry.textContent='Graj z trenerem · 1 osoba';coachEntry.onclick=()=>openGameCoach(mode);$('#app').prepend(coachEntry);
   if(setupPlayer){const own=$('[data-player-name="0"]');own.readOnly=true;own.setAttribute('aria-label','Twój profil');const remove=$('[data-remove="0"]');if(remove)remove.disabled=true;}
   $('#sparing-mnoznik').onclick=()=>{readNames();leaveTraining();section='mnoznik';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountMnoznik($('#app'),{sparing:true,names,onExit:()=>{section='competition';renderSetup();},toast});};
   document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{readNames();mode=b.dataset.mode;renderSetup();});

@@ -463,3 +463,6 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
 [data-install-app][hidden],.install-card[hidden]{display:none!important}
 
 @media (display-mode: standalone),(display-mode: minimal-ui),(display-mode: window-controls-overlay),(display-mode: fullscreen){[data-install-app],body[data-view=home] .install-card{display:none!important}}
+
+.coach-settings [hidden]{display:none!important}
+.library-card > [data-library-coach]{width:100%;margin-top:12px;min-height:56px}

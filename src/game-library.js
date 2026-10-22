@@ -14,7 +14,7 @@ const preferenceKey='dart-party-library-v1';
 const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const known=id=>LIBRARY_GAMES.some(g=>g.id===id);
 function readPreferences(){try{const data=JSON.parse(appStorage.getItem(preferenceKey)||'{}');return {favorites:Array.isArray(data.favorites)?[...new Set(data.favorites.filter(known))]:[],recent:Array.isArray(data.recent)?[...new Set(data.recent.filter(known))].slice(0,4):[]};}catch{return {favorites:[],recent:[]};}}
-export function mountGameLibrary(root,{onPlay,onHome,onProfile,onResume,latest,toast}){
+export function mountGameLibrary(root,{onPlay,onCoach,onHome,onProfile,onResume,latest,toast}){
  let preferences=readPreferences(),category='all',query='';
  const save=()=>{try{appStorage.setItem(preferenceKey,JSON.stringify(preferences));}catch{toast('Nie można zapisać ulubionych na tym urządzeniu.');}};
  function launch(id){if(!known(id))return;preferences.recent=[id,...preferences.recent.filter(x=>x!==id)].slice(0,4);save();onPlay(id);}
@@ -30,12 +30,13 @@ export function mountGameLibrary(root,{onPlay,onHome,onProfile,onResume,latest,t
   const normalized=query.trim().toLocaleLowerCase('pl');
   const games=LIBRARY_GAMES.filter(g=>(category==='all'||category==='favorites'&&preferences.favorites.includes(g.id)||g.group===category||g.group==='both'&&['party','solo'].includes(category))&&`${g.title} ${g.description} ${g.tag}`.toLocaleLowerCase('pl').includes(normalized));
   $('#library-count').textContent=`Wyświetlono: ${games.length} z ${LIBRARY_GAMES.length}`;
-  $('#library-results').innerHTML=games.length?games.map(g=>{const favorite=preferences.favorites.includes(g.id),index=LIBRARY_GAMES.indexOf(g);return `<article class="library-card home-game-${index%6}"><button class="library-favorite" data-favorite="${g.id}" aria-pressed="${favorite}" aria-label="${favorite?'Usuń z ulubionych':'Dodaj do ulubionych'}: ${g.title}">${favorite?'★':'☆'}</button><button class="home-game" data-play="${g.id}"><span class="home-game-art" aria-hidden="true">${gameIcon(g.icon)}<b>${g.art}</b></span><span class="home-game-info"><small>${g.players}</small><strong>${g.title}</strong><span>${g.description}</span><b class="home-game-go">Wybierz grę ↗</b></span></button></article>`;}).join(''):'<div class="library-empty"><h3>Nie znaleziono gry</h3><p>Zmień hasło lub pokaż całą bibliotekę.</p><button id="library-clear">Wyczyść filtry</button></div>';
+  $('#library-results').innerHTML=games.length?games.map(g=>{const favorite=preferences.favorites.includes(g.id),index=LIBRARY_GAMES.indexOf(g);return `<article class="library-card home-game-${index%6}"><button class="library-favorite" data-favorite="${g.id}" aria-pressed="${favorite}" aria-label="${favorite?'Usuń z ulubionych':'Dodaj do ulubionych'}: ${g.title}">${favorite?'★':'☆'}</button><button class="home-game" data-play="${g.id}"><span class="home-game-art" aria-hidden="true">${gameIcon(g.icon)}<b>${g.art}</b></span><span class="home-game-info"><small>${g.players}</small><strong>${g.title}</strong><span>${g.description}</span><b class="home-game-go">Wybierz grę ↗</b></span></button>${onCoach?`<button class="primary" data-library-coach="${g.id}">${['jdc','sector-20'].includes(g.id)?'Ćwicz':'Graj'} z trenerem · 1 osoba</button>`:''}</article>`;}).join(''):'<div class="library-empty"><h3>Nie znaleziono gry</h3><p>Zmień hasło lub pokaż całą bibliotekę.</p><button id="library-clear">Wyczyść filtry</button></div>';
   root.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.category===category)));
  }
  $('#library-search').oninput=e=>{query=e.target.value;renderResults();};
  const click=e=>{
   const button=e.target.closest('button');if(!button||!root.contains(button))return;
+  if(button.dataset.libraryCoach){onCoach?.(button.dataset.libraryCoach);return;}
   if(button.dataset.play){launch(button.dataset.play);return;}
   if(button.dataset.favorite){const id=button.dataset.favorite;preferences.favorites=preferences.favorites.includes(id)?preferences.favorites.filter(x=>x!==id):[...preferences.favorites,id];save();shortcuts();renderResults();root.querySelector(`[data-favorite="${id}"]`)?.focus();return;}
   if(button.dataset.category){category=button.dataset.category;renderResults();return;}
