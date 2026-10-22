@@ -8,7 +8,7 @@ function setup(standalone=false){
  const dialog=element(),status=element(),native=element(),trigger=element(),close=element(),guides={ios:element(),android:element(),desktop:element()},events={};
  dialog.showModal=()=>dialog.open=true;dialog.close=()=>dialog.open=false;dialog.querySelector=s=>guides[s.match(/"(.*?)"/)[1]];
  const nodes={'#install-dialog':dialog,'#install-status':status,'#install-native':native,'#install-close':close};
- vm.runInNewContext(source,{document:{querySelector:s=>nodes[s],querySelectorAll:()=>[trigger]},window:{matchMedia:()=>({matches:standalone}),addEventListener:(name,fn)=>events[name]=fn},navigator:{userAgent:'test',platform:'test',maxTouchPoints:0}});
+ vm.runInNewContext(source,{document:{querySelector:s=>nodes[s],querySelectorAll:()=>[trigger]},window:{matchMedia:()=>({matches:standalone,addEventListener(){}}),addEventListener:(name,fn)=>events[name]=fn},navigator:{userAgent:'test',platform:'test',maxTouchPoints:0}});
  return {dialog,status,native,trigger,close,events,guides};
 }
 test('unsupported browser opens instructions and QR without a fake installation action',()=>{
@@ -20,6 +20,6 @@ test('native prompt is one use, cancellation keeps manual instructions available
  assert.equal(prevented,true);assert.equal(t.native.hidden,false);await t.native.handlers.click();
  assert.equal(prompts,1);assert.equal(t.native.hidden,true);assert.match(t.status.textContent,/anulowana/);await t.native.handlers.click();assert.equal(prompts,1);
 });
-test('installed app keeps QR entry and never offers reinstall in standalone',()=>{
- const t=setup(true);t.trigger.handlers.click();assert.match(t.trigger.textContent,/zainstalowana/);assert.match(t.status.textContent,/innym urządzeniu/);assert.equal(t.native.hidden,true);
+test('installed app hides installation entry in standalone',()=>{
+ const t=setup(true);assert.equal(t.trigger.hidden,true);assert.match(t.status.textContent,/innym urządzeniu/);assert.equal(t.native.hidden,true);
 });
