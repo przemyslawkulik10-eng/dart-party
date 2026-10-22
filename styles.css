@@ -459,3 +459,5 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
 .sector-buttons,.training-position-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:20px 0}.sector-buttons button{display:grid;gap:8px;min-height:96px}.sector-buttons button strong{font-size:32px}.sector-buttons [data-sector-miss]{grid-column:1/-1;background:#ffa43d;color:#15243b}.training-position-grid article{padding:20px;border:1px solid #55749b;border-radius:16px;background:#102d53}.training-position-grid strong{font-size:32px;color:#6ee4dc}.training-analysis{margin:24px 0}.training-analysis p{line-height:1.6}.latest-training{margin:20px 0}.remaining-darts .used{visibility:hidden}.sector-entry .dart-slot strong{overflow-wrap:anywhere}
 @media(max-width:740px){.sector-buttons{gap:8px}.sector-buttons button{padding:12px 6px}.sector-buttons button strong{font-size:24px}.training-position-grid{grid-template-columns:1fr}.sector-entry .dart-slot strong{font-size:20px}}
 .sector-buttons.bull-target{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+[data-install-app][hidden],.install-card[hidden]{display:none!important}
