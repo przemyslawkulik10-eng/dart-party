@@ -1,0 +1,22 @@
+import {trainingStats,trainingTargetLabel} from './training.js';
+import {trainingSummary,trainingSummaryMarkup} from './training-summary.js';
+import {replay} from './engine.js';
+import {taskState,COACH_LABELS} from './virtual-coach.js';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function completedResults(data,stats){
+ const rows=[];
+ for(const s of data.trainings||[])if(s.endedAt!==null){const t=trainingStats(s);rows.push({id:s.id,date:s.endedAt,label:trainingTargetLabel(s),result:`${t.hits}/${t.throws} trafień · ${t.accuracy??'—'}%`,comment:trainingSummary(s).observation});}
+ for(const s of stats.jdcResults){const raw=data.jdc.find(x=>x.id===s.id);rows.push({id:s.id,date:raw.endedAt,label:'JDC',result:`${s.score} pkt · 57 lotek`,comment:'To wynik pełnej próby. Kolejne JDC pozwoli porównać ten sam zestaw celów. Możesz też wybrać luźny mecz.'});}
+ for(const s of stats.competitions)if(s.complete)rows.push({id:s.id,date:s.date,label:s.mode==='cricket'?'Cricket':s.mode,result:`${s.won?'Wygrana':'Mecz zakończony'} · ${s.legWins} wygranych legów · ${s.darts} Twoich lotek`,comment:'Mamy zapis Twojego meczu. Nie znam celu każdego rzutu, więc z samego wyniku nie oceniam celności. Jeśli masz ochotę, możemy sprawdzić wybrany sektor w krótkim treningu.'});
+ for(const s of stats.cyferkiResults)if(s.complete)rows.push({id:s.id,date:s.date,label:'Cyferki',result:`${s.score} pkt · ${s.hits}/${s.darts} trafień · ${s.accuracy??'—'}%`,comment:`Zamknięte pola: ${s.closures}. Celność dotyczy zadeklarowanych celów. Możesz powtórzyć grę na tych samych zasadach i porównać wynik.`});
+ for(const s of stats.mnoznikResults)if(s.complete)rows.push({id:s.id,date:s.date,label:'Mnożnik · '+s.kind,result:`${s.score} pkt · ${s.darts} lotek`,comment:'To wynik całej próby: trafienia budowały mnożnik, a kolejne lotki dawały punkty. Możesz powtórzyć próbę; jeden wynik nie wystarcza do oceny postępu.'});
+ for(const m of data.profile.coachMatches||[]){const s=replay(m);if(s.winner===null)continue;const p=s.players[0],avg=p.darts?Math.round(p.scored/p.darts*30)/10:null;rows.push({id:m.id,date:m.updatedAt,label:`${m.mode} z trenerem`,result:`${s.winner===0?'Wygrana':'Wygrał trener'} · ${p.darts} Twoich lotek${avg===null?'':` · średnia ${avg}/3 lotki`}`,comment:p.darts?`W tym legu zdobywałeś średnio ${avg} punktów na trzy lotki. To punkt odniesienia, nie ocena Twojej techniki. Masz ochotę na rewanż, ćwiczenie albo kończymy?`:'Leg zakończony bez Twoich zapisanych rzutów. Nie wyliczam średniej.'});}
+ for(const plan of data.profile.virtualCoach?.plans||[])for(const t of plan.tasks){const s=taskState(t);if(s.complete)rows.push({id:t.id,date:s.completedAt,label:COACH_LABELS[t.kind],result:`${s.value} · ${s.achieved?'cel osiągnięty':'próba ukończona'} · ${s.darts} lotek`,comment:'Próba jest zapisana. Porównuj ją z tym samym ćwiczeniem; możesz je powtórzyć, przejść do meczu albo skończyć.'});}
+ return rows.sort((a,b)=>new Date(b.date)-new Date(a.date));
+}
+export function latestResultMarkup(data,stats){
+ const rows=completedResults(data,stats),r=rows[0];
+ const training=r&&(data.trainings||[]).find(s=>s.id===r.id);
+ if(!r)return '<section class="panel latest-training"><h2>Ostatni wynik i trener</h2><p>Po zakończeniu gry zobaczysz tutaj swój wynik i krótkie podsumowanie. Nie musisz szukać ich w historii.</p></section>';
+ return `<section class="panel latest-training" aria-label="Ostatni wynik i trener"><div class="eyebrow">OSTATNI WYNIK · ${esc(new Date(r.date).toLocaleString('pl-PL'))}</div><h2>${esc(r.label)} · ${esc(r.result)}</h2><h3>Trener · podsumowanie zapisu</h3><p>${esc(r.comment)}</p>${training?`<details><summary>Lotki 1, 2, 3 — szczegóły treningu</summary>${trainingSummaryMarkup(training)}</details>`:''}<div class="training-actions"><button data-profile-game="coach-201">Luźne 201 z trenerem →</button><button data-profile-game="sector-20">Wybierz ćwiczenie</button></div>${rows.length>1?`<details><summary>Poprzednie wyniki i komentarze (${rows.length-1})</summary>${rows.slice(1,11).map(x=>`<article><h3>${esc(x.label)} · ${esc(x.result)}</h3><p>${esc(new Date(x.date).toLocaleString('pl-PL'))}</p><p>${esc(x.comment)}</p></article>`).join('')}</details>`:''}</section>`;
+}
