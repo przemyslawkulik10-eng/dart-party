@@ -1,3 +1,5 @@
+import {coachAudioCue} from './coach-match-audio.js';
+import {playSound,speakTraining,stopSpeech,soundEnabled} from './sound.js';
 import {remainingDarts} from './dart-progress.js';
 import {FEELING,afterLeg} from './coach-conversation.js';
 import {appStorage,accountOwner} from './account-storage.js';
@@ -9,6 +11,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 export function readCoachMatches(id){const rows=loadProfiles().find(p=>p.id===id)?.coachMatches??[];if(!Array.isArray(rows))throw Error('Nie można odczytać meczów trenera.');rows.forEach(validateMatch);return rows;}
 export function mountCoachMatch(root,{profile,mode,doubleOut,level,resume,conversation,onBack,onFinish=onBack,onExercises,toast}){
  const owner=accountOwner();let rows=readCoachMatches(profile.id),m=resume||{...newCoachMatch(profile.name,mode,doubleOut,level),coachSession:{id:crypto.randomUUID(),leg:1,phase:'warmup',conversation:conversation??null}},mult=1;
+ let audioState=null,audioId=null;
  let timer=null,disposed=false,feeling=m.coachFeedback?.feeling??'unknown';
  const $=s=>root.querySelector(s),safe=f=>{try{f();}catch(e){cancel();toast(e.message);}};
  const cancel=()=>{clearTimeout(timer);timer=null;};
@@ -35,21 +38,25 @@ export function mountCoachMatch(root,{profile,mode,doubleOut,level,resume,conver
  }
  function render(){
   const s=replay(m),done=s.winner!==null,bot=s.current===1,insight=matchInsight(rows);
-  root.innerHTML=`<div class="virtual-coach coach-match"><header class="coach-heading"><div><p class="eyebrow">${m.coachSession?.phase==='play'?'GRAMY DALEJ':'GRAMY NA LUZIE'} · ${m.mode}</p><h1>${done?'Dzięki za grę!':bot?'Teraz rzucam ja.':'Twoja tarcza, '+esc(profile.name)+'!'}</h1><p>${m.doubleOut?'Kończymy na podwójnym':'Kończymy dowolnym polem'} · jeden leg</p></div><button data-back>${done?'Na dziś wystarczy':'Zapisz i zrób przerwę'}</button></header><section class="panel"><div class="coach-metrics coach-scoreboard">${s.players.map((p,i)=>`<article class="${!done&&s.current===i?'is-current':''}"><h2>${esc(p.name)}</h2><strong>${p.score}</strong><p>${done&&s.winner===i?'Wygrany leg':!done&&s.current===i?'Przy tarczy':p.darts+' lotek'}</p></article>`).join('')}</div><div class="coach-says" role="status" aria-live="polite"><span class="eyebrow">TRENER</span><p>${reaction(s)}</p></div>
+  if(audioId!==m.id){audioState=null;audioId=m.id;}
+  const cue=coachAudioCue(s,audioState);audioState=s;
+  if(cue){if(cue.sound)playSound(cue.sound);speakTraining(cue.text,cue.sound==='win');}
+  root.innerHTML=`<div class="virtual-coach coach-match"><header class="coach-heading"><div><p class="eyebrow">${m.coachSession?.phase==='play'?'GRAMY DALEJ':'GRAMY NA LUZIE'} · ${m.mode}</p><h1>${done?'Dzięki za grę!':bot?'Teraz rzucam ja.':'Twoja tarcza, '+esc(profile.name)+'!'}</h1><p>${m.doubleOut?'Kończymy na podwójnym':'Kończymy dowolnym polem'} · jeden leg</p></div><button data-back>${done?'Na dziś wystarczy':'Zapisz i zrób przerwę'}</button></header><section class="panel"><div class="coach-metrics coach-scoreboard">${s.players.map((p,i)=>`<article class="${!done&&s.current===i?'is-current':''}"><h2>${esc(p.name)}</h2><strong>${p.score}</strong><p>${done&&s.winner===i?'Wygrany leg':!done&&s.current===i?'Przy tarczy':p.darts+' lotek'}</p></article>`).join('')}</div><div class="coach-says" role="status" aria-live="polite"><span class="eyebrow">TRENER</span><p>${reaction(s)}</p><button data-repeat-audio>🔊 Powtórz komunikat</button></div>
   ${done?'':`${remainingDarts(s)}<div class="coach-dart-slots" aria-label="Lotki w tej kolejce">${Array.from({length:3},(_,i)=>`<span class="${s.turn[i]?'has-dart':''}">${s.turn[i]?dartLabel(s.turn[i]):'·'}</span>`).join('')}</div>`}
   ${done?`<section class="coach-conversation"><h2>${(m.coachSession?.leg??1)===1?'Pierwszy leg za nami. Jak Ci się rzuca?':'Jak Ci się teraz rzuca?'}</h2><div class="training-actions">${Object.entries(FEELING).map(([v,label])=>`<button data-feeling="${v}" aria-pressed="${v===feeling}">${label}</button>`).join('')}</div><p data-feeling-reply role="status">${feelingReply(feeling)}</p><div class="training-actions"><button data-next="warmup">Jeszcze rozgrzewka · ${m.mode}</button><button data-next="play">Gramy dalej · ${m.mode}</button><button data-next="exercises">Mam ochotę na ćwiczenia</button><button data-next="finish">Na dziś wystarczy</button></div><p class="small">${insight.darts} Twoich lotek w ostatnich 30 dniach${insight.average!==null?' · średnia '+insight.average+' pkt / 3 lotki':''}. Poznaję Twoje punktowanie. To jeszcze nie diagnoza formy.</p></section>`:bot||s.ready?`<div class="coach-bot-stage"><span class="coach-presence" aria-hidden="true">◎</span><p>${bot?'Rzucam…':'Podchodzę do tarczy…'}</p><button data-skip-tempo>Pokaż następną lotkę od razu</button></div>`:`<div class="multiplier">${[1,2,3].map(v=>`<button data-mult="${v}" aria-pressed="${v===mult}" class="${v===mult?'selected':''}">×${v}</button>`).join('')}</div><div class="number-grid">${Array.from({length:20},(_,i)=>`<button data-hit="${i+1}">${i+1}</button>`).join('')}</div><div class="special-keys"><button data-special="25">BULL 25</button><button data-special="50">BULL 50</button><button data-special="0">PUDŁO / 0</button></div>`}
   <button data-undo ${m.events.some(e=>e.type==='dart')?'':'disabled'}>↶ Cofnij mój rzut</button><details><summary>Rzuty trenera</summary><p>${s.visits.filter(v=>v.player===1).map(v=>esc(v.darts.map(dartLabel).join(' · '))+' — '+v.points+' pkt'+(v.bust?' · FURA':'')).join('<br>')||'Brak zakończonych kolejek.'}</p></details></section></div>`;
-  const leave=fn=>{cancel();fn();};
+  const leave=fn=>{cancel();stopSpeech();fn();};
+  $('[data-repeat-audio]').onclick=()=>{if(!soundEnabled()){toast('Włącz dźwięk przyciskiem u góry ekranu.');return;}playSound('turn');speakTraining(done?reaction(s):s.current===0&&!s.ready?`${profile.name}, Twoja kolej. Do końca ${s.players[0].score}.`:reaction(s));};
   const decide=choice=>safe(()=>{save(afterLeg(m,feeling,choice));if(choice==='finish')return leave(onFinish);if(choice==='exercises')return leave(onExercises);const session=m.coachSession||{id:crypto.randomUUID(),leg:1,conversation:null};save({...newCoachMatch(profile.name,m.mode,m.doubleOut,m.coachLevel),coachSession:{...session,leg:session.leg+1,phase:choice==='warmup'?'warmup':'play'}});feeling='unknown';render();});
   $('[data-back]').onclick=done?()=>decide('finish'):()=>leave(onBack);
   root.querySelectorAll('[data-mult]').forEach(b=>b.onclick=()=>{mult=+b.dataset.mult;render();});
-  const hit=(n,x)=>safe(()=>{save(recordDart(m,n,x));mult=1;render();});
+  const hit=(n,x)=>safe(()=>{save(recordDart(m,n,x));playSound('hit');mult=1;render();});
   root.querySelectorAll('[data-hit]').forEach(b=>b.onclick=()=>hit(+b.dataset.hit,mult));root.querySelectorAll('[data-special]').forEach(b=>b.onclick=()=>{const n=+b.dataset.special;hit(n===50?25:n,n===50?2:1);});
   if($('[data-skip-tempo]'))$('[data-skip-tempo]').onclick=()=>safe(()=>{cancel();let next=m;if(s.ready)next=nextPlayer(next);if(replay(next).current===1&&!replay(next).ready)next=coachThrow(next);save(next);render();});
-  $('[data-undo]').onclick=()=>safe(()=>{cancel();save({...undoHuman(m),coachFeedback:undefined});render();});
+  $('[data-undo]').onclick=()=>safe(()=>{cancel();stopSpeech();save({...undoHuman(m),coachFeedback:undefined});audioState=replay(m);render();speakTraining('Cofnięto Twój rzut.');});
   if(done){root.querySelectorAll('[data-next]').forEach(b=>b.onclick=()=>decide(b.dataset.next));root.querySelectorAll('[data-feeling]').forEach(b=>b.onclick=()=>{feeling=b.dataset.feeling;root.querySelectorAll('[data-feeling]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('[data-feeling-reply]').textContent=feelingReply(feeling);});}
   schedule();
  }
- safe(()=>{if(!resume)save(m);render();});return ()=>{disposed=true;cancel();};
+ safe(()=>{if(!resume)save(m);render();});return ()=>{disposed=true;cancel();stopSpeech();};
 }
 function feelingReply(feeling){return {warming:'Możemy dalej grać na luzie. Nie ma pośpiechu.',ready:'To co, kolejny leg? Jeśli wolisz, możesz wybrać ćwiczenie.',tired:'Możemy na dziś skończyć. Wynik już jest zapisany.',unknown:'Nie musisz oceniać swojej formy. Na co masz teraz ochotę?'}[feeling];}
