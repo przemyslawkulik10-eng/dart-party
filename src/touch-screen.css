@@ -240,3 +240,129 @@ body:has(.cricket-touch-duel) .topbar{padding:8px 20px!important}
 body[data-view=game] #app.cricket-game .cricket-touch-duel .cricket-board{margin:0}
 body[data-view=game] #app.cricket-game .cricket-touch-duel .cricket-board table{margin:0}
 body[data-view=game]:has(.cricket-touch-duel) #app.cricket-game{gap:4px}
+
+/* Phone layouts: keep each game's scoring controls readable without scaling the page. */
+@media(max-width:740px){
+ body:is([data-view=game],[data-view=training]){padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+ body:is([data-view=game],[data-view=training])::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:20;pointer-events:none}
+ body:is([data-view=game],[data-view=training]) main{padding:12px 10px 18px}
+ body:is([data-view=game],[data-view=training]) #app :is(button,summary){min-height:44px;overflow-wrap:anywhere}
+ body:is([data-view=game],[data-view=training]) #app :is(h1,h2,h3,strong){overflow-wrap:anywhere}
+ body:is([data-view=game],[data-view=training]) #app :is(.hero,.game-title,.cy-heading){gap:10px;margin:10px 0;flex-wrap:wrap}
+ body:is([data-view=game],[data-view=training]) #app :is(.hero,.cy-heading) h1{font-size:28px;letter-spacing:-.5px;line-height:1.15}
+ body:is([data-view=game],[data-view=training]) #app .panel{padding:12px;border-radius:14px;min-width:0}
+ body:is([data-view=game],[data-view=training]) #app .keypad-head{gap:6px;margin-bottom:8px}
+ body:is([data-view=game],[data-view=training]) #app .keypad-head h2{font-size:18px}
+ body:is([data-view=game],[data-view=training]) #app .multiplier button{min-height:44px;padding:8px 12px;font-size:18px}
+ body:is([data-view=game],[data-view=training]) #app .number-grid{gap:6px}
+ body:is([data-view=game],[data-view=training]) #app .number-grid button{min-height:48px;padding:6px 2px;font-size:22px}
+ body:is([data-view=game],[data-view=training]) #app .special-keys{gap:6px}
+ body:is([data-view=game],[data-view=training]) #app .special-keys button{min-height:44px;padding:6px 2px;font-size:12px}
+ body:is([data-view=game],[data-view=training]) #app .remaining-darts{height:26px;min-width:0;gap:6px;margin:6px 0}
+ body:is([data-view=game],[data-view=training]) #app .remaining-dart{height:26px;width:48px;flex:0 1 48px;min-width:0}
+ body:is([data-view=game],[data-view=training]) #app .darts{gap:6px;margin:6px 0}
+ body:is([data-view=game],[data-view=training]) #app .dart-slot{padding:7px 2px;min-width:0}
+ body:is([data-view=game],[data-view=training]) #app .dart-slot strong{font-size:20px}
+ body:is([data-view=game],[data-view=training]) #app .dart-slot small{font-size:10px;margin-bottom:4px}
+ body:is([data-view=game],[data-view=training]) #app .training-actions{gap:6px;margin-top:10px}
+ body:is([data-view=game],[data-view=training]) #app .training-actions button{padding:8px;font-size:13px}
+ body[data-view=game] #app.x01-game .scoreboard{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:8px}
+ body[data-view=game] #app.x01-game .player-card{padding:8px}
+ body[data-view=game] #app.x01-game .player-name{font-size:14px;white-space:normal;overflow-wrap:anywhere}
+ body[data-view=game] #app.x01-game .player-score{font-size:32px;line-height:1.1}
+ body[data-view=game] #app.x01-game .current-panel{min-height:0;padding:10px}
+ body[data-view=game] #app.x01-game .turn-header{margin:0;gap:8px}
+ body[data-view=game] #app.x01-game .turn-header h2{font-size:20px}
+ body[data-view=game] #app.x01-game .giant-score{font-size:54px;line-height:1;margin:4px 0;letter-spacing:-1px}
+ body[data-view=game] #app.x01-game .score-caption{margin-bottom:6px;font-size:10px}
+ body[data-view=game] #app.x01-game .turn-total{font-size:11px;padding-top:6px;gap:8px}
+ body[data-view=game] #app.x01-game .play-grid{gap:8px}
+ body[data-view=game] #app.x01-game .action-row{gap:6px;margin-top:8px;flex-wrap:wrap}
+ body[data-view=game] #app.x01-game .action-row button{font-size:12px;padding:8px}
+ body[data-view=game] #app.x01-game .checkout-panel{padding:8px}
+ body[data-view=game] #app.x01-game .checkout-route li{font-size:22px}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel .cricket-board table :is(th,td){padding:3px 4px}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel .cricket-board th{font-size:14px}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel .cricket-board th strong{font-size:28px}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel .cricket-board button{font-size:24px!important;min-height:44px}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel .cricket-board .coach-bull-pair{gap:4px}
+ body[data-view=game] #app.cricket-game .cricket-controls .player-name{font-size:14px}
+ body[data-view=game] #app.cricket-game .cricket-controls .player-score{font-size:28px}
+ body[data-view=game] #app.cricket-game .cricket-controls .scoreboard{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body .coach-cricket-live .coach-cricket-grid{padding:10px;gap:10px}
+ body .coach-cricket-live table thead th{font-size:14px;padding:4px}
+ body .coach-cricket-live table thead strong{font-size:28px}
+ body .coach-cricket-live table tbody :is(th,td){font-size:28px;padding:3px 4px}
+ body .coach-cricket-live table button{font-size:24px!important;min-height:44px}
+ body .coach-cricket-live .coach-cricket-audio{flex-wrap:wrap}
+ body .coach-cricket-live .coach-says p{font-size:14px!important}
+ body .coach-cricket-live .coach-board-hint,body .coach-cricket-live .coach-board-legend{font-size:12px!important}
+ body[data-view=training] #app .cy-scores{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:8px}
+ body[data-view=training] #app .cy-scores article{padding:8px;gap:3px;min-width:0}
+ body[data-view=training] #app .cy-scores strong{font-size:14px}
+ body[data-view=training] #app .cy-scores b{font-size:24px}
+ body[data-view=training] #app .cy-turn{flex-wrap:wrap;gap:6px}
+ body[data-view=training] #app .cy-turn h2{font-size:20px}
+ body[data-view=training] #app .cy-turn .remaining-darts{flex:0 1 150px}
+ body[data-view=training] #app .cy-hit-buttons{gap:6px;margin:8px 0}
+ body[data-view=training] #app .cy-hit-buttons button{min-height:68px;padding:8px;font-size:16px}
+ body[data-view=training] #app .cy-hit-buttons small{margin-top:4px;font-size:12px}
+ body[data-view=training] #app .cy-fields{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+ body[data-view=training] #app .cy-fields button{min-height:44px;min-width:44px;font-size:16px;padding:4px}
+ body[data-view=training] #app:has([data-home]) .hero h1{font-size:26px}
+ body[data-view=training] #app:has([data-home]) .panel h2{font-size:20px}
+ body[data-view=training] #app:has([data-home]) .panel p{font-size:14px;margin:8px 0}
+ body[data-view=training] #app:has([data-home]) [data-hit]{min-height:60px!important;font-size:16px!important;padding:8px}
+ body[data-view=training] #app:has([data-home]) [data-miss]{min-height:44px!important;font-size:18px!important}
+ body[data-view=training] #app:has([data-home]) .action-row{gap:6px;margin-top:8px;flex-wrap:wrap}
+ body[data-view=training] #app:has([data-home]) table{table-layout:fixed}
+ body[data-view=training] #app:has([data-home]) :is(th,td){overflow-wrap:anywhere;font-size:12px;padding:8px 3px}
+ body[data-view=training] #app.jdc-playing .jdc-title .training-target{font-size:36px}
+ body[data-view=training] #app.jdc-playing .jdc-title h1{font-size:22px}
+ body[data-view=training] #app .jdc-counters{gap:12px}
+ body[data-view=training] #app .jdc-counters strong{font-size:28px;min-width:0;flex:1}
+ body[data-view=training] #app .jdc-counters small{font-size:11px}
+ body[data-view=training] #app.jdc-playing .jdc-ready{display:none}
+ body[data-view=training] #app.jdc-playing .jdc-celebration:not(.jdc-ready){height:auto;min-height:44px;flex-wrap:wrap;padding:8px}
+ body[data-view=training] #app.jdc-playing .jdc-quick-hits{gap:6px;margin:8px 0}
+ body[data-view=training] #app.jdc-playing .jdc-quick-hits button{min-height:90px;padding:8px 3px;font-size:11px}
+ body[data-view=training] #app.jdc-playing .jdc-quick-hits button strong{font-size:32px}
+ body[data-view=training] #app.jdc-playing .jdc-quick-hits button small{font-size:10px;overflow-wrap:anywhere}
+ body[data-view=training] #app.jdc-playing .jdc-draft{gap:6px}
+ body[data-view=training] #app.jdc-playing .jdc-draft button{min-height:48px;padding:6px 3px;font-size:12px}
+ body[data-view=training] #app.jdc-playing .jdc-draft span{font-size:11px}
+ body[data-view=training] #app.jdc-playing .jdc-controls{position:static;gap:6px;padding:6px 0}
+ body[data-view=training] #app .jdc-levels{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body[data-view=training] #app .jdc-levels>div{padding:8px;overflow-wrap:anywhere}
+ body[data-view=training] #app .sector-buttons{gap:6px}
+ body[data-view=training] #app .sector-buttons button{padding:10px 3px;min-height:70px;font-size:12px}
+ body[data-view=training] #app .sector-buttons strong{font-size:22px}
+ body[data-view=training] #app .training-stats{gap:12px;margin:12px 0;font-size:14px}
+ body[data-view=training] #app .training-stats strong{font-size:24px}
+}
+@media(max-width:740px){
+ /* The active player's score is already visible in the roster above the keypad. */
+ body[data-view=game] #app.x01-game .current-panel :is(.turn-header,.giant-score,.score-caption){display:none}
+ body[data-view=game] #app.x01-game .score-and-checkout:not(.has-checkout){display:none}
+ body .coach-cricket-live .coach-bull-pair,body[data-view=game] #app.cricket-game .cricket-touch-duel .coach-bull-pair{flex-direction:column;gap:4px}
+ body .coach-cricket-live .coach-bull-pair button,body[data-view=game] #app.cricket-game .cricket-touch-duel .coach-bull-pair button{min-height:44px}
+}
+@media(max-width:740px){
+ /* Put multiplier selection immediately before the touch board. */
+ body[data-view=game] #app.cricket-game .cricket-touch-duel{display:flex;flex-direction:column}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel :is(.cricket-controls,.keypad-panel){display:contents}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel .keypad-head{order:0}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel .current-panel{order:1;width:100%}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel :is(.cricket-turn-details,.special-keys){order:2}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel .action-row{order:3}
+ body[data-view=game] #app.cricket-game .cricket-touch-duel th.player-colour-active strong{color:#102338}
+ body .coach-cricket-live .coach-cricket-grid{display:flex;flex-direction:column}
+ body .coach-cricket-live .coach-cricket-entry{display:contents}
+ body .coach-cricket-live .coach-board-hint{order:-1}
+ body .coach-cricket-live .multiplier{order:0}
+ body .coach-cricket-live .coach-cricket-board{order:1}
+ body .coach-cricket-live :is(.coach-cricket-turn,.coach-bot-stage){order:2}
+ body .coach-cricket-live .special-keys{order:3}
+ body .coach-cricket-live .coach-cricket-entry .coach-says{order:4}
+ body .coach-cricket-live .coach-cricket-entry details{order:5}
+}
