@@ -54,6 +54,32 @@ export function mountCoachMatch(root,{profile,mode,doubleOut,level,cricketScorin
   ${done?'':`${remainingDarts(s)}<div class="coach-dart-slots" aria-label="Lotki w tej kolejce">${Array.from({length:3},(_,i)=>`<span class="${s.turn[i]?'has-dart':''}">${s.turn[i]?dartLabel(s.turn[i]):'·'}</span>`).join('')}</div>`}
   ${done?`<section class="coach-conversation">${m.mode==='cricket'?`<h2>Twój Cricket zapisany</h2><p>${TARGETS.filter(n=>s.players[0].marks[n]===3).length}/7 zamkniętych pól · ${s.players[0].score} pkt · ${s.players[0].darts} Twoich lotek.</p><p>Możesz powtórzyć mecz albo wybrać do ćwiczenia jedno z niezamkniętych pól.</p>`:''}<h2>${(m.coachSession?.leg??1)===1?'Pierwszy leg za nami. Jak Ci się rzuca?':'Jak Ci się teraz rzuca?'}</h2><div class="training-actions">${Object.entries(FEELING).map(([v,label])=>`<button data-feeling="${v}" aria-pressed="${v===feeling}">${label}</button>`).join('')}</div><p data-feeling-reply role="status">${feelingReply(feeling)}</p><div class="training-actions"><button data-next="warmup">Jeszcze rozgrzewka · ${m.mode}</button><button data-next="play">Gramy dalej · ${m.mode}</button><button data-next="exercises">Mam ochotę na ćwiczenia</button><button data-next="finish">Na dziś wystarczy</button></div><p class="small">${m.mode==='cricket'?'Cricket podsumowujemy według zamknięć i punktów. ':''}${insight.darts} Twoich lotek w X01 w ostatnich 30 dniach${insight.average!==null?' · średnia '+insight.average+' pkt / 3 lotki':''}. Poznaję Twoje punktowanie. To jeszcze nie diagnoza formy.</p></section>`:bot||s.ready?`<div class="coach-bot-stage"><span class="coach-presence" aria-hidden="true">◎</span><p>${bot?'Rzucam…':'Podchodzę do tarczy…'}</p><button data-skip-tempo>Pokaż następną lotkę od razu</button></div>`:`<div class="multiplier">${[1,2,3].map(v=>`<button data-mult="${v}" aria-pressed="${v===mult}" class="${v===mult?'selected':''}">×${v}</button>`).join('')}</div><div class="number-grid">${(m.mode==='cricket'?[15,16,17,18,19,20].map(n=>n-1):Array.from({length:20},(_,i)=>i)).map(i=>`<button data-hit="${i+1}">${i+1}</button>`).join('')}</div><div class="special-keys"><button data-special="25">BULL 25</button><button data-special="50">BULL 50</button><button data-special="0">PUDŁO / 0</button></div>`}
   <button data-undo ${m.events.some(e=>e.type==='dart')?'':'disabled'}>↶ Cofnij mój rzut</button><details><summary>Rzuty trenera</summary><p>${s.visits.filter(v=>v.player===1).map(v=>esc(v.darts.map(dartLabel).join(' · '))+' — '+v.points+' pkt'+(v.bust?' · FURA':'')).join('<br>')||'Brak zakończonych kolejek.'}</p></details></section></div>`;
+  if(m.mode==='cricket'&&!done){
+   const layout=$('.coach-match');layout.classList.add('coach-cricket-live');
+   $('.coach-heading h1').textContent=bot?'Teraz trener':s.ready?'Kolejka zapisana':'Twoja kolej';
+   $('.coach-heading .eyebrow').textContent='CRICKET · '+profile.name;
+   const panel=layout.querySelector(':scope > .panel');panel.classList.add('coach-cricket-grid');
+   const board=document.createElement('section');board.className='coach-cricket-board';board.setAttribute('aria-label','Wynik i zamknięcia');
+   const scores=$('.coach-scoreboard'),marks=panel.querySelector(':scope > .panel');
+   marks.classList.add('coach-cricket-marks');
+   marks.innerHTML=`<table><thead><tr><th>${esc(profile.name)}<strong>${s.players[0].score} pkt</strong></th><th>Pole</th><th>Trener<strong>${s.players[1].score} pkt</strong></th></tr></thead><tbody>${TARGETS.map(n=>`<tr><td aria-label="Twoje trafienia: ${s.players[0].marks[n]}">${['—','╱','×','⊗'][s.players[0].marks[n]]}</td><th>${n===25?`<div class="coach-bull-pair"><button data-special="25" ${bot||s.ready?'disabled':''}>25</button><button data-special="50" ${bot||s.ready?'disabled':''}>50</button></div>`:`<button data-hit="${n}" ${bot||s.ready?'disabled':''}>${n}</button>`}</th><td aria-label="Trafienia trenera: ${s.players[1].marks[n]}">${['—','╱','×','⊗'][s.players[1].marks[n]]}</td></tr>`).join('')}</tbody></table>`;
+   scores.remove();board.append(marks);
+   const controls=document.createElement('section');controls.className='coach-cricket-entry';controls.setAttribute('aria-label','Twoja kolejka');
+   panel.querySelector('.number-grid')?.remove();
+   const specials=panel.querySelector('.special-keys');if(specials){specials.querySelector('[data-special="25"]').remove();specials.querySelector('[data-special="50"]').remove();}
+   const history=panel.querySelector('details');
+   while(panel.firstChild)controls.append(panel.firstChild);
+   controls.append(history);panel.append(board,controls);
+   const darts=document.createElement('div');darts.className='coach-cricket-turn';
+   darts.append($('.remaining-darts'),$('.coach-dart-slots'));controls.prepend(darts);
+   const sound=document.createElement('div');sound.className='coach-cricket-audio';sound.append($('[data-coach-sound]'),$('[data-repeat-audio]'));controls.querySelector('.coach-says').append(sound);
+   $('[data-repeat-audio]').textContent='🔊 Powtórz';
+   const hint=document.createElement('p');hint.className='coach-board-hint';hint.textContent=bot?'Teraz rzuca trener.':s.ready?'Zapisane. Teraz kolej trenera.':'Dotknij numeru trafionego pola. Podwójna? Wybierz ×2. Potrójna? ×3.';darts.after(hint);
+   const legend=document.createElement('p');legend.className='coach-board-legend';legend.textContent='╱ jedno · × dwa · ⊗ zamknięte';board.append(legend);
+   const target=!bot&&!s.ready?TARGETS.find(n=>s.players[0].marks[n]<3&&(n!==20||m.cricketOpening!=='two-triples'||[15,16,17,18,19].filter(v=>s.players[0].marks[v]===3).length>=2)):null;
+   for(const row of marks.querySelectorAll('tbody tr')){const n=TARGETS[row.sectionRowIndex];row.classList.toggle('suggested-target',n===target);for(const [i,cell] of [...row.querySelectorAll('td')].entries())cell.classList.toggle('closed',s.players[i].marks[n]===3);}
+
+  }
   const leave=fn=>{cancel();stopSpeech();fn();};
   $('[data-coach-sound]').onclick=()=>{toggleSound();refreshSound();};
   $('[data-repeat-audio]').onclick=()=>{if(!soundEnabled()){toast('Włącz dźwięk przyciskiem obok komunikatu trenera.');return;}playSound('turn');speakTraining(done?reaction(s):s.current===0&&!s.ready&&m.mode!=='cricket'?`${profile.name}, Twoja kolej. Do końca ${s.players[0].score}.`:reaction(s));};

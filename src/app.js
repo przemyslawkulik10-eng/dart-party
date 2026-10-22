@@ -269,6 +269,19 @@ function renderGame() {
     details.append($('.current-panel .remaining-darts'),$('.current-panel .darts'),$('.current-panel .turn-total'));controls.append(details);
     const board=$('.current-panel .cricket-board');
     board.setAttribute('aria-label','Tabela trafień Cricket — wszyscy gracze');
+    if(state.players.length===2){
+      grid.classList.add('cricket-touch-duel');
+      board.querySelectorAll('thead th:not(.field-col)').forEach((cell,i)=>{const score=document.createElement('strong');score.textContent=state.players[i].score+' pkt';cell.append(score);});
+      board.querySelectorAll('tbody tr').forEach((row,i)=>{
+        const field=row.querySelector('.field-col'),n=TARGETS[i];field.textContent='';
+        if(n===25){const pair=document.createElement('div');pair.className='coach-bull-pair';pair.append($('[data-special="25"]'),$('[data-special="50"]'));pair.children[0].textContent='25';pair.children[1].textContent='50';field.append(pair);}
+        else field.append($('[data-hit="'+n+'"]'));
+      });
+      $('.number-grid').remove();scores.remove();controls.prepend(details);
+      $('.keypad-head h2').textContent='Dotknij trafionego pola';
+      $('.turn-total span').textContent=state.ready?'Kolejka zapisana · zmiana gracza':'Podwójna: ×2 · potrójna: ×3';
+    }
+
 
 
   }

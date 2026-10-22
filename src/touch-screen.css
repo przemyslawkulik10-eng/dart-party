@@ -95,3 +95,148 @@
  body[data-view=game] .cricket-controls .player-name{font-size:18px}
 }
 @media(min-width:741px){body .checkout-route li{font-size:32px!important}}
+
+/* Coach Cricket: board and entry remain together throughout each turn. */
+body:has(.coach-cricket-live) #app{max-width:1800px;padding:12px 20px}
+body:has(.coach-cricket-live) .topbar{padding:8px 20px;gap:12px;min-height:0}
+body:has(.coach-cricket-live) :is(.brand small,.brand-icon,.install-header,#history-button,footer,.install-card){display:none}
+body:has(.coach-cricket-live) .top-actions{gap:8px}
+body .coach-cricket-live{max-width:none;gap:10px}
+body .coach-cricket-live .coach-heading{gap:12px;align-items:center}
+body .coach-cricket-live .coach-heading h1{font-size:30px;letter-spacing:-.5px}
+body .coach-cricket-live .coach-heading p{margin:0;font-size:16px!important;line-height:1.3}
+body .coach-cricket-live .coach-heading>div>p:last-child{display:none}
+body .coach-cricket-live .coach-cricket-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;padding:16px}
+body .coach-cricket-live :is(.coach-cricket-board,.coach-cricket-entry){min-width:0}
+body .coach-cricket-live .coach-scoreboard{gap:10px;margin:0 0 8px}
+body .coach-cricket-live .coach-scoreboard article{padding:10px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+body .coach-cricket-live .coach-scoreboard h2{font-size:20px;overflow-wrap:anywhere;letter-spacing:0}
+body .coach-cricket-live .coach-scoreboard strong{font-size:42px;grid-column:2;grid-row:1/3;line-height:1}
+body .coach-cricket-live .coach-scoreboard p{font-size:14px!important;margin:0}
+body .coach-cricket-live .coach-cricket-marks{padding:8px 12px}
+body .coach-cricket-live .coach-cricket-marks h2{font-size:18px;letter-spacing:0;margin:0 0 8px}
+body .coach-cricket-live table{width:100%;table-layout:fixed;border-collapse:collapse}
+body .coach-cricket-live table th,body .coach-cricket-live table td{text-align:center;padding:8px 4px;font-size:30px;line-height:1.1}
+body .coach-cricket-live table thead th{font-size:15px;overflow-wrap:anywhere}
+body .coach-cricket-live table th:first-child{width:22%}
+body .coach-cricket-live .closed{color:#6ee4dc}
+body .coach-cricket-live .suggested-target{background:#1c4d70;box-shadow:inset 4px 0 #4ff0cf}
+body .coach-cricket-live .coach-cricket-entry{display:flex;flex-direction:column;gap:8px}
+body .coach-cricket-live .coach-says{margin:0;padding:8px 12px}
+body .coach-cricket-live .coach-says .eyebrow{display:none}
+body .coach-cricket-live .coach-says p{margin:0 0 8px;font-size:18px!important;line-height:1.3}
+body .coach-cricket-live .coach-cricket-audio{display:flex;gap:8px}
+body .coach-cricket-live .coach-cricket-turn{display:flex;align-items:center;gap:12px;justify-content:space-between}
+body .coach-cricket-live .remaining-darts{margin:0;flex:1;min-width:0;height:40px}
+body .coach-cricket-live .remaining-dart{width:60px;height:40px;min-width:0}
+body .coach-cricket-live .coach-dart-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0;flex:1;min-width:0}
+body .coach-cricket-live .coach-dart-slots span{min-width:0;padding:8px 4px;font-size:24px;text-align:center}
+body .coach-cricket-live .multiplier{display:grid;grid-template-columns:repeat(3,1fr);margin:0;padding:0;gap:8px}
+body .coach-cricket-live .number-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+body .coach-cricket-live .number-grid button{font-size:36px;line-height:1;padding:10px}
+body .coach-cricket-live .special-keys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+body .coach-cricket-live .special-keys button{padding:8px;font-size:20px}
+body .coach-cricket-live details{padding:0;margin-top:6px;border:0}
+body .coach-cricket-live details p{margin:8px 0}
+body .coach-cricket-live .coach-bot-stage{flex:1;min-height:220px;margin:0}
+@media(min-width:1500px) and (min-height:900px){
+ body .coach-cricket-live .coach-cricket-grid{gap:28px;padding:24px}
+ body .coach-cricket-live table :is(th,td){font-size:42px;padding:12px 6px}
+ body .coach-cricket-live .number-grid button{font-size:48px;min-height:94px!important}
+ body .coach-cricket-live .coach-scoreboard h2{font-size:26px}
+ body .coach-cricket-live .coach-scoreboard strong{font-size:60px}
+}
+@media(min-width:741px) and (max-width:1100px){
+ body:has(.coach-cricket-live) .brand{display:none}
+ body:has(.coach-cricket-live) .top-actions{width:100%;justify-content:flex-end}
+ body .coach-cricket-live .coach-cricket-grid{gap:12px;padding:12px;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr)}
+ body .coach-cricket-live .coach-scoreboard article{display:block}
+ body .coach-cricket-live .coach-scoreboard h2{font-size:17px}
+}
+@media(max-width:740px){
+ body:has(.coach-cricket-live) #app{padding:12px}
+ body .coach-cricket-live .coach-cricket-grid{grid-template-columns:1fr;padding:12px;gap:16px}
+ body .coach-cricket-live .coach-heading{flex-direction:row}
+ body .coach-cricket-live .coach-heading h1{font-size:24px}
+ body .coach-cricket-live table :is(th,td){font-size:26px;padding:6px}
+}
+/* The board itself is the keypad, like a touch-operated chalk scoreboard. */
+body .coach-cricket-live .coach-cricket-grid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+body .coach-cricket-live .coach-cricket-marks{padding:0;background:transparent;border:0}
+body .coach-cricket-live table th:first-child{width:34%}
+body .coach-cricket-live table thead th{font-size:22px;padding:8px}
+body .coach-cricket-live table thead strong{display:block;color:#ffb564;font-size:38px;line-height:1.1;margin-top:4px}
+body .coach-cricket-live table tbody :is(th,td){padding:3px 8px;font-size:40px}
+body .coach-cricket-live table button{width:100%;font-size:32px;padding:4px;line-height:1}
+body .coach-cricket-live .coach-bull-pair{display:flex;gap:6px}
+body .coach-cricket-live .coach-cricket-turn{flex-direction:column;align-items:stretch}
+body .coach-cricket-live .coach-dart-slots{flex:auto}
+body .coach-cricket-live .coach-dart-slots span{font-size:30px}
+body .coach-cricket-live .special-keys{grid-template-columns:1fr}
+body .coach-cricket-live .coach-board-hint{margin:0;font-size:18px!important;line-height:1.35}
+body .coach-cricket-live .coach-board-legend{margin:8px 0 0;text-align:center;font-size:16px!important}
+body .coach-cricket-live .coach-cricket-entry .coach-says{order:1}
+body .coach-cricket-live .coach-cricket-entry details{order:2}
+@media(min-width:1500px) and (min-height:900px){body .coach-cricket-live table button{font-size:42px}body .coach-cricket-live table tbody :is(th,td){font-size:52px;padding:5px 12px}}
+@media(max-width:740px){body .coach-cricket-live .coach-cricket-grid{grid-template-columns:1fr}body .coach-cricket-live table thead th{font-size:18px}}
+/* The same central touch board for two human players. */
+body:has(.cricket-touch-duel) .topbar{padding:8px 20px;min-height:0}
+body:has(.cricket-touch-duel) :is(.brand small,.brand-icon,.install-header,#history-button,footer,.install-card){display:none}
+body[data-view=game]:has(.cricket-touch-duel) #app.cricket-game{min-height:0;height:auto;padding:12px 20px}
+body:has(.cricket-touch-duel) .game-title{margin:0 0 8px}
+body:has(.cricket-touch-duel) .game-title h1{font-size:26px}
+body[data-view=game] .cricket-touch-duel{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);min-height:0;gap:16px}
+body[data-view=game] .cricket-touch-duel .current-panel{min-height:0;padding:12px}
+body[data-view=game] .cricket-touch-duel .turn-header{margin:0 0 8px;padding:8px}
+body[data-view=game] .cricket-touch-duel .turn-header h2{font-size:24px}
+body[data-view=game] .cricket-touch-duel .turn-header .eyebrow{display:none}
+body[data-view=game] .cricket-touch-duel .cricket-board{margin:0}
+body[data-view=game] .cricket-touch-duel .cricket-board table{table-layout:fixed;width:100%}
+body[data-view=game] .cricket-touch-duel .cricket-board :is(th,td){padding:3px 8px;font-size:40px;line-height:1.1}
+body[data-view=game] .cricket-touch-duel .cricket-board th{font-size:22px;overflow-wrap:anywhere}
+body[data-view=game] .cricket-touch-duel .cricket-board th strong{display:block;color:#ffb564;font-size:38px;margin:4px 0}
+body[data-view=game] .cricket-touch-duel .cricket-board .field-col{width:32%}
+body[data-view=game] .cricket-touch-duel .cricket-board button{width:100%;font-size:32px;line-height:1;padding:4px}
+body .cricket-touch-duel .coach-bull-pair{display:flex;gap:6px}
+body[data-view=game] .cricket-touch-duel .cricket-controls{gap:10px}
+body[data-view=game] .cricket-touch-duel .keypad-panel{padding:12px}
+body[data-view=game] .cricket-touch-duel .keypad-head{display:block;margin:0}
+body[data-view=game] .cricket-touch-duel .keypad-head h2{font-size:22px;margin-bottom:12px}
+body[data-view=game] .cricket-touch-duel .multiplier{display:grid;grid-template-columns:repeat(3,1fr)}
+body[data-view=game] .cricket-touch-duel .special-keys{display:grid;grid-template-columns:1fr;margin-top:10px}
+body[data-view=game] .cricket-touch-duel .cricket-turn-details{padding:12px}
+body[data-view=game] .cricket-touch-duel .action-row{display:grid;grid-template-columns:1fr;margin-top:10px}
+@media(min-width:741px) and (max-width:1100px){body:has(.cricket-touch-duel) .brand{display:none}}
+@media(max-width:740px){body[data-view=game] .cricket-touch-duel{grid-template-columns:1fr}}
+body .coach-cricket-live table button,body[data-view=game] .cricket-touch-duel .cricket-board button{font-size:32px!important}
+body .coach-cricket-live .closed,body[data-view=game] .cricket-touch-duel .cricket-board td.closed{color:#9bd8ff;font-weight:800}
+@media(min-width:741px) and (max-height:850px){
+ body:has(:is(.coach-cricket-live,.cricket-touch-duel)){--touch-size:56px;--touch-font:18px;--touch-copy:16px}
+ body:has(.coach-cricket-live) #app{padding:6px 16px}
+ body .coach-cricket-live .coach-cricket-grid{padding:8px 12px}
+ body .coach-cricket-live table thead th{font-size:18px;padding:4px}
+ body .coach-cricket-live table thead strong{font-size:30px}
+ body .coach-cricket-live table tbody :is(th,td){padding:1px 8px}
+ body .coach-cricket-live .coach-board-legend{margin:4px 0 0}
+ body .coach-cricket-live .coach-heading h1{font-size:24px}
+ body .coach-cricket-live .coach-cricket-entry{gap:6px}
+ body .coach-cricket-live .coach-says p{font-size:16px!important}
+ body .coach-cricket-live .coach-board-hint{font-size:16px!important}
+}
+body[data-view=game] .cricket-touch-duel .current-panel>.turn-header{display:none}
+body[data-view=game] .cricket-touch-duel .cricket-board table .field-col{width:32%!important;min-width:0}
+body[data-view=game] .cricket-touch-duel .cricket-board table th:not(.field-col){width:34%}
+@media(min-width:741px) and (max-height:850px){
+ body[data-view=game]:has(.cricket-touch-duel) #app.cricket-game{padding:6px 16px}
+ body:has(.cricket-touch-duel) .game-title{gap:8px;margin:0 0 6px}
+ body[data-view=game] .cricket-touch-duel .cricket-board table :is(th,td){padding:1px 6px;height:auto}
+ body[data-view=game] .cricket-touch-duel .cricket-board table thead th{font-size:18px;padding:4px}
+ body[data-view=game] .cricket-touch-duel .cricket-board th strong{font-size:30px;margin:2px}
+ body[data-view=game] .cricket-touch-duel .current-panel{padding:8px}
+}
+body:has(.cricket-touch-duel) .topbar{min-height:0!important}
+body[data-view=game]:has(.cricket-touch-duel) #app.cricket-game{gap:8px}
+body:has(.cricket-touch-duel) .topbar{padding:8px 20px!important}
+body[data-view=game] #app.cricket-game .cricket-touch-duel .cricket-board{margin:0}
+body[data-view=game] #app.cricket-game .cricket-touch-duel .cricket-board table{margin:0}
+body[data-view=game]:has(.cricket-touch-duel) #app.cricket-game{gap:4px}
