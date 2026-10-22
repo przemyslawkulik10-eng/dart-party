@@ -77,8 +77,9 @@ export function milestoneCounts(data){
 }
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const milestoneContext=a=>`${['training','jdc','coach-task','mnoznik'].includes(a.source)?'Podczas treningu':'Podczas gry'}: ${a.sourceLabel||a.mode||'Brak nazwy w starszym zapisie'}`;
 export function milestoneHistoryMarkup(rows){
- return rows.length?`<ol class="milestone-history">${rows.map(a=>`<li><strong>${a.kind} · ${esc(a.sourceLabel||a.mode)}</strong><p>${a.at?`<time datetime="${esc(a.at)}">${esc(new Date(a.at).toLocaleString('pl-PL',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}))}</time>`:'Brak dokładnej daty w starszym zapisie'}</p><p>${a.darts.map(milestoneDartLabel).map(esc).join(' + ')} · ${a.leg?`leg ${a.leg}, `:''}kolejka ${a.round}</p></li>`).join('')}</ol>`:'<p class="milestone-empty">Pierwsze trafienie czeka na Ciebie. Gdy zapiszesz trzy lotki dające ten wynik, pojawi się tu data i godzina.</p>';
+ return rows.length?`<ol class="milestone-history">${rows.map(a=>`<li><strong>${a.kind} · ${esc(milestoneContext(a))}</strong><p>${a.at?`<time datetime="${esc(a.at)}">${esc(new Date(a.at).toLocaleString('pl-PL',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}))}</time>`:'Brak dokładnej daty w starszym zapisie'}</p><p>${a.darts.map(milestoneDartLabel).map(esc).join(' + ')}</p></li>`).join('')}</ol>`:'<p class="milestone-empty">Pierwsze trafienie czeka na Ciebie. Gdy zapiszesz trzy lotki dające ten wynik, pojawi się tu data i godzina.</p>';
 }
 
 export function profileMilestonesMarkup(profile,rows){
