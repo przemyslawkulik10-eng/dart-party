@@ -15,14 +15,14 @@ test('180 has original timestamp, survives reload, no duplicates and undo remove
  assert.equal(playerAchievements(data(undoDart(m))).length,0);
  assert.equal(playerAchievements({profile:{id:ids[1]},matches:[m]}).length,0);
 });
-test('170 counts only Double Out checkout, remains through next leg, not ordinary 170',()=>{
+test('170 counts checkout and ordinary visits, remains through next leg',()=>{
  let m=darts(start(),[[20,3],[19,3],[14,1]]);m=pass(nextPlayer(m));
  m=darts(m,[[20,3],[20,3],[25,2]]);
  assert.equal(replay(m).legWinner,0);assert.equal(playerAchievements(data(m))[0].kind,'170');
  assert.equal(playerAchievements(data(nextLeg(m))).length,1);
  assert.equal(playerAchievements(data(undoDart(m))).length,0);
- assert.equal(playerAchievements(data({...m,doubleOut:false})).length,0);
- assert.equal(playerAchievements(data(darts(start(),[[20,3],[20,3],[25,2]]))).length,0);
+ assert.equal(playerAchievements(data({...m,doubleOut:false})).length,1);
+ assert.equal(playerAchievements(data(darts(start(),[[20,3],[20,3],[25,2]]))).length,1);
 });
 test('bust is excluded; legacy date is unknown; history spans years',()=>{
  let m=darts(start(),[[20,3],[20,3],[20,3]]);m=pass(nextPlayer(m));m=darts(m,[[20,3],[20,3]]);

@@ -8,6 +8,8 @@ import {mountAccount} from './accounts-ui.js';
 import {appStorage} from './account-storage.js';
 import {mountGameLibrary} from './game-library.js';
 import {homeMarkup} from './home-ui.js';
+import {playerData} from './player-stats.js';
+import {playerMilestones,milestoneCounts,milestoneHistoryMarkup} from './player-milestones.js';
 import {x01Setup} from './x01-setup.js';
 import {mountPlayerMenu} from './player-menu.js';
 import {selectedProfile,loadProfiles} from './profiles.js';
@@ -125,7 +127,16 @@ function renderHome(){
   leaveTraining();section=null;match=null;contest=null;if($('#sound-toggle'))renderSoundButton();document.body.dataset.view='home';
   $('#app').classList.remove('cricket-game','x01-game');
   const latest=allMatches().find(m=>replay(m).winner===null);
-  $('#app').innerHTML=homeMarkup({latest,profile:selectedProfile()});
+  const profile=selectedProfile();let milestones={180:0,170:0};
+  try{if(profile)milestones=milestoneCounts(playerData(profile.id));}catch{milestones=null;}
+  $('#app').innerHTML=homeMarkup({latest,profile,milestones});
+  document.querySelectorAll('[data-home-milestone]').forEach(button=>button.onclick=()=>{
+    const current=selectedProfile();if(!current){openPlayers({pick:true});return;}
+    try{
+      const kind=button.dataset.homeMilestone,rows=playerMilestones(playerData(current.id)).filter(a=>a.kind===kind);
+      openModal(`Moje ${kind} — ${rows.length}`,`<p class="milestone-owner">${esc(current.name)} · Twoja historia trafień</p><p>Trzy lotki, ${kind} punktów. Gry i treningi — również te w toku.</p>${milestoneHistoryMarkup(rows)}`);
+    }catch{toast('Nie udało się odczytać historii trafień. Twoje zapisy pozostają zachowane.');}
+  });
   document.querySelectorAll('[data-home-game]').forEach(button=>button.onclick=()=>{section='competition';mode=button.dataset.homeGame;match=null;contest=null;saveContest();renderSetup();});
   $('#open-library').onclick=renderLibrary;
   $('#home-coach').onclick=()=>{const profile=selectedProfile();if(profile)openSoloCoach(profile);else openPlayers();};

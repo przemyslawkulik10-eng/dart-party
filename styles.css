@@ -492,3 +492,22 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
 
 .library-poster.library-poster-art{transform:none;border:0;background:none;box-shadow:none}
 .library-poster-art .game-artwork{width:100%;height:100%;border-radius:24px}
+
+/* Personal milestones share the saved throws with the player history. */
+.home-nav-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.home-nav-row .home-nav{margin-bottom:0}
+.home-milestones{display:grid;gap:7px;text-align:right}
+.home-milestone-buttons{display:flex;gap:12px}
+.home-milestone-buttons button{display:flex;align-items:center;justify-content:space-between;gap:18px;min-width:175px;min-height:64px;padding:12px 18px;background:#102746;border:1px solid #a58a44;border-radius:14px;color:#fff1ba}
+.home-milestone-buttons button:hover{background:#193655;border-color:#ffe293}
+.home-milestone-buttons span{font-size:16px;font-weight:800;text-transform:uppercase}
+.home-milestone-buttons strong{color:#ffe293;font-size:30px;line-height:1.1}
+.home-milestones small{color:#b9cce7;font-size:12px;overflow-wrap:anywhere}
+.milestone-owner{font-weight:800;color:#ffe293}
+.milestone-history{list-style:none;padding:0;display:grid;gap:14px}
+.milestone-history li{padding:18px;background:#102746;border:1px solid #385b84;border-radius:12px;overflow-wrap:anywhere}
+.milestone-history strong{color:#ffe293;font-size:22px}
+.milestone-history p{margin:8px 0 0}
+.milestone-history time{font-size:20px;color:#fff;font-weight:700}
+.milestone-empty{padding:20px;background:#102746;border-radius:12px}
+@media(max-width:600px){.home-nav-row{gap:14px}.home-nav-row .home-nav{width:100%;gap:16px;justify-content:space-between}.home-milestones{width:100%;text-align:left}.home-milestone-buttons button{min-width:0;flex:1;padding:12px;gap:10px}.home-milestone-buttons span{font-size:14px}.home-milestone-buttons strong{font-size:28px}}
