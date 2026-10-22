@@ -511,3 +511,13 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
 .milestone-history time{font-size:20px;color:#fff;font-weight:700}
 .milestone-empty{padding:20px;background:#102746;border-radius:12px}
 @media(max-width:600px){.home-nav-row{gap:14px}.home-nav-row .home-nav{width:100%;gap:16px;justify-content:space-between}.home-milestones{width:100%;text-align:left}.home-milestone-buttons button{min-width:0;flex:1;padding:12px;gap:10px}.home-milestone-buttons span{font-size:14px}.home-milestone-buttons strong{font-size:28px}}
+
+.profile-milestones{margin:0 0 22px;padding:20px;background:#102746;border:1px solid #a58a44;border-radius:16px}
+.profile-milestones .milestone-owner{margin-bottom:12px;overflow-wrap:anywhere}
+.profile-milestones .home-milestone-buttons button{flex:1;flex-wrap:wrap;min-width:0;min-height:88px}
+.profile-milestones .home-milestone-buttons strong{font-size:40px}
+.profile-milestones small{width:100%;text-align:left;font-size:14px;color:#b9cce7}
+.profile-milestone-dialog{width:min(680px,calc(100vw - 32px));max-height:85dvh;overflow:auto}
+.mnoznik-zero{border-color:#a58a44;margin-bottom:20px}
+.mnoznik-zero [data-skip-score]{min-height:64px}
+@media(max-width:600px){.profile-milestones{padding:14px}.profile-milestones .home-milestone-buttons{gap:10px}.profile-milestones .home-milestone-buttons strong{font-size:32px}}

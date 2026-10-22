@@ -1,6 +1,7 @@
 import {cricketTeamOrder,validDart,dartLabel} from './engine.js';
 import {cyferkiState} from './cyferki.js';
 import {taskState,COACH_LABELS} from './virtual-coach.js';
+import {mnoznikState} from './mnoznik.js';
 
 const timestamp=at=>{
  if(at===null||at===undefined)return null;
@@ -53,9 +54,9 @@ export function playerMilestones(data){
   for(const [round,darts] of turns)add(darts,{source:'cyferki',matchId:m.id,sourceLabel:'Cyferki',round});
  }
  function multiplierRows(m,events,source){
-  for(let i=3;i+3<=events.length;i+=6){
-   const turn=events.slice(i,i+3);if(!turn.every(e=>e.type==='score'))continue;
-   add(turn.map(e=>({points:e.value,at:e.at})),{source,matchId:m.id,sourceLabel:source==='mnoznik'?'Mnożnik':'Mnożnik · sparing',round:Math.floor(i/6)+1});
+  const s=mnoznikState({...m,kind:'mnoznik',profileId:profile.id,name:profile.name,events});
+  for(const [i,r] of s.rounds.entries()){
+   add(r.scoreDarts,{source,matchId:m.id,sourceLabel:source==='mnoznik'?'Mnożnik':'Mnożnik · sparing',round:i+1});
   }
  }
  for(const m of data.mnoznik||[])if(m.profileId===profile.id&&once('mnoznik',m.id))multiplierRows(m,m.events,'mnoznik');
@@ -78,4 +79,8 @@ export function milestoneCounts(data){
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function milestoneHistoryMarkup(rows){
  return rows.length?`<ol class="milestone-history">${rows.map(a=>`<li><strong>${a.kind} · ${esc(a.sourceLabel||a.mode)}</strong><p>${a.at?`<time datetime="${esc(a.at)}">${esc(new Date(a.at).toLocaleString('pl-PL',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}))}</time>`:'Brak dokładnej daty w starszym zapisie'}</p><p>${a.darts.map(milestoneDartLabel).map(esc).join(' + ')} · ${a.leg?`leg ${a.leg}, `:''}kolejka ${a.round}</p></li>`).join('')}</ol>`:'<p class="milestone-empty">Pierwsze trafienie czeka na Ciebie. Gdy zapiszesz trzy lotki dające ten wynik, pojawi się tu data i godzina.</p>';
+}
+
+export function profileMilestonesMarkup(profile,rows){
+ return `<section class="profile-milestones" aria-label="Moje trafienia 180 i 170"><div class="milestone-owner">${esc(profile.name)} · moje trafienia</div><div class="home-milestone-buttons">${['180','170'].map(kind=>{const count=rows.filter(a=>a.kind===kind).length;return `<button data-player-milestone="${kind}" aria-label="Moje ${kind}: ${count}. Pokaż daty i godziny"><span>Moje ${kind}</span><strong>${count}</strong><small>Daty i godziny →</small></button>`;}).join('')}</div></section>`;
 }
