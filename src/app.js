@@ -134,7 +134,9 @@ function renderHome(){
   $('#enter-cyferki').onclick=()=>{leaveTraining();section='cyferki';match=null;contest=null;window.speechSynthesis?.cancel();disposeTraining=mountCyferki($('#app'),{onExit:renderHome,toast});};
   $('#enter-players').onclick=openPlayers;
   $('#enter-competition').onclick=()=>{section='competition';match=null;contest=null;saveContest();renderSetup();};
-  $('#enter-training').onclick=()=>{section='training';match=null;contest=null;saveContest();window.speechSynthesis?.cancel();disposeTraining=mountTraining($('#app'),{onExit:renderHome,toast,names});};
+  const openHomeTraining=(initialExercise=null)=>{leaveTraining();section='training';match=null;contest=null;saveContest();window.speechSynthesis?.cancel();disposeTraining=mountTraining($('#app'),{onExit:renderHome,toast,names,initialExercise});};
+  $('#enter-training').onclick=()=>openHomeTraining();
+  $('#enter-jdc').onclick=()=>openHomeTraining('jdc');
   if($('#resume-home'))$('#resume-home').onclick=()=>{match=latest;contest=null;multiplier=1;renderGame();};
 }
 function renderSetup() {

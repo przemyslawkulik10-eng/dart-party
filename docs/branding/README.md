@@ -47,3 +47,13 @@ Kolejna grafika użytkownika, z lotką, ×1/×2/×3 i napisem MNOŻNIK, została
 Zastosowano na stronie głównej, w bibliotece (karta i główna ilustracja promująca grę) oraz panelu gracza. Wszystkie sześć głównych kart ma teraz grafiki użytkownika. Zasady i dane pozostają bez zmian.
 
 Weryfikacja: 186/186 testów, build i diff check; Chrome z danymi syntetycznymi. Pięć rozmiarów ekranu: 1920×1080, 1180×820, 1024×768, 820×1180, 390×844. Sprawdzono ładowanie/przypisanie obrazu, stronę główną, bibliotekę, jej główną ilustrację i panel gracza. Wszystkie cztery wejścia (łącznie z przyciskiem promocji) otwierają ustawienia Mnożnika. Brak poziomego overflow i błędów JS. Obejrzano komplet kart i promocję na 1180; zrzuty: `evidence/mnoznik-icon-20261022/`. Bez testu fizycznego dotyku, push, publikacji i migracji.
+
+## JDC Challenge — 22.10.2026
+
+Grafika użytkownika: `dart-party-jdc-source.webp`. Wersja 512 px: `public/game-icons/jdc.png`. Dodana do strony głównej, biblioteki i panelu gracza. Kafelek na stronie głównej otwiera istniejący ekran JDC z wybranym profilem.
+
+## Nowe logo DART PARTY 180 — 22.10.2026
+
+Wzór użytkownika: `dart-party-180-source.webp`. Użytkownik zatwierdził wyciętą wersję bez ramki. Przezroczysty PNG 1254×1254: `public/dart-party-logo.png`; pochodne 512/192/180/32 px służą jako ikony aplikacji, Apple i favicon. Wbudowany imagegen usunął ramkę i tło; sips utworzył pomniejszone pliki. Usunięto przycinanie CSS potrzebne poprzedniemu logo. Nazwa aplikacji pozostaje DART PARTY.
+
+Prompt: Extract ONLY the existing central brand mark: the gold vertically stacked 1, 8, 0 at left, the existing right-hand semicircular dartboard, and the exact gold caption DART PARTY 180 below. Remove the entire enclosing rounded-square gold frame and the navy background outside the mark, including decorative background grid lines and sparks. Output a clean transparent PNG with actual alpha, no rectangle, no frame, no backing tile. Keep the dark navy sections WITHIN the half dartboard as part of the mark. Preserve the original shape, arrangement, numbers, lettering, metallic texture, gold highlights and relative proportions as closely as possible. This is a cutout, not a redesign; do not fix or reinterpret the small dartboard numerals. Do not add anything. Center the complete extracted mark and caption in a square canvas with a small safe transparent margin.

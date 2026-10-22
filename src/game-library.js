@@ -8,7 +8,7 @@ export const LIBRARY_GAMES = [
  {id:'cricket',title:'Cricket',tag:'Celność i taktyka',art:'15–20',icon:'cricket',group:'party',description:'Zamykaj pola i bull. Wybierz punktację oraz zasady Waszej ekipy.',players:'2–6 graczy'},
  {id:'cyferki',title:'Cyferki',tag:'Wybierz swój cel',art:'01–20',icon:'cyferki',group:'party',description:'21 pól do zdobycia. Trzy lotki i decyzja, w co celować.',players:'2–6 graczy'},
  {id:'mnoznik',title:'Mnożnik 7–12',tag:'Celność × punkty',art:'×',icon:'mnoznik',group:'both',description:'Trafienia w cel pomnóż przez zdobyte punkty. Zagraj solo lub w sparingu.',players:'Solo / 2–6 graczy'},
- {id:'jdc',title:'JDC Challenge',tag:'Sprawdź swoją formę',art:'57',icon:'trophy',group:'solo',description:'57 lotek: Shanghai, podwójne i bull. Zapisz wynik i porównaj swoje próby.',players:'Trening solo'},
+ {id:'jdc',title:'JDC Challenge',tag:'Sprawdź swoją formę',art:'57',icon:'jdc',group:'solo',description:'57 lotek: Shanghai, podwójne i bull. Zapisz wynik i porównaj swoje próby.',players:'Trening solo'},
  {id:'sector-20',title:'Sektor 20',tag:'Powtarzalność trafień',art:'20',icon:'bullseye',group:'solo',description:'Trening na 5, 10 lub 15 minut. Pracuj nad celnością w sektorze 20.',players:'Trening solo'}
 ];
 const preferenceKey='dart-party-library-v1';

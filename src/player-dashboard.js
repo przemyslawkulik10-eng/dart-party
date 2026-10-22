@@ -33,7 +33,7 @@ export function dashboardMarkup(data,st){
  const activity=profileActivity(data),maxActivity=Math.max(1,...activity.map(d=>d.count));
  const soloGames=`<section class="panel profile-solo"><div class="eyebrow">JESTEŚ SAM? GRAMY WE DWOJE.</div><h2>Zagraj z trenerem</h2><p>Ty rzucasz do tarczy, trener jest wirtualnym przeciwnikiem. Wystarczy jedna osoba.</p><div class="training-actions">${[201,301,501].map(n=>`<button class="primary" data-profile-game="coach-${n}">${n} · z trenerem →</button>`).join('')}</div><p class="small">Wybierasz tempo przeciwnika i zasady zakończenia. Możesz też tylko się rozgrzać albo zakończyć.</p></section>`;
  const games=[
- ['jdc','JDC Challenge','trophy',data.jdc.length,st.jdcBest,'pkt · rekord','Trening · 57 lotek'],
+ ['jdc','JDC Challenge','jdc',data.jdc.length,st.jdcBest,'pkt · rekord','Trening · 57 lotek'],
  ['cricket','Cricket','cricket',st.competitions.filter(m=>m.mode==='cricket').length,null,'','Sparing · indywidualnie i drużyny'],
  ['501','501','501',st.competitions.filter(m=>m.mode==='501').length,null,'','Z ekipą · 2–6 osób'],
  ['301','301','301',st.competitions.filter(m=>m.mode==='301').length,null,'','Z ekipą · 2–6 osób'],
