@@ -461,3 +461,5 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
 .sector-buttons.bull-target{grid-template-columns:repeat(2,minmax(0,1fr))}
 
 [data-install-app][hidden],.install-card[hidden]{display:none!important}
+
+@media (display-mode: standalone),(display-mode: minimal-ui),(display-mode: window-controls-overlay),(display-mode: fullscreen){[data-install-app],body[data-view=home] .install-card{display:none!important}}

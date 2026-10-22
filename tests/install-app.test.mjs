@@ -4,11 +4,12 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../src/install-app.js',import.meta.url),'utf8');
 function setup(standalone=false){
+ const mode=standalone===true?'standalone':standalone;
  const element=()=>({hidden:false,disabled:false,textContent:'',open:false,handlers:{},addEventListener(name,fn){this.handlers[name]=fn;}});
  const dialog=element(),status=element(),native=element(),trigger=element(),close=element(),guides={ios:element(),android:element(),desktop:element()},events={};
  dialog.showModal=()=>dialog.open=true;dialog.close=()=>dialog.open=false;dialog.querySelector=s=>guides[s.match(/"(.*?)"/)[1]];
  const nodes={'#install-dialog':dialog,'#install-status':status,'#install-native':native,'#install-close':close};
- vm.runInNewContext(source,{document:{querySelector:s=>nodes[s],querySelectorAll:()=>[trigger]},window:{matchMedia:()=>({matches:standalone,addEventListener(){}}),addEventListener:(name,fn)=>events[name]=fn},navigator:{userAgent:'test',platform:'test',maxTouchPoints:0}});
+ vm.runInNewContext(source,{document:{querySelector:s=>nodes[s],querySelectorAll:()=>[trigger]},window:{matchMedia:query=>({matches:query===`(display-mode: ${mode})`,addEventListener(){}}),addEventListener:(name,fn)=>events[name]=fn},navigator:{userAgent:'test',platform:'test',maxTouchPoints:0}});
  return {dialog,status,native,trigger,close,events,guides};
 }
 test('unsupported browser opens instructions and QR without a fake installation action',()=>{
@@ -22,4 +23,12 @@ test('native prompt is one use, cancellation keeps manual instructions available
 });
 test('installed app hides installation entry in standalone',()=>{
  const t=setup(true);assert.equal(t.trigger.hidden,true);assert.match(t.status.textContent,/innym urządzeniu/);assert.equal(t.native.hidden,true);
+});
+
+for(const mode of ['fullscreen','minimal-ui','window-controls-overlay'])test(`installation entry hidden in ${mode}`,()=>{
+ const t=setup(mode);assert.equal(t.trigger.hidden,true);assert.equal(t.native.hidden,true);
+ t.events.beforeinstallprompt({preventDefault(){}});assert.equal(t.trigger.hidden,true);
+});
+test('install prompt cannot re-show installation in an app window',()=>{
+ const t=setup(true);t.events.beforeinstallprompt({preventDefault(){}});assert.equal(t.trigger.hidden,true);assert.equal(t.native.hidden,true);
 });
