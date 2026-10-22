@@ -489,3 +489,6 @@ body:not([data-view=game]):not([data-view=training]) #sound-toggle{display:none}
  .setup-grid .mode strong{font-size:clamp(22px,6vw,28px);overflow-wrap:anywhere}
  .setup-grid .section-heading{flex-wrap:wrap}
 }
+
+.library-poster.library-poster-art{transform:none;border:0;background:none;box-shadow:none}
+.library-poster-art .game-artwork{width:100%;height:100%;border-radius:24px}

@@ -39,3 +39,11 @@ Przesłany obraz z numerami 1–20/BULL i napisem CYFERKI jest nową grafiką te
 Dodano do wspólnego przypisania w `src/game-artwork.js`, biblioteki i panelu gracza; strona główna korzysta automatycznie z tego przypisania. Nie zmieniono zasad, danych ani planszy gry.
 
 Weryfikacja: 186/186 testów jednostkowych, build i diff check. Chrome na pięciu rozmiarach ekranu (1920×1080, 1180×820, 1024×768, 820×1180, 390×844), dane syntetyczne. Obraz ładuje się w pełnych proporcjach na stronie głównej, w bibliotece i panelu; każde z trzech wejść otwiera ustawienia Cyferek. Brak poziomego overflow i błędów JS. Obejrzano karty na 1180 i 390; zrzuty w `evidence/cyferki-icon-20261022/`. Bez fizycznego testu dotyku, push, publikacji i migracji.
+
+## Logo Mnożnika — 22.10.2026
+
+Kolejna grafika użytkownika, z lotką, ×1/×2/×3 i napisem MNOŻNIK, została przypisana do Mnożnika 7–12. Oryginał: `dart-party-mnoznik-source.webp`; PNG 512×512: `public/game-icons/mnoznik.png`. Konwersja przez sips, bez retuszu, przycinania i zmiany kolorów.
+
+Zastosowano na stronie głównej, w bibliotece (karta i główna ilustracja promująca grę) oraz panelu gracza. Wszystkie sześć głównych kart ma teraz grafiki użytkownika. Zasady i dane pozostają bez zmian.
+
+Weryfikacja: 186/186 testów, build i diff check; Chrome z danymi syntetycznymi. Pięć rozmiarów ekranu: 1920×1080, 1180×820, 1024×768, 820×1180, 390×844. Sprawdzono ładowanie/przypisanie obrazu, stronę główną, bibliotekę, jej główną ilustrację i panel gracza. Wszystkie cztery wejścia (łącznie z przyciskiem promocji) otwierają ustawienia Mnożnika. Brak poziomego overflow i błędów JS. Obejrzano komplet kart i promocję na 1180; zrzuty: `evidence/mnoznik-icon-20261022/`. Bez testu fizycznego dotyku, push, publikacji i migracji.
