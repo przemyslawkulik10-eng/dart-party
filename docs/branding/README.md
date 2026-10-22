@@ -31,3 +31,11 @@ Użytkownik wskazał grafikę z tabelą 20–15/BULL i napisem CRICKET jako ikon
 Zastosowano na stronie głównej, w bibliotece, panelu gracza i wyborze trybu w ustawieniach Cricket. Wspólny moduł obrazów nazywa się teraz `src/game-artwork.js` (zastępuje `src/x01-icons.js`); zachowano grafiki 501/301/201. W mobilnych ustawieniach Cricket skorygowano minimalną szerokość paneli, kolumn kart i wielkość napisów, ponieważ widok wychodził poza ekran 390 px. Zasady i dane gry pozostają bez zmian.
 
 Weryfikacja: 186/186 testów, build i diff check; Chrome na pięciu rozmiarach ekranu. Sprawdzono obrazy wszystkich czterech gier, wejście do Cricket ze strony głównej i biblioteki, ustawienia Cricket, profil oraz regresję wyboru X01 i ustawienia 2/6 osób. Po poprawce brak poziomego overflow i błędów JS. Obejrzano karty na 1180 oraz ustawienia Cricket na 390. Zrzuty syntetyczne: `evidence/cricket-icon-20261022/`. Bez fizycznego testu dotyku, push, publikacji i migracji.
+
+## Logo Cyferek — 22.10.2026
+
+Przesłany obraz z numerami 1–20/BULL i napisem CYFERKI jest nową grafiką tej gry. Oryginał zachowano jako `dart-party-cyferki-source.webp`; eksport PNG 512×512: `public/game-icons/cyferki.png`. Tylko konwersja formatu i rozmiaru przez sips, bez przycinania i zmiany kolorów.
+
+Dodano do wspólnego przypisania w `src/game-artwork.js`, biblioteki i panelu gracza; strona główna korzysta automatycznie z tego przypisania. Nie zmieniono zasad, danych ani planszy gry.
+
+Weryfikacja: 186/186 testów jednostkowych, build i diff check. Chrome na pięciu rozmiarach ekranu (1920×1080, 1180×820, 1024×768, 820×1180, 390×844), dane syntetyczne. Obraz ładuje się w pełnych proporcjach na stronie głównej, w bibliotece i panelu; każde z trzech wejść otwiera ustawienia Cyferek. Brak poziomego overflow i błędów JS. Obejrzano karty na 1180 i 390; zrzuty w `evidence/cyferki-icon-20261022/`. Bez fizycznego testu dotyku, push, publikacji i migracji.

@@ -38,7 +38,7 @@ export function dashboardMarkup(data,st){
  ['501','501','501',st.competitions.filter(m=>m.mode==='501').length,null,'','Z ekipą · 2–6 osób'],
  ['301','301','301',st.competitions.filter(m=>m.mode==='301').length,null,'','Z ekipą · 2–6 osób'],
  ['201','201','201',st.competitions.filter(m=>m.mode==='201').length,null,'','Z ekipą · 2–6 osób'],
- ['cyferki','Cyferki','grid-3x3-gap',st.cyferkiResults.length,null,'','Sparing · zadeklarowane pola'],
+ ['cyferki','Cyferki','cyferki',st.cyferkiResults.length,null,'','Sparing · zadeklarowane pola'],
  ['mnoznik','Mnożnik 7–12','x-diamond',s.multi.length,multiBest,'pkt · rekord','Solo i sparing'],
  ['sector-20','Trening celności','activity',data.trainings.length,null,'','15–20 · BULL 25/50']
  ];
