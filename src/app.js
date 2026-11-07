@@ -28,6 +28,7 @@ import { mountTraining } from './training-ui.js';
 import { CHECKOUT_HINT_THRESHOLD, checkout, checkoutLabel, checkoutAdvice } from './checkout.js';
 import { playSound, soundEnabled, toggleSound, speakPlayer, speakTurn, speakShanghai, speakThreeTriples, speakCheckout } from './sound.js';
 import { bullState } from './bull-off.js';
+import {matchFromContest} from './contest-start.js';
 import { DEFAULT_PLAYERS, TARGETS, createMatch, replay, recordDart, nextPlayer, undoDart, dartLabel, validateMatch, isShanghai, isThreeTriples, nextLeg, enableDoubleOut, configureCricketTeams, cricketTeamOrder } from './engine.js';
 import { loadMatches, saveMatch } from './storage.js';
 import { syncCloud, onCloudStatus, cloudEnabled } from './cloud.js';
@@ -214,18 +215,22 @@ function renderContest() {
   <section class="scoreboard">${contest.names.map((name,i)=>`<article class="player-card ${i===s.current?'active':''}"><div class="player-name">${esc(name)}</div><div class="player-score">${s.contenders.includes(i)?s.scores[i]??0:'—'}</div><div class="small">${s.contenders.includes(i)?'W GRZE O START':'POZA DOGRYWKĄ'}</div></article>`).join('')}</section>
   <section class="panel bull-panel"><div class="eyebrow">${s.round===1?'PIERWSZA SERIA':`DOGRYWKA ${s.round-1} · TYLKO REMISUJĄCY`}</div><h2>${esc(contest.names[s.current])}${won?' zaczyna mecz!':' rzuca'}</h2>
   ${won?`<p>Kolejność: ${previewOrder.map(esc).join(' → ')}</p><button class="primary" id="start-match">Rozpocznij ${contest.mode==='cricket'?'Cricket':contest.mode} →</button>`:`${remainingDarts(s)}<div class="darts">${[0,1,2].map(i=>`<div class="dart-slot ${s.turn[i]!==undefined?'filled':''}"><small>LOTKA ${i+1}</small><strong>${s.turn[i]??'—'}</strong></div>`).join('')}</div><p>Po trzeciej lotce przechodzimy do kolejnego gracza. Remis oznacza nową serię trzech lotek.</p><div class="special-keys bull-keys"><button data-bull="0">POZA ŚRODKIEM / 0</button><button data-bull="25">BULL 25</button><button data-bull="50">BULL 50</button></div>`}
-  <button id="undo-bull" ${contest.throws.length?'':'disabled'}>↶ Cofnij rzut</button></section>`;
+  <button id="undo-bull" ${contest.throws.length?'':'disabled'}>↶ Cofnij rzut</button>
+  ${!won?`<div class="leg-choice"><label for="skip-starter">Kto zaczyna bez walki o start?</label><select id="skip-starter">${contest.names.map((name,i)=>`<option value="${i}">${esc(name)}</option>`).join('')}</select><button id="skip-contest">Pomiń walkę o start</button></div>`:''}</section>`;
   applyPlayerColors($('#app'),{players:contest.names.map(name=>({name})),current:s.current});
   const applyBull=value=>{contest.throws.push(value);const saved=saveContest();renderContest();const next=bullState(contest.names.length,contest.throws);if(next.winner===null && (next.current!==s.current || next.round!==s.round))announcePlayer(contest.names[next.current]);else playSound('hit');return saved;};
   document.querySelectorAll('[data-bull]').forEach(b=>b.onclick=()=>applyBull(Number(b.dataset.bull)));
   $('#undo-bull').onclick=()=>{contest.throws.pop();saveContest();renderContest();};
   $('#cancel-contest').onclick=()=>{names=contest.names;mode=contest.mode;doubleOut=contest.doubleOut;cricketScoring=contest.cricketScoring||'standard';cricketOpening=contest.cricketOpening||'standard';legsToWin=contest.legsToWin||1;contest=null;saveContest();renderSetup();};
-  if(won)$('#start-match').onclick=()=>{
-    let next=createMatch([contest.names[s.winner],...contest.names.filter((_,i)=>i!==s.winner)],contest.mode,contest.doubleOut,contest.cricketScoring,contest.cricketOpening,contest.legsToWin);
-    if(contest.teams)next=configureCricketTeams(next,[contest.teams[s.winner],...contest.teams.filter((_,i)=>i!==s.winner)]);
-    if(contest.profileIds)next.profileIds=[contest.profileIds[s.winner],...contest.profileIds.filter((_,i)=>i!==s.winner)];
-    next.sessionType=contest.sessionType;contest=null;saveContest();update(next);
+  const startSelected=starter=>{
+    try{
+      const next=matchFromContest(contest,starter);
+      update(next);
+      if(!storageError){contest=null;saveContest();}
+    }catch(e){toast(e.message);}
   };
+  if(won)$('#start-match').onclick=()=>startSelected(s.winner);
+  else $('#skip-contest').onclick=()=>startSelected(Number($('#skip-starter').value));
   bindCameraGame({owner:$('#app').firstElementChild,game:'bull-off',sessionId:'bull-off',player:s.current,label:contest.names[s.current],blocked:won,apply:({value})=>{if(!applyBull(value))throw new Error('Wynik zmienił się na ekranie, ale nie został zapisany. Nie dodawaj tej lotki ponownie.');}});
 }
 function cricketTable(state) {
