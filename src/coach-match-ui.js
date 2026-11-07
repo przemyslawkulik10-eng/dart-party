@@ -1,3 +1,4 @@
+import {bindCameraGame} from './camera-game-session.js';
 import {coachAudioCue} from './coach-match-audio.js';
 import {playSound,speakTraining,stopSpeech,soundEnabled,toggleSound} from './sound.js';
 import {remainingDarts} from './dart-progress.js';
@@ -86,12 +87,14 @@ export function mountCoachMatch(root,{profile,mode,doubleOut,level,cricketScorin
   const decide=choice=>safe(()=>{save(afterLeg(m,feeling,choice));if(choice==='finish')return leave(onFinish);if(choice==='exercises')return leave(onExercises);const session=m.coachSession||{id:crypto.randomUUID(),leg:1,conversation:null};save({...newCoachMatch(profile.name,m.mode,m.doubleOut,m.coachLevel,m.cricketScoring,m.cricketOpening),coachSession:{...session,leg:session.leg+1,phase:choice==='warmup'?'warmup':'play'}});feeling='unknown';render();});
   $('[data-back]').onclick=done?()=>decide('finish'):()=>leave(onBack);
   root.querySelectorAll('[data-mult]').forEach(b=>b.onclick=()=>{mult=+b.dataset.mult;render();});
-  const hit=(n,x)=>safe(()=>{save(recordDart(m,n,x));playSound('hit');mult=1;render();});
+  const applyHit=(n,x)=>{save(recordDart(m,n,x));playSound('hit');mult=1;render();};
+  const hit=(n,x)=>safe(()=>applyHit(n,x));
   root.querySelectorAll('[data-hit]').forEach(b=>b.onclick=()=>hit(+b.dataset.hit,mult));root.querySelectorAll('[data-special]').forEach(b=>b.onclick=()=>{const n=+b.dataset.special;hit(n===50?25:n,n===50?2:1);});
   if($('[data-skip-tempo]'))$('[data-skip-tempo]').onclick=()=>safe(()=>{cancel();let next=m;if(s.ready)next=nextPlayer(next);if(replay(next).current===1&&!replay(next).ready)next=coachThrow(next);save(next);render();});
   $('[data-undo]').onclick=()=>safe(()=>{cancel();stopSpeech();save({...undoHuman(m),coachFeedback:undefined});audioState=replay(m);render();speakTraining('Cofnięto Twój rzut.');});
   if(done){root.querySelectorAll('[data-next]').forEach(b=>b.onclick=()=>decide(b.dataset.next));root.querySelectorAll('[data-feeling]').forEach(b=>b.onclick=()=>{feeling=b.dataset.feeling;root.querySelectorAll('[data-feeling]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('[data-feeling-reply]').textContent=feelingReply(feeling);});}
   schedule();
+  bindCameraGame({owner:root.firstElementChild,game:m.mode,sessionId:m.id,player:s.current,label:m.names[s.current],twentyLocked:m.mode==='cricket'&&m.cricketOpening==='two-triples'&&[15,16,17,18,19].filter(n=>s.players[s.current].marks[n]===3).length<2,blocked:!!(disposed||done||bot||s.ready),apply:({number,multiplier})=>{if(disposed)throw Error('Gra została zamknięta.');applyHit(number,multiplier);}});
  }
  safe(()=>{if(!resume)save(m);render();});return ()=>{disposed=true;cancel();stopSpeech();window.removeEventListener('dart-sound-change',refreshSound);};
 }

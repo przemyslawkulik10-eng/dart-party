@@ -1,4 +1,5 @@
 import {gameArtwork} from './game-artwork.js';
+import {bindCameraGame} from './camera-game-session.js';
 import {playerRoster,rosterProfiles} from './training-profile.js';
 import {remainingDarts} from './dart-progress.js';
 import {mountVirtualCoach} from './virtual-coach-ui.js';
@@ -189,8 +190,8 @@ function renderSetup() {
 }
 function saveContest() {
   if(!contest)updateActivity("bull",false);
-  try { if(contest)appStorage.setItem(contestKey,JSON.stringify(contest));else appStorage.removeItem(contestKey); }
-  catch { toast('Nie udało się zapisać walki o start na tablecie.'); }
+  try { if(contest)appStorage.setItem(contestKey,JSON.stringify(contest));else appStorage.removeItem(contestKey);return true; }
+  catch { toast('Nie udało się zapisać walki o start na tablecie.');return false; }
 }
 function beginContest(players, gameMode, out, scoring='standard', opening='standard', targetLegs=1, sessionType='competition', teams) {
   let valid=createMatch(players,gameMode,out,scoring,opening,targetLegs);
@@ -215,7 +216,8 @@ function renderContest() {
   ${won?`<p>Kolejność: ${previewOrder.map(esc).join(' → ')}</p><button class="primary" id="start-match">Rozpocznij ${contest.mode==='cricket'?'Cricket':contest.mode} →</button>`:`${remainingDarts(s)}<div class="darts">${[0,1,2].map(i=>`<div class="dart-slot ${s.turn[i]!==undefined?'filled':''}"><small>LOTKA ${i+1}</small><strong>${s.turn[i]??'—'}</strong></div>`).join('')}</div><p>Po trzeciej lotce przechodzimy do kolejnego gracza. Remis oznacza nową serię trzech lotek.</p><div class="special-keys bull-keys"><button data-bull="0">POZA ŚRODKIEM / 0</button><button data-bull="25">BULL 25</button><button data-bull="50">BULL 50</button></div>`}
   <button id="undo-bull" ${contest.throws.length?'':'disabled'}>↶ Cofnij rzut</button></section>`;
   applyPlayerColors($('#app'),{players:contest.names.map(name=>({name})),current:s.current});
-  document.querySelectorAll('[data-bull]').forEach(b=>b.onclick=()=>{contest.throws.push(Number(b.dataset.bull));saveContest();renderContest();const next=bullState(contest.names.length,contest.throws);if(next.winner===null && (next.current!==s.current || next.round!==s.round))announcePlayer(contest.names[next.current]);else playSound('hit');});
+  const applyBull=value=>{contest.throws.push(value);const saved=saveContest();renderContest();const next=bullState(contest.names.length,contest.throws);if(next.winner===null && (next.current!==s.current || next.round!==s.round))announcePlayer(contest.names[next.current]);else playSound('hit');return saved;};
+  document.querySelectorAll('[data-bull]').forEach(b=>b.onclick=()=>applyBull(Number(b.dataset.bull)));
   $('#undo-bull').onclick=()=>{contest.throws.pop();saveContest();renderContest();};
   $('#cancel-contest').onclick=()=>{names=contest.names;mode=contest.mode;doubleOut=contest.doubleOut;cricketScoring=contest.cricketScoring||'standard';cricketOpening=contest.cricketOpening||'standard';legsToWin=contest.legsToWin||1;contest=null;saveContest();renderSetup();};
   if(won)$('#start-match').onclick=()=>{
@@ -224,6 +226,7 @@ function renderContest() {
     if(contest.profileIds)next.profileIds=[contest.profileIds[s.winner],...contest.profileIds.filter((_,i)=>i!==s.winner)];
     next.sessionType=contest.sessionType;contest=null;saveContest();update(next);
   };
+  bindCameraGame({owner:$('#app').firstElementChild,game:'bull-off',sessionId:'bull-off',player:s.current,label:contest.names[s.current],blocked:won,apply:({value})=>{if(!applyBull(value))throw new Error('Wynik zmienił się na ekranie, ale nie został zapisany. Nie dodawaj tej lotki ponownie.');}});
 }
 function cricketTable(state) {
   const columns=state.players.length===2?[0,null,1]:[null,...state.players.map((_,i)=>i)];
@@ -313,6 +316,7 @@ function renderGame() {
   if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));announcePlayer();}catch(e){toast(e.message);}};
   scheduleAutoNext(state);
   if(!won)cheerForMaciek(state);
+  bindCameraGame({owner:$('#app').firstElementChild,game:match.mode,sessionId:match.id,player:state.current,label:player.name,blocked,twentyLocked,apply:({number,multiplier:m})=>{if(!hit(number,m))throw new Error(storageError?'Wynik zmienił się na ekranie, ale nie został zapisany. Nie dodawaj tej lotki ponownie.':'Nie zapisano rzutu. Sprawdź komunikat gry.');}});
 }
 function cheerForMaciek(state){
   if(state.players[state.current].name.trim().toLocaleLowerCase('pl-PL')!=='maciek')return;
@@ -369,7 +373,8 @@ function hit(n,m) {
     else if(shanghai)announcePlayer(match.names[state.current],false,shanghai);
     else {playSound('hit');if(state.ready)speakTurn(match.names[state.current],state.turnPoints,state.bust,match.cricketScoring==='cutthroat',finishAdvice(state),match.mode!=='cricket');else if(finishAdvice(state))speakCheckout(finishAdvice(state));}
     if(navigator.vibrate)navigator.vibrate((shanghai||triples)?[100,60,100,60,200]:15);
-  }catch(e){toast(e.message);}
+    return !storageError;
+  }catch(e){toast(e.message);return false;}
 }
 function exportMatch() {
   const current=match||allMatches()[0]; if(!current){toast('Brak meczu do pobrania.');return;}

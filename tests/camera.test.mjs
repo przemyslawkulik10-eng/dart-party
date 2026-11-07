@@ -21,6 +21,20 @@ test('camera geometry: rejects crossed, tiny, duplicate and invalid points',()=>
 test('camera geometry: wire warnings and non-finite rejection',()=>{
  assert.equal(fieldAt([0,-107]).nearWire,true);assert.equal(fieldAt([100*Math.sin(Math.PI/20),-100*Math.cos(Math.PI/20)]).nearWire,true);assert.throws(()=>fieldAt([NaN,0]));
 });
+test('camera geometry: sparse and malformed calibration never produces a score',()=>{
+ const missing=front.map(p=>[...p]);delete missing[2][1];
+ for(const points of [null,undefined,{},new Array(4),[front[0],,front[2],front[3]],missing,[null,...front.slice(1)],[[.5,.1,0],...front.slice(1)],[[.5,'0.1'],...front.slice(1)]]){
+  assert.throws(()=>calibrate(points),/Wskaż cztery punkty/);
+ }
+ const h=calibrate(front),sparse=[...h];delete sparse[0];
+ for(const matrix of [null,{},new Array(8),sparse,h.slice(1),[NaN,...h.slice(1)],[Infinity,...h.slice(1)]])assert.throws(()=>project(matrix,[.5,.5]),/Nieprawidłowa kalibracja/);
+ for(const point of [null,{},new Array(2),[.5],[.5,.5,0],[.5,undefined],['.5',.5],[Infinity,0]]){
+  assert.throws(()=>project(h,point),/Nieprawidłowa kalibracja/);assert.throws(()=>fieldAt(point),/Nieprawidłowy punkt/);
+ }
+ assert.throws(()=>project([Number.MAX_VALUE,0,0,0,1,0,0,0],[2,0]),/Punkt poza zakresem/);
+ assert.throws(()=>project([1,0,0,0,1,0,-2,0],[.5,.5]),/Punkt poza zakresem/);
+ assert.equal(fieldAt(project(h,[.5,.5])).score,50);
+});
 function fakeStream(){const track=new EventTarget();track.stopped=false;track.stop=()=>{track.stopped=true;};return {track,getTracks:()=>[track],getVideoTracks:()=>[track]};}
 test('camera source: late permission after stop never leaves camera running',async()=>{
  let resolve;const source=new CameraSource({getUserMedia:()=>new Promise(r=>resolve=r)});const pending=source.start();source.stop();const stream=fakeStream();resolve(stream);assert.equal(await pending,null);assert.ok(stream.track.stopped);

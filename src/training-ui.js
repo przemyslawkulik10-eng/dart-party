@@ -1,3 +1,4 @@
+import {bindCameraGame} from './camera-game-session.js';
 import {trainingProfile} from './training-profile.js';
 import {remainingDarts} from './dart-progress.js';
 import {trainingSummaryMarkup} from './training-summary.js';
@@ -65,7 +66,13 @@ export function mountTraining(root,{onExit,toast,names=[],initialName='',initial
   $('#training-repeat').onclick=()=>{if(!soundEnabled()){toast('Włącz dźwięk przyciskiem u góry ekranu.');return;}playSound('turn');speakTraining(paused?'Trening wstrzymany. Wznów, kiedy będziesz gotowy.':sectorPrompt(current));};
   $('#training-coach').onchange=e=>safely(()=>{store({...current,coachEnabled:e.target.checked});if(!e.target.checked)coachReport=null;game();});
   if($('#ask-coach'))$('#ask-coach').onclick=askCoach;
-  function hit(n,m,unknownMiss=false){if(awaitingNext)return;safely(()=>{if(!remainingTime(current)){store(finishTraining(current));result(true);return;}const next=recordTrainingDart(current,n,m);if(unknownMiss)next.darts[next.darts.length-1].unknownMiss=true;store(next);stopSpeech();game();playSound('hit');});}
+  function hit(n,m,unknownMiss=false){safely(()=>recordHit(n,m,unknownMiss));}
+  function recordHit(n,m,unknownMiss=false){
+   if(disposed||awaitingNext)return false;
+   if(!remainingTime(current)){store(finishTraining(current));result(true);return false;}
+   const next=recordTrainingDart(current,n,m);if(unknownMiss)next.darts[next.darts.length-1].unknownMiss=true;
+   store(next);stopSpeech();game();playSound('hit');return true;
+  }
   root.querySelectorAll('[data-sector-hit]').forEach(b=>b.onclick=()=>hit(current.target,Number(b.dataset.sectorHit)));
   $('[data-sector-miss]').onclick=()=>hit(0,1,true);
   $('#training-undo').onclick=()=>safely(()=>{store({...current,nextRoundAt:null,darts:current.darts.slice(0,-1)});game();speakTraining('Cofnięto ostatnią lotkę. '+(paused?'Trening wstrzymany.':sectorPrompt(current)));});
@@ -73,6 +80,7 @@ export function mountTraining(root,{onExit,toast,names=[],initialName='',initial
   $('#training-finish').onclick=()=>safely(()=>{store(finishTraining(current));result(true);});
   $('#training-home').onclick=()=>safely(()=>{store(pauseTraining(current));home();});
   if(!paused)timer=setInterval(()=>{if(disposed)return;const left=remainingTime(current);$('#training-clock').textContent=clock(left);if(!left){stop();safely(()=>{store(finishTraining(current));result(true);});}},500);
+  bindCameraGame({owner:$('#training-repeat'),game:'sector-20',sessionId:current.id,player:current.profileId||current.name,label:current.name,target:current.target,blocked:disposed||paused||awaitingNext||current.endedAt!==null,apply:dart=>recordHit(dart.number,dart.multiplier)});
  }
  function result(announce=false){
   updateActivity(current.id,false);

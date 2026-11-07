@@ -1,3 +1,4 @@
+import {bindCameraGame} from './camera-game-session.js';
 import {trainingProfile} from './training-profile.js';
 import {remainingDarts} from './dart-progress.js';
 import {updateActivity} from './app-update.js';
@@ -58,24 +59,31 @@ export function mountJdc(root,{onExit,toast,names=[],initialName='',initialProfi
 
   <div class="training-actions jdc-controls"><button id="jdc-miss">Żadna nie trafiła celu — zapisz 0 pkt</button><button id="jdc-confirm" class="primary">Zapisz kolejkę · puste miejsca = pudła →</button><button id="jdc-clear">Wyczyść zaznaczenia</button><button id="jdc-undo" ${(pair()?previousPlayer(pair()):current.darts.length)?'':'disabled'}>Cofnij zapisaną kolejkę</button><button id="jdc-save">Zapisz i wróć</button></div><p>${current.darts.length}/57 zatwierdzonych lotek. Zaznaczenia również zapisują się na tym urządzeniu.</p>  <details id="jdc-other"><summary>Wpisz dokładne pole nietrafionej lotki (opcjonalnie)</summary><label>Lotka <select id="jdc-slot">${targets.map((_,i)=>`<option value="${i}">${i+1}</option>`).join('')}</select></label><label>Pole <select id="jdc-number"><option value="0">Poza tarczą</option>${Array.from({length:20},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}<option value="25">BULL</option></select></label><label>Mnożnik <select id="jdc-multiple"><option value="1">Pojedyncza</option><option value="2">Podwójna</option><option value="3">Potrójna</option></select></label><button id="jdc-exact">Dodaj do kolejki</button></details><label class="switch"><input id="jdc-coach" type="checkbox" ${current.coachEnabled?'checked':''}> Wirtualny trener — chcę wskazówki</label>${rulesPanel({mode:'jdc'})}</section><details class="jdc-extra"><summary>Szczegóły: poziomy i historia</summary>  ${levelPanel(st.score)}
   ${lastRound?`<details class="panel"><summary class="jdc-last-round"><span>Ostatnia zapisana kolejka: ${lastRound.hits.join(' · ')} — ${lastRound.score} pkt · pokaż historię</span><span class="jdc-dart-icons">${lastRound.hits.map(hit=>`<span class="jdc-dart-icon" title="${esc(hit)}"><svg viewBox="0 0 80 100" aria-hidden="true"><path d="M40 92V65" stroke="currentColor" stroke-width="3"/><path d="M34 65V39H46V65L40 72Z" fill="currentColor"/><path d="M34 45H46M34 51H46M34 57H46" stroke="#07162c" stroke-width="2"/><path d="M40 39V22" stroke="currentColor" stroke-width="4"/><path d="M40 5L17 12L20 32L40 23L60 32L63 12Z" fill="currentColor"/><path d="M40 6V23" stroke="#07162c" stroke-width="2"/></svg><b>${hit.startsWith('Nie trafiono')?'Pudło':esc(hit)}</b></span>`).join('')}</span></summary>${historyPanel(current)}</details>`:''}</details>`;
-  function setDraft(value){if(targets.every((_,i)=>value[i])){submitRound(value);return;}store({...current,draft:value});game();}
+  function setDraft(value){if(targets.every((_,i)=>value[i])){commitRoundEntries(value);return;}store({...current,draft:value});game();}
   root.querySelectorAll('[data-shanghai]').forEach(b=>b.onclick=()=>safe(()=>{const i=targets.findIndex((_,k)=>!draft[k]);if(i<0)return;const next=targets.map((_,k)=>draft[k]??null);next[i]={number:t.number,multiplier:Number(b.dataset.shanghai)};setDraft(next);}));
   root.querySelectorAll('[data-double]').forEach(b=>b.onclick=()=>safe(()=>{const i=Number(b.dataset.double),goal=targets[i],next=Array.from({length:targets.length},(_,k)=>draft[k]??null);next[i]=draft[i]?.number===goal.number&&draft[i]?.multiplier===2?null:{number:goal.number,multiplier:2};setDraft(next);}));
   $('#jdc-exact').onclick=()=>safe(()=>{const i=Number($('#jdc-slot').value),n=Number($('#jdc-number').value),m=Number($('#jdc-multiple').value);if(!validDart({number:n,multiplier:m}))throw new Error('Nieprawidłowe pole lub mnożnik.');const next=Array.from({length:Math.max(draft.length,i+1)},(_,k)=>draft[k]??null);next[i]={number:n,multiplier:m};setDraft(next);});
   root.querySelectorAll('[data-miss-slot]').forEach(b=>b.onclick=()=>safe(()=>{const i=Number(b.dataset.missSlot),next=targets.map((_,k)=>draft[k]??null);next[i]=draft[i]?.unknownMiss?null:{number:0,multiplier:1,unknownMiss:true};setDraft(next);}));
   $('#jdc-clear').onclick=()=>safe(()=>setDraft([]));
   $('#jdc-repeat').onclick=()=>{if(!soundEnabled()){toast('Włącz dźwięk u góry ekranu.');return;}playSound('turn');speakTraining(roundPrompt(current));};
-  function submitRound(entries){safe(()=>{const before=current,next=commitRound(current,entries.map(d=>d?.unknownMiss?null:d));store(next);const notice=roundFeedback(before,current),ps=pair(),following=ps?nextPlayer(ps):null;const completed=current;
+  function submitRound(entries){safe(()=>commitRoundEntries(entries));}
+  function commitRoundEntries(entries){const before=current,next=commitRound(current,entries.map(d=>d?.unknownMiss?null:d));store(next);const notice=roundFeedback(before,current),ps=pair(),following=ps?nextPlayer(ps):null;const completed=current;
    if(following){current=following;game({...notice,playerName:completed.name});}
    else current.endedAt===null?game(notice):result(notice);
    playSound(notice.shanghai?'shanghai':notice.advance||completed.endedAt!==null?'win':'turn');
    speakTraining(ps?(completed.name+'. '+(notice.shanghai?'Shanghai! Sto punktów bonusu! ':'')+'Wynik kolejki: '+notice.score+' punktów. '+(following?'Teraz '+following.name+'. '+roundPrompt(following):duelResult(ps).tie?'Koniec pojedynku. Remis!':'Wygrywa '+duelResult(ps).winner.name+'!')):notice.text,notice.shanghai||notice.advance);
-  });}
+  }
   $('#jdc-confirm').onclick=()=>submitRound(targets.map((_,i)=>draft[i]??null));
   $('#jdc-miss').onclick=()=>submitRound(targets.map(()=>null));
   $('#jdc-undo').onclick=()=>safe(()=>{const ps=pair();if(ps){const previous=previousPlayer(ps);if(!previous)return;current=previous;}const count=current.darts.length%3||3;store({...current,draft:[],darts:current.darts.slice(0,-count),endedAt:null});game();speakTraining('Cofnięto kolejkę. '+current.name+'. '+roundPrompt(current));});
   $('#jdc-save').onclick=home;
   $('#jdc-coach').onchange=e=>safe(()=>{store({...current,coachEnabled:e.target.checked});game();});
+  bindCameraGame({owner:$('#jdc-repeat'),game:'jdc',sessionId:current.id,player:current.profileId||current.name,label:current.name,blocked:disposed||current.endedAt!==null,apply:dart=>{
+   if(disposed||current.endedAt!==null)throw new Error('Próba JDC nie jest aktywna.');
+   const pending=current.draft||[],slot=targets.findIndex((_,i)=>!pending[i]);
+   if(slot<0)throw new Error('Kolejka JDC jest już uzupełniona.');
+   const next=targets.map((_,i)=>pending[i]??null);next[slot]=dart;setDraft(next);
+  }});
  }
  function result(notice=null){
   updateActivity(current.id,false);

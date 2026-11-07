@@ -6,7 +6,7 @@ import {createMatch,recordDart,replay} from '../src/engine.js';
 import {checkout,checkoutAdvice,checkoutLabel,CHECKOUT_HINT_THRESHOLD} from '../src/checkout.js';
 const source=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
 test('actual hit handler returns triple selector to single before render: T20, S3, S17 in 301',()=>{
- const ctx=vm.createContext({match:createMatch(['A','B'],'301'),multiplier:3,recordDart,replay,isThreeTriples:()=>false,isShanghai:()=>false,playSound:()=>{},finishAdvice:()=>'',navigator:{},toast:message=>{throw new Error(message);}});
+ const ctx=vm.createContext({match:createMatch(['A','B'],'301'),multiplier:3,storageError:false,recordDart,replay,isThreeTriples:()=>false,isShanghai:()=>false,playSound:()=>{},finishAdvice:()=>'',navigator:{},toast:message=>{throw new Error(message);}});
  let renderedMultiplier;
  ctx.update=next=>{ctx.match=next;renderedMultiplier=ctx.multiplier;};
  vm.runInContext(source.slice(source.indexOf('function hit(n,m)'),source.indexOf('function exportMatch()')),ctx);
