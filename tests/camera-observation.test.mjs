@@ -57,3 +57,29 @@ test('pause discards candidates and requires two fresh frames without losing acc
  gate.accept(next.id,{applied:true,contextKey:'game-1'});gate.pause();
  assert.equal(gate.observe(dart(),meta(5)).status,'waiting');assert.equal(gate.observe(dart(),meta(6)).status,'empty');
 });
+
+test('panel expiry retires an unwritten proposal but retains baseline for a fresh review',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const {default:vm}=await import('node:vm');
+ const {createCameraReview}=await import('../src/camera-game-adapter.js');
+ const gate=ready(),first=proposal(gate);let time=1000,cleared=0,buttons=0,message='';
+ const review=createCameraReview({now:()=>time});
+ review.propose({id:first.id,contextKey:first.contextKey,capturedAt:time,darts:[{number:19,multiplier:1}]});
+ time+=30001;
+ assert.throws(()=>review.confirm({id:first.id,contextKey:first.contextKey,confirmed:true}),/wygasł/);
+ const ctx=vm.createContext({observation:gate,lastFrame:first.time,armed:true,pending:first,
+  clearProposal:()=>{cleared++;review.clear();ctx.pending=null;},status:value=>{message=value;},buttons:()=>buttons++});
+ const source=readFileSync(new URL('../src/camera-game-panel.js',import.meta.url),'utf8');
+ vm.runInContext(source.slice(source.indexOf('function expireProposal(){'),source.indexOf('function clearBaseline(')),ctx);
+ ctx.expireProposal();
+ assert.equal(cleared,1);assert.equal(buttons,1);assert.match(message,/Ponownie/);
+ assert.equal(ctx.pending,null);assert.equal(ctx.lastFrame,-1);assert.equal(ctx.armed,true);assert.equal(gate.ready,true);
+ assert.throws(()=>gate.accept(first.id,{applied:true,contextKey:'game-1'}),/wygasł/);
+ assert.throws(()=>review.confirm({id:first.id,contextKey:first.contextKey,confirmed:true}),/Brak nowego/);
+ assert.equal(gate.observe(dart(),meta(2)).status,'stale');
+ assert.equal(gate.observe(dart(),meta(3)).status,'waiting');
+ const second=gate.observe(dart(),meta(4));assert.equal(second.status,'candidate');assert.notEqual(second.id,first.id);
+ review.propose({id:second.id,contextKey:second.contextKey,capturedAt:time,darts:[{number:19,multiplier:1}]});
+ assert.throws(()=>review.confirm({id:second.id,contextKey:second.contextKey}),/zatwierdź/);
+ assert.deepEqual(review.confirm({id:second.id,contextKey:second.contextKey,confirmed:true}),[{number:19,multiplier:1}]);
+});

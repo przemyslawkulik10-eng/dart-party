@@ -20,6 +20,24 @@ test('motion and a fallen dart prevent a previously stable proposal from being w
  assert.equal(fallen.check(blank(),3).status,'unstable');assert.equal(fallen.stable,false);
  assert.equal(fallen.check(blank(),4).status,'removed');assert.equal(fallen.stable,false);
 });
+
+test('one-level background threshold flicker does not revoke a stable proposal',()=>{
+ const review=createCameraReviewFrame({width,height}),reference=dart(),current=reference.slice();
+ for(let x=10;x<16;x++){reference[10*width+x]=149;current[10*width+x]=150;}
+ review.begin(reference,blank(),1);
+ assert.equal(review.check(current,2).status,'empty');assert.equal(review.stable,true);
+ assert.equal(review.check(blank(),3).status,'unstable');assert.equal(review.stable,false);
+ assert.equal(review.check(blank(),4).status,'removed');assert.equal(review.stable,false);
+});
+
+test('a low-contrast fallen dart cannot leave a stable proposal available for confirmation',()=>{
+ const review=createCameraReviewFrame({width,height}),reference=blank(),returned=blank();
+ for(let x=55;x<=80;x++)for(let y=49;y<=51;y++){reference[y*width+x]=149;returned[y*width+x]=179;}
+ review.begin(reference,blank(),1);
+ assert.equal(review.check(reference,2).status,'empty');assert.equal(review.stable,true);
+ assert.equal(review.check(returned,3).status,'unstable');assert.equal(review.stable,false);
+ assert.equal(review.check(returned,4).status,'removed');assert.equal(review.stable,false);
+});
 test('reset or malformed captures revoke stable status and caller mutation cannot rewrite reference',()=>{
  const review=createCameraReviewFrame({width,height}),frame=dart(),empty=blank();review.begin(frame,empty,1);frame.fill(0);empty.fill(0);
  assert.equal(review.check(dart(),2).status,'empty');assert.equal(review.stable,true);

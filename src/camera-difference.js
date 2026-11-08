@@ -12,6 +12,51 @@ function shiftBetween(a,b){
  const bins=new Uint32Array(511);for(let i=0;i<a.length;i++)bins[b[i]-a[i]+255]++;
  let n=0;for(let i=0;i<bins.length;i++){n+=bins[i];if(n>=a.length/2)return i-255;}return 0;
 }
+// Isolated sensor/compression flicker is not evidence of a moving object.
+// The same rule filters the change mask: supra-threshold noise must not block
+// an empty board or fake a removal. Keep thin connected edges (two neighbours),
+// including one-pixel dart shafts.
+function supportedCount(mask,width,height){
+ let total=0;
+ for(let i=0;i<mask.length;i++)if(mask[i]){
+  const x=i%width,y=Math.floor(i/width);let neighbours=0;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+   if(!dx&&!dy)continue;
+   const xx=x+dx,yy=y+dy;
+   if(xx>=0&&xx<width&&yy>=0&&yy<height)neighbours+=mask[yy*width+xx];
+  }
+  if(neighbours>=2)total++;
+ }
+ return total;
+}
+// A conservative shape gate, NOT a probability or proof of a board-contact tip.
+// The caller still needs fresh temporal agreement, field-boundary checks and
+// real-device validation. Strong shadows/occlusion can mimic this silhouette.
+function assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,reference,current,lighting,threshold}){
+ const length=hi-lo,bins=Array.from({length:10},()=>({min:Infinity,max:-Infinity,count:0}));
+ let strong=0;
+ const strongThreshold=Math.min(254,Math.max(60,threshold*2));
+ for(const [x,y] of pixels){
+  const t=(x-mx)*ux+(y-my)*uy,s=-(x-mx)*uy+(y-my)*ux;
+  const b=bins[Math.min(9,Math.max(0,Math.floor((t-lo)/length*10)))];
+  b.min=Math.min(b.min,s);b.max=Math.max(b.max,s);b.count++;
+  if(Math.abs(current[y*width+x]-reference[y*width+x]-lighting)>=strongThreshold)strong++;
+ }
+ const widths=bins.map(b=>b.count?b.max-b.min+1:0);
+ const median=values=>[...values].sort((a,b)=>a-b)[Math.floor(values.length/2)];
+ const endWidths=[median(widths.slice(0,3)),median(widths.slice(7))];
+ const narrow=endWidths[0]<=endWidths[1]?0:1,profile=narrow===0?widths:[...widths].reverse();
+ const near=median(profile.slice(0,3)),shoulder=median(profile.slice(3,6)),far=endWidths[1-narrow];
+ const metrics={lengthPx:length,endpointWidthsPx:endWidths,shoulderWidthPx:shoulder,widthRatio:far/Math.max(1,near),strongFraction:strong/pixels.length,supportPixels:pixels.length};
+ const no=reason=>({autoEligible:false,autoCandidate:null,autoReason:reason,autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}});
+ const margin=Math.max(4,Math.ceil(Math.min(width,height)*.01));
+ if(length<Math.max(32,Math.min(width,height)*.05)||pixels.length<48||bins.some(b=>b.count<2))return no('Za mało szczegółów do niezależnego rozpoznania końca lotki.');
+ if(pixels.some(([x,y])=>x<margin||y<margin||x>=width-margin||y>=height-margin))return no('Obiekt zbyt blisko brzegu kadru.');
+ if(metrics.strongFraction<.7)return no('Zbyt słaby kontrast — możliwy cień.');
+ if(metrics.widthRatio<2.5||near>Math.max(4,length*.08)||far<6)return no('Brak wyraźnej różnicy szerokości obu końców.');
+ if(shoulder<near*1.3||profile[0]>profile[1]+1||profile[0]>near+1)return no('Brak dostatecznego zwężenia przy proponowanym grocie.');
+ return {autoEligible:true,autoCandidate:{...endpoints[narrow]},autoReason:'Wąski, zwężający się koniec rozpoznany z kształtu; wymaga niezależnej kontroli stabilności i pola.',autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}};
+}
 /** emptyReference is the original EMPTY board; reference is the last accepted frame.
  * previous must be a distinct, fresh capture. Caller owns frame identity/readiness.
  * Never replace either reference automatically from an unreviewed candidate.
@@ -24,20 +69,68 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  if(previous==null)return {status:'waiting',reason:'Potrzebne dwie kolejne nieruchome klatki.'};
  const lighting=shiftBetween(reference,current),motionShift=shiftBetween(previous,current),emptyCurrentShift=shiftBetween(emptyReference,current),emptyBaselineShift=shiftBetween(emptyReference,reference);
  if(Math.abs(lighting)>35||Math.abs(motionShift)>15||Math.abs(emptyCurrentShift)>35||Math.abs(emptyBaselineShift)>35)return {status:'lighting',reason:'Zmiana oświetlenia — sprawdź obraz i ustaw nowe puste tło.',lighting};
- let moving=0,changed=0,reverted=0,baselineChanged=0;const mask=new Uint8Array(count);
+ // A real phone camera re-encodes and slightly refocuses between the empty
+ // reference and the throw. On a physical board that produced 76 one-pixel
+ // noise clusters plus the dart. The blur only CONFIRMS a change: a pixel must
+ // cross the threshold raw and keep at least 2/3 of it after a 3x3 box blur, so
+ // counts and endpoints stay raw while re-encoding flicker is rejected. A flat
+ // 3x3 threshold kept thin low-contrast tips out; 2/3 measured on the physical
+ // frames leaves one component (1177 px) and still keeps a 1 px, 80-contrast
+ // shaft whose blurred delta is 27.
+ const mean3=(src,x,y)=>{
+  let sum=0,n=0;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+   const xx=x+dx,yy=y+dy;
+   if(xx>=0&&xx<width&&yy>=0&&yy<height){sum+=src[yy*width+xx];n++;}
+  }
+  return Math.round(sum/n);
+ };
+ let rawMoving=0,changed=0,supportedChanged=0,reverted=0,baselineChanged=0;
+ const rawMask=new Uint8Array(count),mask=new Uint8Array(count),motionMask=new Uint8Array(count),baselineMask=new Uint8Array(count);
  for(let i=0;i<count;i++){
-  if(Math.abs(current[i]-previous[i]-motionShift)>motionThreshold)moving++;
-  if(Math.abs(current[i]-reference[i]-lighting)>threshold){mask[i]=1;changed++;}
-  if(Math.abs(reference[i]-emptyReference[i]-emptyBaselineShift)>threshold){
+  if(Math.abs(current[i]-previous[i]-motionShift)>motionThreshold){motionMask[i]=1;rawMoving++;}
+  if(Math.abs(current[i]-reference[i]-lighting)>threshold){
+   rawMask[i]=1;changed++;
+   const x=i%width,y=(i/width)|0;
+   if(Math.abs(mean3(current,x,y)-mean3(reference,x,y)-lighting)>threshold*2/3)mask[i]=1;
+  }
+  if(Math.abs(reference[i]-emptyReference[i]-emptyBaselineShift)>threshold)baselineMask[i]=1;
+ }
+ // Measured on the physical QA frames (empty board vs dart): the raw mask had
+ // 5573 px in 77 components; after 3x3 confirmation the same pair gives one
+ // 1177 px component at the dart. A pixel counts only with two neighbours in
+ // the same mask (same rule as motion), so isolated flicker cannot block an
+ // empty board or fake a removal.
+ for(let i=0;i<count;i++){
+  if(!mask[i]&&!baselineMask[i])continue;
+  const x=i%width,y=Math.floor(i/width);
+  let neighbours=0,baseNeighbours=0;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+   if(!dx&&!dy)continue;
+   const xx=x+dx,yy=y+dy;
+   if(xx>=0&&xx<width&&yy>=0&&yy<height){
+    const n=yy*width+xx;
+    if(mask[n])neighbours++;
+    if(baselineMask[n])baseNeighbours++;
+   }
+  }
+  if(mask[i]&&neighbours>=2)supportedChanged++;
+  if(baselineMask[i]&&baseNeighbours>=2){
    baselineChanged++;
-   if(Math.abs(current[i]-emptyReference[i]-emptyCurrentShift)<=threshold)reverted++;
+   // Use a lower return threshold (hysteresis), rather than the new-object mask:
+   // a one-level crossing is noise, but a low-contrast dart can disappear with
+   // a change just BELOW the threshold that originally detected that dart.
+   const returnThreshold=threshold/2;
+   if(Math.abs(current[i]-reference[i]-lighting)>returnThreshold&&Math.abs(current[i]-emptyReference[i]-emptyCurrentShift)<=returnThreshold)reverted++;
   }
  }
- if(moving/count>maxMotionFraction)return {status:'unstable',reason:'Ruch w obrazie — poczekaj.',moving};
+ const moving=rawMoving/count>maxMotionFraction?supportedCount(motionMask,width,height):rawMoving;
+ if(moving/count>maxMotionFraction)return {status:'unstable',reason:'Ruch w obrazie — poczekaj.',moving,rawMoving};
  // Reversion is not proof of removal, but cannot safely be treated as a new dart.
  // Detect it even if another object was added and the total changed area increased.
  if(reverted>=Math.max(3,Math.ceil(minChangedPixels/2)))return {status:'removed',reason:'Fragment obrazu wrócił do pustej tarczy — możliwe wyjęcie lub przesunięcie lotki. Nie zapisuj rzutu; sprawdź tarczę i ustaw nowe puste tło.',reverted,baselineChanged,changed};
  if(changed<minChangedPixels)return {status:'empty',reason:'Brak wyraźnej nowej zmiany. To nie oznacza rzutu za zero.',changed};
+ if(supportedChanged<minChangedPixels)return {status:'empty',reason:'Brak zwartej nowej zmiany — pojedyncze piksele szumu zignorowane. To nie oznacza rzutu za zero.',changed,supportedChanged};
  if(changed/count>maxChangeFraction)return {status:'ambiguous',reason:'Zbyt duża zmiana — możliwa ręka lub przesunięcie kamery.',changed};
  const expanded=new Uint8Array(count);
  for(let i=0;i<count;i++)if(mask[i]){const x=i%width,y=Math.floor(i/width);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<width&&yy>=0&&yy<height)expanded[yy*width+xx]=1;}}
@@ -58,6 +151,9 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  if(hi-lo<Math.max(8,Math.min(width,height)*.025)||elongation<2)return {status:'ambiguous',reason:'Zmiana nie przypomina wydłużonej lotki.',changed};
  if(pixels.some(([x,y])=>x<2||y<2||x>=width-2||y>=height-2))return {status:'ambiguous',reason:'Obiekt jest ucięty krawędzią obrazu.',changed};
  const endpoints=[lo,hi].map(t=>({x:Math.max(0,Math.min(1,(mx+t*ux)/(width-1))),y:Math.max(0,Math.min(1,(my+t*uy)/(height-1)))}));
- endpoints.sort((a,b)=>Math.hypot(a.x-center[0],a.y-center[1])-Math.hypot(b.x-center[0],b.y-center[1]));
- return {status:'candidate',candidate:endpoints[0],alternate:endpoints[1],changed,requiresReview:true,reason:'Propozycja końca zmienionego obiektu. Potwierdź rzeczywisty grot; cień lub piórko mogą dać błędny punkt.'};
+ const shape=assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,reference,current,lighting,threshold});
+ // The flight floats in front of the board, so perspective can place it closer
+ // to the bull than the tip. The narrower, tapering end is the tip; the board
+ // field must be read there, not at the end nearest the center.
+ return {status:'candidate',candidate:{...shape.tip},alternate:{...shape.tipAlternate},changed,requiresReview:true,...shape,reason:'Propozycja grotu (węższego końca). Potwierdź rzeczywisty grot; cień lub piórko mogą dać błędny punkt.'};
 }

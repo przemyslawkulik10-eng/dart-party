@@ -22,7 +22,7 @@ export function createCameraObservation({width=640,height=640,center=[.5,.5]}={}
   source=meta.sourceKey;context=meta.contextKey;lastTime=meta.time;
   return {status:'ready',reason:'Puste tło przyjęte. Odczyt wymaga nowych nieruchomych klatek.'};
  }
- function snapshot(value){return value?{...value,candidate:{...value.candidate},alternate:{...value.alternate},frame:value.frame.slice()}:null;}
+ function snapshot(value){return value?{...value,candidate:{...value.candidate},alternate:{...value.alternate},autoCandidate:value.autoCandidate?{...value.autoCandidate}:null,autoMetrics:value.autoMetrics?{...value.autoMetrics,endpointWidthsPx:[...value.autoMetrics.endpointWidthsPx]}:undefined,frame:value.frame.slice()}:null;}
  function observe(frame,meta){
   validate(meta);const captured=copyFrame(frame);
   if(!empty)return {status:'uninitialized',reason:'Najpierw ustaw puste tło.'};

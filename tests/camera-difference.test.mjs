@@ -5,6 +5,45 @@ const width=100,height=100;
 const frame=(v=180)=>new Uint8Array(width*height).fill(v);
 function line(f,x1,x2,y){for(let x=x1;x<=x2;x++)for(let dy=-1;dy<=1;dy++)f[(y+dy)*width+x]=40;return f;}
 const empty=frame(),options={width,height,emptyReference:empty};
+// An idealized steel tip, barrel, shaft and diamond flight, deliberately pointing
+// independently of the bull. This checks geometry, not real-device accuracy.
+function taperedDart({value=40,mirror=false,vertical=false,offset=0,blunt=false}={}){
+ const f=frame();
+ for(let x=15;x<=85;x++){
+  const radius=x<30?(blunt?3:(x<21?0:1)):x<48?3:x<65?1:Math.max(2,Math.floor(11*(1-Math.abs(x-75)/11)));
+  for(let y=50-radius;y<=50+radius;y++){
+   const xx=(mirror?100-x:x)+offset;
+   f[(vertical?xx:y)*width+(vertical?y:xx)]=value;
+  }
+ }
+ return f;
+}
+
+test('morphology nominates the narrow tip independently of the bull and image orientation',()=>{
+ for(const mirror of [false,true])for(const vertical of [false,true])for(const center of [[.05,.05],[.95,.95]]){
+  const captured=taperedDart({mirror,vertical});
+  const result=detectDartChange(empty,captured,captured,{...options,center});
+  assert.equal(result.status,'candidate');assert.equal(result.autoEligible,true);assert.equal(result.requiresReview,true);
+  const expected=(mirror?85:15)/99;
+  assert.ok(Math.abs((vertical?result.autoCandidate.y:result.autoCandidate.x)-expected)<.015);
+  assert.ok(Math.abs((vertical?result.autoCandidate.x:result.autoCandidate.y)-50/99)<.015);
+  assert.ok(result.autoMetrics.widthRatio>=2.5);assert.equal(result.autoMetrics.strongFraction,1);
+  assert.equal(result.confidence,undefined);assert.equal(result.score,undefined);
+ }
+ // Both the reviewed candidate and the automatic proposal are the narrow tip:
+ // the bull position must never choose the read-out end (the flight floats in
+ // front of the board and can project closer to the center than the tip).
+ const captured=taperedDart(),result=detectDartChange(empty,captured,captured,{...options,center:[.95,.5]});
+ assert.ok(result.candidate.x<.2);assert.ok(result.alternate.x>.8);assert.ok(result.autoCandidate.x<.2);
+});
+
+test('symmetric, weak-shadow, blunt or edge-clipped shapes are ineligible for automatic endpoint use',()=>{
+ for(const captured of [line(frame(),15,85,50),taperedDart({value:135}),taperedDart({blunt:true}),taperedDart({offset:-12})]){
+  const result=detectDartChange(empty,captured,captured,options);
+  assert.equal(result.status,'candidate');assert.equal(result.autoEligible,false);assert.equal(result.autoCandidate,null);
+  assert.equal(result.requiresReview,true);assert.ok(result.autoReason.length>0);
+ }
+});
 
 test('difference needs stable fresh captures; absence never becomes a scored miss',()=>{
  assert.equal(detectDartChange(empty,empty,null,options).status,'waiting');
@@ -24,6 +63,62 @@ test('accepted baseline permits another dart without interpreting the earlier da
  assert.ok(result.candidate.y>.7);assert.equal(result.changed,63);
 });
 
+test('isolated camera flicker does not block a stable board or connected dart',()=>{
+ const noisy=frame();
+ for(let y=5;y<=25;y+=4)for(let x=5;x<=21;x+=4)noisy[y*width+x]=160;
+ assert.equal(detectDartChange(empty,noisy,empty,options).status,'empty');
+ const dart=line(frame(),55,80,50),noisyDart=line(noisy.slice(),55,80,50);
+ assert.equal(detectDartChange(empty,noisyDart,dart,options).status,'candidate');
+ // Coherent movement still blocks a proposal, even a one-pixel-wide shaft.
+ const thin=frame();for(let x=40;x<80;x++)thin[50*width+x]=40;
+ assert.equal(detectDartChange(empty,thin,empty,options).status,'unstable');
+});
+
+test('small threshold crossings around an unchanged dart are not removal',()=>{
+ const reference=line(frame(),55,80,50),current=reference.slice();
+ for(let x=10;x<16;x++){reference[10*width+x]=149;current[10*width+x]=150;}
+ const result=detectDartChange(reference,current,current,options);
+ assert.equal(result.status,'empty');assert.equal(result.changed,0);
+});
+
+test('640px production frames tolerate isolated flicker but reject coherent hand motion',()=>{
+ const width=640,height=640,empty=new Uint8Array(width*height).fill(180),current=empty.slice();
+ const opts={width,height,emptyReference:empty};
+ for(let y=4;y<140;y+=4)for(let x=4;x<140;x+=4)current[y*width+x]=160;
+ assert.equal(detectDartChange(empty,current,empty,opts).status,'empty');
+ for(let y=200;y<240;y++)for(let x=200;x<240;x++)current[y*width+x]=40;
+ assert.equal(detectDartChange(empty,current,empty,opts).status,'unstable');
+});
+
+test('supra-threshold isolated noise is not change, removal or a board object',()=>{
+ // Synthetic reproducer of the noise hypothesis, not a physical-camera
+ // measurement: ~400 isolated pixels 35 levels below the board (above
+ // threshold 30) previously gave ambiguous, components 0 and permanently
+ // blocked the automatic empty-board check.
+ const width=640,height=640,empty=new Uint8Array(width*height).fill(180),opts={width,height,emptyReference:empty};
+ const noisy=new Uint8Array(empty);
+ for(let y=4;y<height-4;y+=12)for(let x=4;x<width-4;x+=12)noisy[y*width+x]=145;
+ const result=detectDartChange(empty,noisy,noisy,opts);
+ assert.equal(result.status,'empty');assert.ok(result.changed>100);assert.ok(result.supportedChanged<12);
+ // Exact handoff reproducer: ~360 isolated pixels on a 32 px grid. Before the
+ // change-mask support filter this was ambiguous with components 0, so the
+ // automatic session could never arm the empty board.
+ const sparse=new Uint8Array(empty);
+ for(let y=16;y<height-16;y+=32)for(let x=16;x<width-16;x+=32)sparse[y*width+x]=145;
+ const sparseResult=detectDartChange(empty,sparse,sparse,opts);
+ assert.equal(sparseResult.status,'empty');assert.ok(sparseResult.changed>300);assert.ok(sparseResult.supportedChanged<12);
+ // Per-frame independent noise at disjoint pixels must not fake a removal.
+ const again=new Uint8Array(empty);
+ for(let y=6;y<height-4;y+=12)for(let x=6;x<width-4;x+=12)again[y*width+x]=145;
+ assert.equal(detectDartChange(noisy,again,again,opts).status,'empty');
+ // The same noise next to a connected dart still yields exactly one candidate.
+ const withDart=new Uint8Array(noisy);
+ for(let y=300;y<340;y++)withDart[y*width+300]=100;
+ const found=detectDartChange(empty,withDart,noisy,opts);
+ assert.equal(found.status,'candidate');assert.equal(found.components,undefined);
+ assert.ok(found.changed>=120);assert.equal(found.supportedChanged,undefined);
+});
+
 test('one removed dart, multiple removals and partial removals cannot become new candidates',()=>{
  const one=line(frame(),55,80,50),two=line(one.slice(),20,40,75),partial=one.slice();
  for(let x=55;x<=60;x++)for(let dy=-1;dy<=1;dy++)partial[(50+dy)*width+x]=180;
@@ -36,6 +131,20 @@ test('one removed dart, multiple removals and partial removals cannot become new
  assert.equal(detectDartChange(one,replaced,replaced,options).status,'removed');
  const moved=line(frame(),55,80,60);
  assert.equal(detectDartChange(one,moved,moved,options).status,'removed');
+});
+
+test('a low-contrast dart returning close to empty is removed below the new-object threshold',()=>{
+ // The dart differs by 31 from the board; local sensor noise after removal
+ // leaves a difference of 1, so its return delta is only 30 (not > threshold).
+ for(const [board,dartValue,returned] of [[180,149,179],[70,101,71]]){
+  const background=frame(board),reference=background.slice(),current=background.slice();
+  for(let x=55;x<=80;x++)for(let y=49;y<=51;y++){reference[y*width+x]=dartValue;current[y*width+x]=returned;}
+  const config={width,height,emptyReference:background};
+  assert.equal(detectDartChange(background,reference,reference,config).status,'candidate');
+  const result=detectDartChange(reference,current,current,config);
+  assert.equal(result.status,'removed');assert.equal(result.changed,0);assert.equal(result.reverted,78);
+  assert.equal(result.candidate,undefined);
+ }
 });
 
 test('large hands, multiple changes, clipping and lighting changes require another frame or review',()=>{
