@@ -22,7 +22,16 @@ export function createCameraObservation({width=640,height=640,center=[.5,.5]}={}
   source=meta.sourceKey;context=meta.contextKey;lastTime=meta.time;
   return {status:'ready',reason:'Puste tło przyjęte. Odczyt wymaga nowych nieruchomych klatek.'};
  }
- function snapshot(value){return value?{...value,candidate:{...value.candidate},alternate:{...value.alternate},autoCandidate:value.autoCandidate?{...value.autoCandidate}:null,autoMetrics:value.autoMetrics?{...value.autoMetrics,endpointWidthsPx:[...value.autoMetrics.endpointWidthsPx]}:undefined,frame:value.frame.slice()}:null;}
+ function snapshot(value){
+  if(!value)return null;
+  const copy={...value,frame:value.frame.slice()};
+  if(value.candidate)copy.candidate={...value.candidate};
+  if(value.alternate)copy.alternate={...value.alternate};
+  if(value.autoCandidate)copy.autoCandidate={...value.autoCandidate};
+  if(value.autoMetrics)copy.autoMetrics={...value.autoMetrics,endpointWidthsPx:[...value.autoMetrics.endpointWidthsPx]};
+  if(value.candidates)copy.candidates=value.candidates.map(item=>({...item,candidate:{...item.candidate},alternate:{...item.alternate},autoCandidate:{...item.autoCandidate}}));
+  return copy;
+ }
  function observe(frame,meta){
   validate(meta);const captured=copyFrame(frame);
   if(!empty)return {status:'uninitialized',reason:'Najpierw ustaw puste tło.'};
@@ -32,7 +41,7 @@ export function createCameraObservation({width=640,height=640,center=[.5,.5]}={}
   if(meta.contextKey!==context){pending=null;previous=null;context=meta.contextKey;}
   lastTime=meta.time;pending=null;
   const result=detectDartChange(baseline,captured,previous,{width,height,emptyReference:empty,center});previous=captured;
-  if(result.status==='candidate'){
+  if(result.status==='candidate'||result.status==='candidates'){
    pending={...result,id:`camera-frame-${++sequence}`,time:meta.time,contextKey:context,sourceKey:source,frame:captured};
    return snapshot(pending);
   }

@@ -20,7 +20,7 @@ export function createCameraAutoSession({minFrames=3,minStableMs=700,maxTipDista
  const blocked=message=>{pause(message);return {status:'blocked',reason:message};};
  const stable=(run,time)=>run.frames>=minFrames&&(time-run.started)*1000>=minStableMs-1e-6;
  function observe(value={}){
-  const {time,sourceKey,contextKey,turnKey,status,point,field,autoEligible=false,emptyBoard=false,turnComplete=false}=value;
+  const {time,sourceKey,contextKey,turnKey,status,point,field,autoEligible=false,emptyBoard=false,turnComplete=false,darts}=value;
   if(!Number.isFinite(time)||time<0||!text(sourceKey)||!text(contextKey)||!text(turnKey)){
    invalidate('Brak tożsamości świeżej klatki lub kolejki.');throw Error(reason);
   }
@@ -37,7 +37,7 @@ export function createCameraAutoSession({minFrames=3,minStableMs=700,maxTipDista
   if(['removed','lighting','uninitialized','lost'].includes(status)){
    waitingForEmpty=true;return blocked('Obraz lub lotki zmieniły się. Potrzebna stabilna pusta tarcza.');
   }
-  if(!['empty','candidate'].includes(status))return blocked('Brak jednoznacznego nieruchomego odczytu.');
+  if(!['empty','candidate','candidates'].includes(status))return blocked('Brak jednoznacznego nieruchomego odczytu.');
   if(waitingForEmpty){
    dropCandidate();
    // `empty` relative to the last accepted dart is NOT an empty board.
@@ -50,22 +50,37 @@ export function createCameraAutoSession({minFrames=3,minStableMs=700,maxTipDista
    waitingForEmpty=false;emptyRun=null;reason='Gotowy na nową lotkę.';return {status:'armed',reason};
   }
   if(status==='empty'){dropCandidate();reason='Czekam na nową lotkę.';return {status:'waiting',reason};}
-  const validPoint=point&&Number.isFinite(point.x)&&Number.isFinite(point.y)&&point.x>=0&&point.x<=1&&point.y>=0&&point.y<=1;
-  if(autoEligible!==true||!validPoint||!validDart(field)||field.number===0||field.nearWire!==false)return blocked('Propozycja wymaga ręcznego sprawdzenia grotu.');
-  const same=candidate&&candidate.dart.number===field.number&&candidate.dart.multiplier===field.multiplier&&
-   Math.hypot(point.x-candidate.point.x,point.y-candidate.point.y)<=maxTipDistance;
-  if(!same){dropCandidate();candidate={started:time,frames:0,point:{x:point.x,y:point.y},dart:{number:field.number,multiplier:field.multiplier}};}
+  // One dart arrives as `candidate`; a whole turn can arrive as `candidates`.
+  // Every entry must pass the same rules on its own — one uncertain dart blocks
+  // the entire series, so nothing is half-saved.
+  const entries=Array.isArray(darts)&&darts.length?darts:[{point,field,autoEligible}];
+  if(entries.length>3||(status==='candidates'&&entries.length<2)||(status==='candidate'&&entries.length!==1))return blocked('Brak jednoznacznego zestawu lotek.');
+  const normalized=[];
+  for(const entry of entries){
+   const entryPoint=entry&&entry.point,entryField=entry&&entry.field;
+   const validPoint=entryPoint&&Number.isFinite(entryPoint.x)&&Number.isFinite(entryPoint.y)&&entryPoint.x>=0&&entryPoint.x<=1&&entryPoint.y>=0&&entryPoint.y<=1;
+   if(entry?.autoEligible!==true||!validPoint||!validDart(entryField)||entryField.number===0||entryField.nearWire!==false)return blocked('Propozycja wymaga ręcznego sprawdzenia grotu.');
+   normalized.push({point:{x:entryPoint.x,y:entryPoint.y},dart:{number:entryField.number,multiplier:entryField.multiplier}});
+  }
+  const similar=(a,b)=>a.dart.number===b.dart.number&&a.dart.multiplier===b.dart.multiplier&&
+   Math.hypot(a.point.x-b.point.x,a.point.y-b.point.y)<=maxTipDistance;
+  const same=candidate&&candidate.items.length===normalized.length&&(()=>{
+   const old=[...candidate.items];
+   for(const item of normalized){const index=old.findIndex(value=>similar(value,item));if(index<0)return false;old.splice(index,1);}
+   return true;
+  })();
+  if(!same){dropCandidate();candidate={started:time,frames:0,items:normalized};}
   candidate.frames++;
   if(pending)return {status:'awaiting-commit',reason:'Odczyt czeka na wynik zapisu.'};
   if(!stable(candidate,time)){reason='Sprawdzam zgodność kolejnych klatek.';return {status:'tracking',reason};}
-  pending={token:`camera-auto-${++sequence}`,source,context,turn,dart:{...candidate.dart}};
+  pending={token:`camera-auto-${++sequence}`,source,context,turn,darts:candidate.items.map(item=>({...item.dart}))};
   reason='Stabilna propozycja gotowa do zapisu.';
-  return {status:'ready',token:pending.token,dart:{...pending.dart},sourceKey:source,contextKey:context,turnKey:turn,reason};
+  return {status:'ready',token:pending.token,dart:{...pending.darts[0]},darts:pending.darts.map(dart=>({...dart})),sourceKey:source,contextKey:context,turnKey:turn,reason};
  }
  function commit(token,{applied=false}={}){
   if(!pending||pending.token!==token)throw Error('Brak bieżącej propozycji automatycznego odczytu.');
   if(applied!==true){invalidate('Zapis niepotwierdzony. Sprawdź wynik gry przed wznowieniem.');return {status:'blocked',reason};}
-  acceptedDarts++;dropCandidate();emptyRun=null;waitingForEmpty=acceptedDarts>=3;
+  acceptedDarts+=pending.darts.length;dropCandidate();emptyRun=null;waitingForEmpty=acceptedDarts>=3;
   reason=waitingForEmpty?'Kolejka zakończona. Czekam na pustą tarczę.':'Lotka zapisana. Czekam na następną.';
   return {status:'accepted',acceptedDarts,waitingForEmpty,reason};
  }

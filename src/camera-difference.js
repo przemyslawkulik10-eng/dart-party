@@ -145,18 +145,34 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
   }
   if(pixels.length>=minChangedPixels)components.push(pixels);
  }
- if(components.length!==1)return {status:'ambiguous',reason:'Nie można odizolować jednej zmiany.',components:components.length,changed};
- const pixels=components[0];let mx=0,my=0;for(const [x,y] of pixels){mx+=x;my+=y;}mx/=pixels.length;my/=pixels.length;
- let xx=0,yy=0,xy=0;for(const [x,y] of pixels){xx+=(x-mx)**2;yy+=(y-my)**2;xy+=(x-mx)*(y-my);}
- const angle=.5*Math.atan2(2*xy,xx-yy),ux=Math.cos(angle),uy=Math.sin(angle);let lo=Infinity,hi=-Infinity;
- for(const [x,y] of pixels){const t=(x-mx)*ux+(y-my)*uy;lo=Math.min(lo,t);hi=Math.max(hi,t);}
- const trace=xx+yy,delta=Math.hypot(xx-yy,2*xy),elongation=(trace+delta)/Math.max(1,trace-delta);
- if(hi-lo<Math.max(8,Math.min(width,height)*.025)||elongation<2)return {status:'ambiguous',reason:'Zmiana nie przypomina wydłużonej lotki.',changed};
- if(pixels.some(([x,y])=>x<2||y<2||x>=width-2||y>=height-2))return {status:'ambiguous',reason:'Obiekt jest ucięty krawędzią obrazu.',changed};
- const endpoints=[lo,hi].map(t=>({x:Math.max(0,Math.min(1,(mx+t*ux)/(width-1))),y:Math.max(0,Math.min(1,(my+t*uy)/(height-1)))}));
- const shape=assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,reference,current,lighting,threshold});
+ // Each component is read on its own. One turn can add up to three darts before
+ // the next frame, so two or three shaped, unambiguous components are legitimate
+ // candidates; one bad piece still rejects the whole frame.
+ function analyzeComponent(pixels){
+  let mx=0,my=0;for(const [x,y] of pixels){mx+=x;my+=y;}mx/=pixels.length;my/=pixels.length;
+  let xx=0,yy=0,xy=0;for(const [x,y] of pixels){xx+=(x-mx)**2;yy+=(y-my)**2;xy+=(x-mx)*(y-my);}
+  const angle=.5*Math.atan2(2*xy,xx-yy),ux=Math.cos(angle),uy=Math.sin(angle);let lo=Infinity,hi=-Infinity;
+  for(const [x,y] of pixels){const t=(x-mx)*ux+(y-my)*uy;lo=Math.min(lo,t);hi=Math.max(hi,t);}
+  const trace=xx+yy,delta=Math.hypot(xx-yy,2*xy),elongation=(trace+delta)/Math.max(1,trace-delta);
+  if(hi-lo<Math.max(8,Math.min(width,height)*.025)||elongation<2)return {reason:'Zmiana nie przypomina wydłużonej lotki.'};
+  if(pixels.some(([x,y])=>x<2||y<2||x>=width-2||y>=height-2))return {reason:'Obiekt jest ucięty krawędzią obrazu.'};
+  const endpoints=[lo,hi].map(t=>({x:Math.max(0,Math.min(1,(mx+t*ux)/(width-1))),y:Math.max(0,Math.min(1,(my+t*uy)/(height-1)))}));
+  return {shape:assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,reference,current,lighting,threshold})};
+ }
  // The flight floats in front of the board, so perspective can place it closer
  // to the bull than the tip. The narrower, tapering end is the tip; the board
  // field must be read there, not at the end nearest the center.
- return {status:'candidate',candidate:{...shape.tip},alternate:{...shape.tipAlternate},changed,requiresReview:true,...shape,reason:'Propozycja grotu (węższego końca). Potwierdź rzeczywisty grot; cień lub piórko mogą dać błędny punkt.'};
+ const proposal='Propozycja grotu (węższego końca). Potwierdź rzeczywisty grot; cień lub piórko mogą dać błędny punkt.';
+ if(components.length===1){
+  const read=analyzeComponent(components[0]);
+  if(read.reason)return {status:'ambiguous',reason:read.reason,changed};
+  return {status:'candidate',candidate:{...read.shape.tip},alternate:{...read.shape.tipAlternate},changed,requiresReview:true,...read.shape,reason:proposal};
+ }
+ if(components.length>3)return {status:'ambiguous',reason:'Więcej niż trzy zmiany naraz — usuń lotki i odczytaj kolejkę ponownie.',components:components.length,changed};
+ const reads=components.map(analyzeComponent),bad=reads.find(read=>read.reason);
+ if(bad)return {status:'ambiguous',reason:bad.reason,components:components.length,changed};
+ // A series is saved only when every piece is eligible on its own; a hand,
+ // shadow or clipped fragment beside a dart must never be half-saved.
+ if(reads.some(read=>!read.shape.autoEligible))return {status:'ambiguous',reason:'Kształt którejś zmiany nie jest pewny — seria nie zostanie zapisana. Usuń lotki i rzuć pojedynczo.',components:components.length,changed};
+ return {status:'candidates',candidates:reads.map(read=>({candidate:{...read.shape.tip},alternate:{...read.shape.tipAlternate},autoEligible:true,autoCandidate:{...read.shape.autoCandidate},autoMetrics:read.shape.autoMetrics,tip:{...read.shape.tip}})),changed,requiresReview:true,reason:'Rozpoznano kilka lotek. Automat zapisze całą serię, gdy każda pozostanie stabilna; niepewny kształt blokuje całą serię.'};
 }

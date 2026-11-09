@@ -196,3 +196,29 @@ test('NaN and invalid detector options cannot disable motion or ambiguity checks
  assert.throws(()=>detectDartChange(empty,dart,empty,{...options,maxChangeFraction:1}),/parametry/);
  assert.equal(detectDartChange(empty,dart,empty,options).status,'unstable');
 });
+
+test('two or three separated darts in one frame become a candidate series',()=>{
+ // A whole turn can reach the detector in one frame. Each dart must pass the
+ // same shape gate on its own; the series is not saved when any piece is unsure.
+ function drawDart(f,cy){
+  for(let x=15;x<=85;x++){
+   const radius=x<30?(x<21?0:1):x<48?3:x<65?1:Math.max(2,Math.floor(11*(1-Math.abs(x-75)/11)));
+   for(let y=cy-radius;y<=cy+radius;y++)f[y*width+x]=40;
+  }
+  return f;
+ }
+ for(const rows of [[25,75],[16,50,84]]){
+  const both=rows.reduce((f,cy)=>drawDart(f,cy),frame());
+  const result=detectDartChange(empty,both,both,{...options,maxChangeFraction:.25});
+  assert.equal(result.status,'candidates');assert.equal(result.candidates.length,rows.length);
+  assert.equal(result.candidate,undefined);assert.equal(result.requiresReview,true);
+  for(const item of result.candidates){
+   assert.equal(item.autoEligible,true);assert.ok(item.autoCandidate);
+   assert.ok(item.autoCandidate.x<.2);assert.ok(item.autoMetrics.widthRatio>=2.5);
+  }
+ }
+ // One blunt fragment beside shaped darts blocks the whole series.
+ const blunt=line(drawDart(frame(),75),20,40,25);
+ const mixed=drawDart(blunt,75);
+ assert.equal(detectDartChange(empty,mixed,mixed,{...options,maxChangeFraction:.25}).status,'ambiguous');
+});

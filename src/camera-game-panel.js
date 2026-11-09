@@ -8,6 +8,7 @@ import {createCameraReviewFrame} from './camera-review-frame.js';
 import {createCameraObservation} from './camera-observation.js';
 import {getCameraGame,subscribeCameraGame,applyCameraDart} from './camera-game-session.js';
 import {createCameraReview} from './camera-game-adapter.js';
+import {dartLabel} from './engine.js';
 
 // The camera lives outside #app: scoring re-renders must never replace its stream.
 const app=document.getElementById('app');
@@ -15,7 +16,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.16';
+const VERSION='01.17';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -36,7 +37,7 @@ const autoMode=new URLSearchParams(location.search).get('cameraAuto')!=='0';
 const autoSession=createCameraAutoSession();let emptyPrevious=null,lastDiagnosticTime=-Infinity;
 if(autoMode){
  $('read').textContent='Wznów automatyczne liczenie';
- panel.querySelector('.cg-note').textContent='Automatyczne liczenie: jedna lotka naraz. Pewny odczyt z kolejnych klatek zapisuje się sam, bez kliknięcia. Po trzeciej lotce gra przechodzi do następnego gracza — wyjmij wtedy wszystkie lotki. Niepewne trafienia zatrzymują zapis.';
+ panel.querySelector('.cg-note').textContent='Automatyczne liczenie: cała kolejka do trzech lotek. Pewny odczyt z kolejnych klatek zapisuje się sam, bez kliknięcia. Po trzeciej lotce gra przechodzi do następnego gracza — wyjmij wtedy wszystkie lotki. Niepewne trafienia zatrzymują zapis. Wcześniej wpisaną lotkę, która wypadła, cofnij w grze.';
 }
 const video=$('video'),stage=$('stage'),scene=$('scene'),gate=new CameraFrameGate(),review=createCameraReview(),reviewFrame=createCameraReviewFrame();
 const analysis=document.createElement('canvas');analysis.width=analysis.height=640;
@@ -101,8 +102,9 @@ function buttons(){
  steps();
 }
 function markers(mark=pending?.point){
+ const extra=Array.isArray(mark)?(Array.isArray(mark[0])?mark:[mark]):[];
  $('markers').replaceChildren();
- [...points,...(mark?[mark]:[])].forEach(([x,y],i)=>{const m=document.createElement('span');m.className='cg-marker';m.style.left=`${x*100}%`;m.style.top=`${y*100}%`;m.textContent=i<points.length?String(i+1):'×';$('markers').append(m);});
+ [...points,...extra].forEach(([x,y],i)=>{const m=document.createElement('span');m.className='cg-marker';m.style.left=`${x*100}%`;m.style.top=`${y*100}%`;m.textContent=i<points.length?String(i+1):'×';$('markers').append(m);});
 }
 function layout(){
  const ratio=video.videoWidth&&video.videoHeight?video.videoWidth/video.videoHeight:1,swapped=rotation%180!==0;
@@ -167,6 +169,15 @@ function calibrationCrop(){
 function capture(){actx.drawImage(video,crop.x,crop.y,crop.size,crop.size,0,0,640,640);return toGray(actx.getImageData(0,0,640,640).data);}
 function metadata(game){return {time:video.currentTime,contextKey:game?key(game):'panel-bez-gry',sourceKey:`${sourceVersion}:${frameSize}:${JSON.stringify(points)}`};}
 function autoTurnKey(game){return JSON.stringify([game.game,game.sessionId,game.player,game.phase,game.target]);}
+function seriesEntries(found){
+ // Every detected component goes through calibration to its own board field.
+ if(found.status!=='candidates')return null;
+ return found.candidates.map(item=>{
+  const tip=item.autoCandidate;
+  const point=tip?[(crop.x+tip.x*crop.size)/video.videoWidth,(crop.y+tip.y*crop.size)/video.videoHeight]:null;
+  return {point,field:point?fieldAt(project(matrix,point)):null,autoEligible:item.autoEligible===true};
+ });
+}
 function autoObserve(frame,game){
  const meta=metadata(game);
  const emptyCheck=detectDartChange(emptyGray,frame,emptyPrevious,{width:640,height:640,emptyReference:emptyGray});
@@ -179,33 +190,46 @@ function autoObserve(frame,game){
  if(found.status==='removed'&&!autoSession.state.waitingForEmpty){
   clearBaseline('Lotka zniknęła w trakcie kolejki. Automatyczny zapis zatrzymany. Sprawdź i cofnij wcześniej zapisane trafienie, jeśli lotka wypadła.');return;
  }
+ const entries=seriesEntries(found);
  const tip=found.autoCandidate;
  const point=tip?[(crop.x+tip.x*crop.size)/video.videoWidth,(crop.y+tip.y*crop.size)/video.videoHeight]:null;
  const field=point?fieldAt(project(matrix,point)):null;
- const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:found.autoEligible===true,point:tip,field});
+ const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:found.autoEligible===true,point:tip,field,darts:entries});
  if(decision.status==='armed'){
   // The original empty reference was matched on several fresh frames. This is
   // safe to reset after the previous player's darts have actually been removed.
   observation.setEmpty(frame,meta);clearProposal();
  }
  if(decision.status!=='ready'){
-  status(found.status==='candidate'&&found.autoEligible!==true?found.autoReason:decision.status==='blocked'&&found.status!=='candidate'&&found.reason?found.reason:decision.reason);
-  if(field){showField(field);markers(point);}return;
+  const preview=entries?entries.map(entry=>entry.field).filter(value=>value&&value.number!==0):[];
+  if(entries){if(preview.length)showField(preview[0]);markers(entries.map(entry=>entry.point).filter(Boolean));}
+  else if(field){showField(field);markers(point);}
+  status(found.status==='candidate'&&found.autoEligible!==true?found.autoReason:decision.status==='blocked'&&found.status!=='candidate'?found.reason||decision.reason:decision.reason);
+  return;
  }
  // All gates use this fresh capture. Recheck the owner just before the write.
  const current=getCameraGame();
  if(!ready()||!current||current.revision!==game.revision){autoSession.invalidate();status('Kolejka zmieniła się. Czekam na pustą tarczę.');return;}
- const dart=game.game==='cricket'&&game.twentyLocked&&decision.dart.number===20?{number:0,multiplier:1}:decision.dart;
+ const darts=Array.isArray(decision.darts)&&decision.darts.length?decision.darts:[decision.dart];
+ const labels=[];
  committing=true;
  try{
-  applyCameraDart(dart,game.revision);
+  for(const raw of darts){
+   const active=getCameraGame();
+   if(!ready()||!active)throw new Error('Kolejka zmieniła się w trakcie zapisu serii.');
+   const dart=active.game==='cricket'&&active.twentyLocked&&raw.number===20?{number:0,multiplier:1}:raw;
+   applyCameraDart(dart,active.revision);
+   labels.push(dartLabel(dart));
+  }
   observation.accept(found.id,{applied:true,contextKey:meta.contextKey});
   const commit=autoSession.commit(decision.token,{applied:true});
-  clearProposal();$('result').textContent=`Zapisano: ${field.label}`;markers(point);
-  status(commit.acceptedDarts>=3?'Trzy lotki zapisane. Gra przełącza gracza — wyjmij lotki, żeby automat ruszył dalej.':'Lotka zapisana automatycznie. Rzuć następną.');
+  clearProposal();$('result').textContent=`Zapisano: ${labels.join(' · ')}`;
+  if(entries)markers(entries.map(entry=>entry.point).filter(Boolean));else markers(point);
+  status(commit.acceptedDarts>=3?'Trzy lotki zapisane. Gra przełącza gracza — wyjmij lotki, żeby automat ruszył dalej.':`Zapisano ${darts.length} ${darts.length===1?'lotkę':'lotki'} automatycznie. Rzuć następną.`);
  }catch(e){
   // A storage failure can happen after a handler changed the score: never retry.
-  clearBaseline(`Zapis automatyczny zatrzymany: ${e.message}`);
+  const saved=darts.length-labels.length;
+  clearBaseline(`${saved?`Zapisano ${saved} z ${darts.length} lotek. `:''}Zapis automatyczny zatrzymany: ${e.message}`);
  }finally{committing=false;lastRevision=getCameraGame()?.revision??null;syncGame();}
 }
 function showField(field){$('result').textContent=`Do sprawdzenia: ${field.label}${field.nearWire?' · blisko drutu':''}`;}
@@ -284,7 +308,7 @@ navigator.mediaDevices?.addEventListener?.('devicechange',()=>{if(!panel.hidden)
 $('rotate').onclick=()=>{rotation=(rotation+90)%360;pan=[0,0];layout();saveCalibration();};
 $('plus').onclick=()=>{zoom=viewZoom(zoom+.25);layout();saveCalibration();};$('minus').onclick=()=>{zoom=viewZoom(zoom-.25);layout();saveCalibration();};
 $('calibrate').onclick=()=>resetCalibration(true);
-$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix)throw new Error('Poczekaj na świeży obraz kamery.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;if(autoMode){armed=true;status(game?'Puste tło zapamiętane. Automat liczy — rzucaj jedną lotkę naraz.':'Puste tło zapamiętane. Automat ruszy po rozpoczęciu meczu.');}else status('Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”, a potem wstaw lotkę. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje.');buttons();}catch(e){status(e.message);}};
+$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix)throw new Error('Poczekaj na świeży obraz kamery.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;if(autoMode){armed=true;status(game?'Puste tło zapamiętane. Automat liczy całą kolejkę — rzucaj do trzech lotek.':'Puste tło zapamiętane. Automat ruszy po rozpoczęciu meczu.');}else status('Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”, a potem wstaw lotkę. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje.');buttons();}catch(e){status(e.message);}};
 $('probe').onclick=()=>{
  if(probing){probing=false;observation.pause();$('result').textContent='Brak odczytu';status('Test zatrzymany. Nic nie zapisano.');buttons();return;}
  if(!ready()||!matrix||!observation.ready||armed||pending)return;

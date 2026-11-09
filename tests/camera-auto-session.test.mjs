@@ -120,3 +120,30 @@ test('invalid options and malformed ownership cannot weaken the gate',()=>{
  assert.throws(()=>observe(s,NaN,dart),/tożsamości/);assert.equal(s.state.waitingForEmpty,true);
  assert.throws(()=>s.commit(p.token,{applied:true}),/Brak bieżącej/);
 });
+
+test('a whole turn seen at once is ready only when every dart stays stable',()=>{
+ const s=createCameraAutoSession();arm(s);
+ const darts=[
+  {point:{x:.2,y:.2},field:{number:20,multiplier:1,nearWire:false},autoEligible:true},
+  {point:{x:.5,y:.5},field:{number:19,multiplier:3,nearWire:false},autoEligible:true},
+  {point:{x:.8,y:.8},field:{number:25,multiplier:2,nearWire:false},autoEligible:true}];
+ assert.equal(observe(s,1,{status:'candidates',darts}).status,'tracking');
+ // Reordered components are the same darts; a missing dart restarts the window.
+ assert.equal(observe(s,1.35,{status:'candidates',darts:[...darts].reverse()}).status,'tracking');
+ assert.equal(observe(s,1.7,{status:'candidates',darts:darts.slice(1)}).status,'tracking');
+ observe(s,2.05,{status:'candidates',darts});
+ assert.equal(observe(s,2.4,{status:'candidates',darts}).status,'tracking');
+ const ready=observe(s,2.75,{status:'candidates',darts});
+ assert.equal(ready.status,'ready');assert.equal(ready.darts.length,3);
+ const commit=s.commit(ready.token,{applied:true});
+ assert.equal(commit.acceptedDarts,3);assert.equal(commit.waitingForEmpty,true);
+});
+test('one ineligible dart blocks the entire series',()=>{
+ const s=createCameraAutoSession();arm(s);
+ const darts=[
+  {point:{x:.2,y:.2},field:{number:20,multiplier:1,nearWire:false},autoEligible:true},
+  {point:{x:.5,y:.5},field:{number:19,multiplier:1,nearWire:true},autoEligible:true}];
+ for(const time of [1,1.35,1.7])assert.equal(observe(s,time,{status:'candidates',darts}).status,'blocked');
+ assert.equal(observe(s,2,{status:'candidates',darts:[darts[0],{...darts[1],autoEligible:false}]}).status,'blocked');
+ assert.equal(s.state.pendingToken,null);
+});
