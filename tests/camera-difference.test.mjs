@@ -169,7 +169,11 @@ test('large hands, multiple changes, clipping and lighting changes require anoth
  const hand=frame();for(let y=10;y<70;y++)for(let x=10;x<70;x++)hand[y*width+x]=40;
  assert.equal(detectDartChange(empty,hand,hand,options).status,'ambiguous');
  const two=line(line(frame(),55,80,50),20,40,75);
- assert.equal(detectDartChange(empty,two,two,options).status,'ambiguous');
+ // Kapitan 09.11: a stable change of two objects is scored even when neither
+ // shape is certified; the narrow end of each piece is used as its tip.
+ const pair=detectDartChange(empty,two,two,options);
+ assert.equal(pair.status,'candidates');assert.equal(pair.candidates.length,2);
+ assert.ok(pair.candidates.every(item=>item.autoCandidate));
  assert.equal(detectDartChange(empty,frame(240),frame(240),options).status,'lighting');
  assert.equal(detectDartChange(empty,line(frame(),0,30,50),line(frame(),0,30,50),options).status,'ambiguous');
  assert.equal(detectDartChange(empty,frame(190),frame(190),options).status,'empty');
@@ -218,9 +222,9 @@ test('two or three separated darts in one frame become a candidate series',()=>{
   }
  }
  // One blunt fragment beside shaped darts blocks the whole series.
- const blunt=line(drawDart(frame(),75),20,40,25);
- const mixed=drawDart(blunt,75);
- assert.equal(detectDartChange(empty,mixed,mixed,{...options,maxChangeFraction:.25}).status,'ambiguous');
+ const blunt=line(frame(),20,40,25),mixed=drawDart(blunt,75);
+ const mixedResult=detectDartChange(empty,mixed,mixed,{...options,maxChangeFraction:.25});
+ assert.equal(mixedResult.status,'candidates');assert.equal(mixedResult.candidates.length,2);
 });
 
 test('a dark flight does not hide a bright, sharp tip behind a shadow verdict',()=>{

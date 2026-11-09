@@ -53,7 +53,7 @@ function assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,re
  const tipBins=narrow===0?[0,1,2]:[7,8,9];
  const tipStrong=tipBins.reduce((sum,index)=>sum+bins[index].strong,0),tipCount=tipBins.reduce((sum,index)=>sum+bins[index].count,0);
  const metrics={lengthPx:length,endpointWidthsPx:endWidths,shoulderWidthPx:shoulder,widthRatio:far/Math.max(1,near),strongFraction:strong/pixels.length,tipStrongFraction:tipCount?tipStrong/tipCount:0,supportPixels:pixels.length};
- const no=reason=>({autoEligible:false,autoCandidate:null,autoReason:reason,autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}});
+ const no=reason=>({autoEligible:false,autoCandidate:null,autoFallback:{...endpoints[narrow]},autoReason:reason,autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}});
  const margin=Math.max(4,Math.ceil(Math.min(width,height)*.01));
  if(length<Math.max(32,Math.min(width,height)*.05)||pixels.length<48||bins.some(b=>b.count<2))return no('Za mało szczegółów do niezależnego rozpoznania końca lotki.');
  if(pixels.some(([x,y])=>x<margin||y<margin||x>=width-margin||y>=height-margin))return no('Obiekt zbyt blisko brzegu kadru.');
@@ -191,8 +191,8 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  if(components.length>3)return {status:'ambiguous',reason:`Więcej niż trzy zmiany naraz (${components.length}) — usuń lotki i odczytaj kolejkę ponownie.`,components:components.length,changed};
  const reads=components.map(analyzeComponent),bad=reads.find(read=>read.reason);
  if(bad)return {status:'ambiguous',reason:bad.reason,components:components.length,changed};
- // A series is saved only when every piece is eligible on its own; a hand,
- // shadow or clipped fragment beside a dart must never be half-saved.
- if(reads.some(read=>!read.shape.autoEligible))return {status:'ambiguous',reason:'Kształt którejś zmiany nie jest pewny — seria nie zostanie zapisana. Usuń lotki i rzuć pojedynczo.',components:components.length,changed};
- return {status:'candidates',candidates:reads.map(read=>({candidate:{...read.shape.tip},alternate:{...read.shape.tipAlternate},autoEligible:true,autoCandidate:{...read.shape.autoCandidate},autoMetrics:read.shape.autoMetrics,tip:{...read.shape.tip}})),changed,requiresReview:true,reason:'Rozpoznano kilka lotek. Automat zapisze całą serię, gdy każda pozostanie stabilna; niepewny kształt blokuje całą serię.'};
+ // Kapitan order 09.11: every stable change of 1–3 board objects is scored.
+ // The certified tip wins when the shape gate agrees; otherwise the narrow end
+ // is used. Motion, size, border, exit and wire gates still protect the score.
+ return {status:'candidates',candidates:reads.map(read=>({candidate:{...read.shape.tip},alternate:{...read.shape.tipAlternate},autoEligible:true,autoCandidate:{...read.shape.autoCandidate??read.shape.autoFallback},autoFallback:{...read.shape.autoFallback},autoMetrics:read.shape.autoMetrics,tip:{...read.shape.tip}})),changed,requiresReview:true,reason:'Rozpoznano kilka lotek. Automat zapisze całą serię, gdy każda pozostanie stabilna.'};
 }

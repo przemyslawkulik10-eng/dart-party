@@ -16,7 +16,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.19';
+const VERSION='01.20';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -191,10 +191,10 @@ function autoObserve(frame,game){
   clearBaseline('Lotka zniknęła w trakcie kolejki. Automatyczny zapis zatrzymany. Sprawdź i cofnij wcześniej zapisane trafienie, jeśli lotka wypadła.');return;
  }
  const entries=seriesEntries(found);
- const tip=found.autoCandidate;
+ const tip=found.autoCandidate||found.autoFallback;
  const point=tip?[(crop.x+tip.x*crop.size)/video.videoWidth,(crop.y+tip.y*crop.size)/video.videoHeight]:null;
  const field=point?fieldAt(project(matrix,point)):null;
- const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:found.autoEligible===true,point:tip,field,darts:entries});
+ const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:found.autoEligible===true||!!found.autoFallback,point:tip,field,darts:entries});
  if(decision.status==='armed'){
   // The original empty reference was matched on several fresh frames. This is
   // safe to reset after the previous player's darts have actually been removed.
@@ -204,7 +204,7 @@ function autoObserve(frame,game){
   const preview=entries?entries.map(entry=>entry.field).filter(value=>value&&value.number!==0):[];
   if(entries){if(preview.length)showField(preview[0]);markers(entries.map(entry=>entry.point).filter(Boolean));}
   else if(field){showField(field);markers(point);}
-  status(found.status==='candidate'&&found.autoEligible!==true?found.autoReason:decision.status==='blocked'&&found.status!=='candidate'?found.reason||decision.reason:decision.reason);
+  status(found.status==='candidate'&&found.autoEligible!==true&&!found.autoFallback?found.autoReason:decision.status==='blocked'&&found.status!=='candidate'?found.reason||decision.reason:decision.reason);
   return;
  }
  // All gates use this fresh capture. Recheck the owner just before the write.
