@@ -15,7 +15,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.11';
+const VERSION='01.12';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -128,6 +128,17 @@ async function devices(){
    const probe=await navigator.mediaDevices.getUserMedia({video:true}).catch(()=>null);
    probe?.getTracks().forEach(t=>t.stop());
    list=await navigator.mediaDevices.enumerateDevices();
+  }
+  // Kamery iPhone'ów („Warzywko”, „Przemek”) przez Continuity wybierają się same,
+  // zamiast wbudowanej FaceTime HD; ręcznie wybrana kamera iPhone'a zostaje.
+  // Lista źródeł pochodzi wyłącznie z macOS — telefonu niewidocznego w systemie
+  // nie da się dodać po stronie aplikacji.
+  if(!live&&!starting){
+   const phones=list.filter(d=>d.kind==='videoinput'&&/warzywko|przemek/i.test(d.label));
+   const savedPhone=phones.find(d=>d.deviceId===selection.id);
+   const savedPresent=list.some(d=>d.kind==='videoinput'&&d.deviceId===selection.id);
+   const pick=savedPhone||phones.find(d=>/warzywko/i.test(d.label))||phones[0];
+   if(pick&&selection.id!==pick.deviceId&&(!savedPresent||/facetime/i.test(selection.label))){selection={id:pick.deviceId,label:pick.label};saveCameraSelection(longStorage,selection);}
   }
   $('device').replaceChildren(new Option('Domyślna kamera',''));for(const c of cameraOptions(list,selection)){const option=new Option(c.disabled?`${c.label} — nie do tarczy`:c.label,c.id);option.disabled=c.disabled;$('device').append(option);}$('device').value=selection.id;
  }catch{status('Lista kamer niedostępna. Sprawdź uprawnienia przeglądarki.');}
