@@ -243,6 +243,40 @@ test('a dark flight does not hide a bright, sharp tip behind a shadow verdict',(
  assert.ok(result.autoCandidate.x<.2);
 });
 
+test('a short, round change seen from the front offers its middle as the field',()=>{
+ // Real frames 09.11: the camera looks almost straight at the board, so a dart
+ // standing out of it is foreshortened to ~20-30 px at 640. Its narrow end is
+ // just one edge of a fragment, and the old elongation gate rejected the whole
+ // dart (components 0). The middle of the change is the safest point instead.
+ const blob=frame();
+ for(let y=36;y<=45;y++)for(let x=55;x<=66;x++)blob[y*width+x]=40;
+ const result=detectDartChange(empty,blob,blob,options);
+ assert.equal(result.status,'candidate');assert.equal(result.requiresReview,true);
+ assert.equal(result.autoEligible,false);assert.equal(result.autoCandidate,null);
+ assert.ok(result.autoFallback);assert.ok(result.autoReason.length>0);
+ assert.ok(Math.abs(result.autoFallback.x-60.5/99)<.02);
+ assert.ok(Math.abs(result.autoFallback.y-40.5/99)<.02);
+ assert.ok(Math.abs(result.candidate.x-result.autoFallback.x)<.02);
+ assert.ok(Math.abs(result.candidate.y-result.autoFallback.y)<.02);
+ // The same short change cut by the image edge still blocks the frame.
+ const cut=frame();
+ for(let y=36;y<=45;y++)for(let x=0;x<=11;x++)cut[y*width+x]=40;
+ assert.equal(detectDartChange(empty,cut,cut,options).status,'ambiguous');
+});
+
+test('a turn with a short blob beside a long dart keeps both candidates',()=>{
+ // A whole turn can hold a foreshortened dart next to a normally visible one.
+ // The short piece must not turn the whole series into "ambiguous".
+ const dart=line(frame(),15,85,20),blob=dart;
+ for(let y=66;y<=75;y++)for(let x=55;x<=66;x++)blob[y*width+x]=40;
+ const result=detectDartChange(empty,blob,blob,{...options,maxChangeFraction:.25});
+ assert.equal(result.status,'candidates');assert.equal(result.candidates.length,2);
+ const short=result.candidates.find(item=>item.autoFallback&&Math.abs(item.autoFallback.y-70.5/99)<.05);
+ assert.ok(short);assert.ok(short.autoCandidate);
+ assert.ok(Math.abs(short.autoCandidate.x-60.5/99)<.02);
+ assert.ok(Math.abs(short.autoCandidate.y-70.5/99)<.02);
+});
+
 test('a turn of darts split by wires is bridged back into individual darts',()=>{
  // Each dart crossing a wire arrives as two pieces: four components for two
  // darts. The same 2-px bridge is applied again until at most three pieces

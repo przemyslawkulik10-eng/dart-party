@@ -53,7 +53,12 @@ function assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,re
  const tipBins=narrow===0?[0,1,2]:[7,8,9];
  const tipStrong=tipBins.reduce((sum,index)=>sum+bins[index].strong,0),tipCount=tipBins.reduce((sum,index)=>sum+bins[index].count,0);
  const metrics={lengthPx:length,endpointWidthsPx:endWidths,shoulderWidthPx:shoulder,widthRatio:far/Math.max(1,near),strongFraction:strong/pixels.length,tipStrongFraction:tipCount?tipStrong/tipCount:0,supportPixels:pixels.length};
- const no=reason=>({autoEligible:false,autoCandidate:null,autoFallback:{...endpoints[narrow]},autoReason:reason,autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}});
+ // A camera looking straight at the board shortens a dart standing out of it to
+ // a few dozen pixels. Its narrow end is then just one edge of a fragment, so an
+ // automatic score takes the middle of that change instead of a guess at the tip.
+ const shortChange=length<Math.max(32,Math.min(width,height)*.05);
+ const fallbackPoint=shortChange?{x:Math.max(0,Math.min(1,mx/(width-1))),y:Math.max(0,Math.min(1,my/(height-1)))}:{...endpoints[narrow]};
+ const no=reason=>({autoEligible:false,autoCandidate:null,autoFallback:{...fallbackPoint},autoReason:reason,autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}});
  const margin=Math.max(4,Math.ceil(Math.min(width,height)*.01));
  if(length<Math.max(32,Math.min(width,height)*.05)||pixels.length<48||bins.some(b=>b.count<2))return no('Za mało szczegółów do niezależnego rozpoznania końca lotki.');
  if(pixels.some(([x,y])=>x<margin||y<margin||x>=width-margin||y>=height-margin))return no('Obiekt zbyt blisko brzegu kadru.');
@@ -174,8 +179,13 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
   const angle=.5*Math.atan2(2*xy,xx-yy),ux=Math.cos(angle),uy=Math.sin(angle);let lo=Infinity,hi=-Infinity;
   for(const [x,y] of pixels){const t=(x-mx)*ux+(y-my)*uy;lo=Math.min(lo,t);hi=Math.max(hi,t);}
   const trace=xx+yy,delta=Math.hypot(xx-yy,2*xy),elongation=(trace+delta)/Math.max(1,trace-delta);
-  if(hi-lo<Math.max(8,Math.min(width,height)*.025)||elongation<2)return {reason:'Zmiana nie przypomina wydłużonej lotki.'};
+  // Only a cut object has no safe point left. A short or round change is exactly
+  // what a dart seen from the front looks like; its middle is the best field.
   if(pixels.some(([x,y])=>x<2||y<2||x>=width-2||y>=height-2))return {reason:'Obiekt jest ucięty krawędzią obrazu.'};
+  const centroid={x:Math.max(0,Math.min(1,mx/(width-1))),y:Math.max(0,Math.min(1,my/(height-1)))};
+  if(hi-lo<Math.max(8,Math.min(width,height)*.025)||elongation<2){
+   return {shape:{autoEligible:false,autoCandidate:null,autoFallback:{...centroid},autoReason:'Krótka, zbita zmiana — pole pod środkiem zmiany; grot do potwierdzenia.',autoMetrics:{lengthPx:hi-lo,elongation,supportPixels:pixels.length},tip:{...centroid},tipAlternate:{...centroid}}};
+  }
   const endpoints=[lo,hi].map(t=>({x:Math.max(0,Math.min(1,(mx+t*ux)/(width-1))),y:Math.max(0,Math.min(1,(my+t*uy)/(height-1)))}));
   return {shape:assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,reference,current,lighting,threshold})};
  }
