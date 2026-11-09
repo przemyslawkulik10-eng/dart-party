@@ -23,11 +23,11 @@ panel.innerHTML=`<div class="cg-top"><h2>Kamera</h2><label class="cg-source"><sp
 <p class="cg-guide" data-cg="guide">Uruchom kamerę i wskaż cztery brzegi tarczy.</p>
 <div class="cg-actions"><button type="button" data-cg="start" class="primary">Uruchom kamerę</button></div>
 <div class="cg-actions cg-view"><button type="button" data-cg="rotate" disabled>Obróć 90°</button><span class="cg-zoomgroup"><button type="button" data-cg="minus" aria-label="Pomniejsz obraz" disabled>−</button><span data-cg="zoom" class="cg-zoom">100%</span><button type="button" data-cg="plus" aria-label="Powiększ obraz" disabled>+</button></span><button type="button" data-cg="calibrate" disabled>Kalibruj ponownie</button></div>
-<div class="cg-actions"><button type="button" data-cg="baseline" disabled>Pusta tarcza — zapamiętaj tło</button></div>
+<div class="cg-actions"><button type="button" data-cg="baseline" disabled>Pusta tarcza — zapamiętaj tło</button><button type="button" data-cg="probe" disabled>Sprawdź, czy widzę lotkę</button></div>
 <div class="cg-actions"><button type="button" data-cg="read" class="primary" disabled>Rozpoznaj lotkę</button></div>
 <div class="cg-actions"><button type="button" data-cg="stop" disabled>Zatrzymaj odczyt</button><button type="button" data-cg="confirm" class="primary" disabled>Zatwierdź lotkę</button><button type="button" data-cg="correct" disabled>Popraw</button></div>
 <div class="cg-correction" data-cg="correction" hidden><p>Wskaż grot na podglądzie albo wybierz rzeczywiste pole. Lotka, która wypadła, daje 0.</p><label>Pole<select data-cg="number"><option value="0">Pudło / lotka wypadła — 0</option>${Array.from({length:20},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}<option value="25">BULL</option></select></label><label>Mnożnik<select data-cg="multiple"><option value="1">Pojedyncza / BULL 25</option><option value="2">Podwójna / BULL 50</option><option value="3">Potrójna</option></select></label><button type="button" data-cg="correct-save">Użyj poprawki</button></div>
-<p class="cg-note">Kalibracja i widok zapisują się automatycznie — przetrwają zamknięcie karty. Brak wykrycia nie oznacza 0. Po wyjęciu lotek zapamiętaj ponownie pustą tarczę. Wcześniej wpisaną lotkę, która wypadła, cofnij w grze. Klawiatura gry pozostaje dostępna.</p>`;
+<p class="cg-note">Kalibracja i widok zapisują się automatycznie — przetrwają zamknięcie karty. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje. Brak wykrycia nie oznacza 0. Po wyjęciu lotek zapamiętaj ponownie pustą tarczę. Wcześniej wpisaną lotkę, która wypadła, cofnij w grze. Klawiatura gry pozostaje dostępna.</p>`;
 shell.append(panel);
 const $=name=>panel.querySelector(`[data-cg="${name}"]`);
 // Physical validation is still outstanding: auto-write is available only in the
@@ -42,7 +42,7 @@ const video=$('video'),stage=$('stage'),scene=$('scene'),gate=new CameraFrameGat
 const analysis=document.createElement('canvas');analysis.width=analysis.height=640;
 const actx=analysis.getContext('2d',{willReadFrequently:true});
 let observation=createCameraObservation(),emptyGray=null,points=[],matrix=null,crop=null,sourceVersion=0;
-let live=false,muted=false,starting=false,armed=false,committing=false,pending=null,verify=0;
+let live=false,muted=false,starting=false,armed=false,probing=false,committing=false,pending=null,verify=0;
 let rotation=0,zoom=1,pan=[0,0],drag=null,suppressClick=false,connectionTimer=null,frameSize='',lastFrame=-1,lastRevision=null;
 let storage;try{storage=sessionStorage;}catch{}
 let longStorage;try{longStorage=localStorage;}catch{}
@@ -88,7 +88,7 @@ function expireProposal(){
  clearProposal();observation.pause();lastFrame=-1;
  status('Odczyt wygasł. Ponownie sprawdzam lotkę na świeżym obrazie.');buttons();
 }
-function clearBaseline(message){armed=false;verify=0;observation.invalidate();autoSession.invalidate();emptyPrevious=null;emptyGray=null;lastFrame=-1;clearProposal();if(message)status(message);buttons();}
+function clearBaseline(message){armed=false;probing=false;verify=0;observation.invalidate();autoSession.invalidate();emptyPrevious=null;emptyGray=null;lastFrame=-1;clearProposal();if(message)status(message);buttons();}
 function steps(){
  const chips=$('steps').children,index=!live?0:!matrix||verify?1:!observation.ready?2:3;
  for(let i=0;i<chips.length;i++)chips[i].classList.toggle('cg-step-active',i===index);
@@ -97,12 +97,14 @@ function buttons(){
  const game=getCameraGame(),fresh=ready();
  $('start').disabled=starting;$('calibrate').disabled=!live;
  for(const name of ['rotate','minus','plus'])$(name).disabled=!live;
- $('baseline').disabled=!game||!matrix||!fresh;
- $('read').disabled=!game||!matrix||!fresh||!observation.ready||armed;
+ $('baseline').disabled=!game||!matrix||!fresh||probing;
+ $('read').disabled=!game||!matrix||!fresh||!observation.ready||armed||probing;
+ $('probe').textContent=probing?'Zatrzymaj test':'Sprawdź, czy widzę lotkę';
+ $('probe').disabled=!probing&&(!game||!matrix||!fresh||!observation.ready||armed||!!pending);
  $('stop').disabled=!armed;
  $('confirm').disabled=!pending||!reviewFrame.stable||!fresh||!game||pending.revision!==game.revision;
  $('correct').disabled=!pending;
- $('guide').textContent=matrix?(verify?verifyGuide():'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
+ $('guide').textContent=matrix?(verify?verifyGuide():observation.ready?(probing?'Test: połóż lotkę i przytrzymaj nieruchomo.':armed?'Czekam na nową lotkę.':'Puste tło zapamiętane. Sprawdź, czy kamera widzi lotkę.'):'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
  steps();
 }
 function markers(mark=pending?.point){
@@ -190,6 +192,22 @@ function autoObserve(frame,game){
  }finally{committing=false;lastRevision=getCameraGame()?.revision??null;syncGame();}
 }
 function showField(field){$('result').textContent=`Do sprawdzenia: ${field.label}${field.nearWire?' · blisko drutu':''}`;}
+function probeObserve(frame,game){
+ const found=observation.observe(frame,metadata(game));
+ if(found.status==='candidate'){
+  const point=[(crop.x+found.candidate.x*crop.size)/video.videoWidth,(crop.y+found.candidate.y*crop.size)/video.videoHeight],field=fieldAt(project(matrix,point));
+  observation.reject(found.id);observation.pause();probing=false;
+  if(field.number===0){$('result').textContent='Brak odczytu';status('Kamera widzi nową zmianę, ale poza polem punktowym. Popraw kadr lub ustaw nowe puste tło.');}
+  else if(found.autoEligible){$('result').textContent=`Test — widzę: ${field.label}`;status(`Kamera widzi lotkę: ${field.label}. Test — nic nie zapisano; zdejmij lotkę przed odczytem.`);}
+  else{$('result').textContent=`Test — zmiana w ${field.label}`;status(`Kamera widzi nową zmianę w polu ${field.label}, ale kształt nie jest pewny. Test — nic nie zapisano; zdejmij lotkę przed odczytem.`);}
+  buttons();return;
+ }
+ if(found.status==='removed'){probing=false;observation.pause();$('result').textContent='Brak odczytu';status('Kamera widzi zmianę, której nie ma na pustym tle — tło nie było puste. Ustaw nowe puste tło.');buttons();return;}
+ if(found.status==='lighting'||found.status==='uninitialized'){probing=false;observation.pause();$('result').textContent='Brak odczytu';status(found.reason);buttons();return;}
+ if(found.status==='empty'){status('Nie widzę nowej lotki — połóż ją w polu kamery. Naciśnij „Zatrzymaj test”, aby przerwać.');return;}
+ if(found.status==='unstable'){status('Ruch w obrazie — przytrzymaj lotkę i telefon nieruchomo.');return;}
+ if(found.status==='ambiguous'){status(`Test: ${found.reason}`);return;}
+}
 function verifyProposal(frame,time){
  const check=reviewFrame.check(frame,time);
  if(['removed','candidate','ambiguous','lighting'].includes(check.status)){
@@ -238,6 +256,7 @@ function syncGame(){
  $('context').textContent=game?`${game.label||'Bieżący gracz'} · ${game.game==='bull-off'?'walka o start':game.game}`:'Poczekaj na aktywną kolejkę gracza.';
  if(!committing&&lastRevision!==game?.revision){
   if(observation.ready||pending){
+   probing=false;
    if(autoMode){clearProposal();observation.pause();autoSession.invalidate();emptyPrevious=null;lastFrame=-1;status('Kolejka zmieniła się. Czekam na stabilną pustą tarczę.');}
    else clearBaseline('Stan gry zmienił się. Usuń lotki i zapamiętaj pustą tarczę przed kolejnym odczytem.');
   }
@@ -254,8 +273,13 @@ $('device').onchange=()=>{selection={id:$('device').value,label:$('device').sele
 $('rotate').onclick=()=>{rotation=(rotation+90)%360;pan=[0,0];layout();saveCalibration();};
 $('plus').onclick=()=>{zoom=viewZoom(zoom+.25);layout();saveCalibration();};$('minus').onclick=()=>{zoom=viewZoom(zoom-.25);layout();saveCalibration();};
 $('calibrate').onclick=()=>resetCalibration(true);
-$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix||!game)throw new Error('Poczekaj na obraz i aktywną kolejkę.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;status('Puste tło zapamiętane. Włącz odczyt i rzuć jedną lotkę.');buttons();}catch(e){status(e.message);}};
-$('read').onclick=()=>{if(!observation.ready||!getCameraGame())return;armed=true;status(autoMode?'Sprawdzam stabilność pustej tarczy przed automatycznym zapisem.':'Czekam na jedną nową lotkę. Punkty dodasz po sprawdzeniu i zatwierdzeniu.');buttons();};
+$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix||!game)throw new Error('Poczekaj na obraz i aktywną kolejkę.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;status('Puste tło zapamiętane. Możesz sprawdzić, czy kamera widzi lotkę; potem włącz odczyt.');buttons();}catch(e){status(e.message);}};
+$('probe').onclick=()=>{
+ if(probing){probing=false;observation.pause();$('result').textContent='Brak odczytu';status('Test zatrzymany. Nic nie zapisano.');buttons();return;}
+ if(!ready()||!matrix||!observation.ready||armed||pending)return;
+ observation.pause();probing=true;$('result').textContent='Test — czekam na lotkę';status('Połóż lotkę na tarczy. Sprawdzam, czy kamera ją widzi; nic nie zapiszę.');buttons();
+};
+$('read').onclick=()=>{if(!observation.ready||!getCameraGame()||probing)return;armed=true;status(autoMode?'Sprawdzam stabilność pustej tarczy przed automatycznym zapisem.':'Czekam na jedną nową lotkę. Punkty dodasz po sprawdzeniu i zatwierdzeniu.');buttons();};
 $('stop').onclick=()=>clearBaseline('Odczyt zatrzymany. Przed wznowieniem zapamiętaj pustą tarczę.');
 $('correct').onclick=()=>{if(!pending)return;$('correction').hidden=!$('correction').hidden;$('number').value=String(pending.dart.number);$('multiple').value=String(pending.dart.multiplier);if(!$('correction').hidden)$('number').focus();};
 $('correct-save').onclick=()=>{if(!pending)return;const number=Number($('number').value),multiplier=number===0?1:Number($('multiple').value);if(number===25&&multiplier===3){status('BULL może mieć 25 albo 50 punktów.');return;}pending.dart={number,multiplier};$('correction').hidden=true;showField({label:number===0?'Pudło / wypadła · 0':number===25?`BULL · ${number*multiplier}`:`${['','S','D','T'][multiplier]}${number} · ${number*multiplier}`});buttons();};
@@ -272,18 +296,25 @@ $('confirm').onclick=()=>{
  finally{committing=false;lastRevision=getCameraGame()?.revision??null;syncGame();}
 };
 video.addEventListener('resize',()=>{if(!live||!video.videoWidth||!video.videoHeight)return;const size=`${video.videoWidth}x${video.videoHeight}`;if(size!==frameSize){frameSize=size;resetCalibration();layout();}});
-document.addEventListener('visibilitychange',()=>{gate.reset(video.currentTime,performance.now());clearProposal();observation.pause();autoSession.pause();emptyPrevious=null;lastFrame=-1;buttons();if(document.hidden)status('Odczyt wstrzymany, gdy strona jest w tle.');else if(live)void video.play().catch(()=>status('Naciśnij „Uruchom kamerę”, aby odzyskać obraz.'));});
+document.addEventListener('visibilitychange',()=>{gate.reset(video.currentTime,performance.now());probing=false;clearProposal();observation.pause();autoSession.pause();emptyPrevious=null;lastFrame=-1;buttons();if(document.hidden)status('Odczyt wstrzymany, gdy strona jest w tle.');else if(live)void video.play().catch(()=>status('Naciśnij „Uruchom kamerę”, aby odzyskać obraz.'));});
 const ticker=setInterval(()=>{
  if(panel.hidden)return;
- buttons();if(!live||!armed||document.hidden)return;
+ buttons();if(!live||document.hidden)return;
+ if(!armed&&!probing)return;
  const game=getCameraGame();if(!game||!ready()){
-  if(pending)clearProposal();observation.pause();autoSession.pause();emptyPrevious=null;
+  if(pending)clearProposal();
+  if(probing){
+   if(!game){probing=false;observation.pause();status('Test przerwany — brak aktywnej kolejki.');buttons();}
+   return;
+  }
+  observation.pause();autoSession.pause();emptyPrevious=null;
   status('Czekam na świeży obraz i aktywną kolejkę.');return;
  }
  if(video.currentTime===lastFrame)return;
  lastFrame=video.currentTime;
  try{
   const frame=capture();
+  if(probing){probeObserve(frame,game);buttons();return;}
   if(autoMode){autoObserve(frame,game);buttons();return;}
   if(pending){
    if(Date.now()-pending.capturedAt>30000){expireProposal();return;}
@@ -298,6 +329,9 @@ const ticker=setInterval(()=>{
    pending={...found,point,dart:{number:field.number,multiplier:field.multiplier},revision:game.revision,capturedAt};reviewFrame.begin(frame,emptyGray,lastFrame);markers();showField(field);status('Sprawdź zaznaczony grot. Zatwierdź lotkę albo popraw pole.');buttons();
   }else if(['removed','lighting','uninitialized'].includes(found.status))clearBaseline(found.reason);
   else status(found.reason);
- }catch(e){clearBaseline(`Odczyt zatrzymany: ${e.message}`);}
+ }catch(e){
+  if(probing){probing=false;observation.pause();$('result').textContent='Brak odczytu';status(`Test zatrzymany: ${e.message}`);buttons();}
+  else clearBaseline(`Odczyt zatrzymany: ${e.message}`);
+ }
 },350);
 window.addEventListener('pagehide',()=>{clearInterval(ticker);stopCamera();});
