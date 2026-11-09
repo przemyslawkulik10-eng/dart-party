@@ -42,7 +42,7 @@ const video=$('video'),stage=$('stage'),scene=$('scene'),gate=new CameraFrameGat
 const analysis=document.createElement('canvas');analysis.width=analysis.height=640;
 const actx=analysis.getContext('2d',{willReadFrequently:true});
 let observation=createCameraObservation(),emptyGray=null,points=[],matrix=null,crop=null,sourceVersion=0;
-let live=false,muted=false,starting=false,armed=false,committing=false,pending=null;
+let live=false,muted=false,starting=false,armed=false,committing=false,pending=null,verify=0;
 let rotation=0,zoom=1,pan=[0,0],drag=null,suppressClick=false,connectionTimer=null,frameSize='',lastFrame=-1,lastRevision=null;
 let storage;try{storage=sessionStorage;}catch{}
 let longStorage;try{longStorage=localStorage;}catch{}
@@ -80,7 +80,7 @@ function expireProposal(){
  clearProposal();observation.pause();lastFrame=-1;
  status('Odczyt wygasł. Ponownie sprawdzam lotkę na świeżym obrazie.');buttons();
 }
-function clearBaseline(message){armed=false;observation.invalidate();autoSession.invalidate();emptyPrevious=null;emptyGray=null;lastFrame=-1;clearProposal();if(message)status(message);buttons();}
+function clearBaseline(message){armed=false;verify=0;observation.invalidate();autoSession.invalidate();emptyPrevious=null;emptyGray=null;lastFrame=-1;clearProposal();if(message)status(message);buttons();}
 function steps(){
  const chips=$('steps').children,index=!live?0:!matrix?1:!observation.ready?2:3;
  for(let i=0;i<chips.length;i++)chips[i].classList.toggle('cg-step-active',i===index);
@@ -94,7 +94,7 @@ function buttons(){
  $('stop').disabled=!armed;
  $('confirm').disabled=!pending||!reviewFrame.stable||!fresh||!game||pending.revision!==game.revision;
  $('correct').disabled=!pending;
- $('guide').textContent=matrix?'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.':live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
+ $('guide').textContent=matrix?(verify===1?'Sprawdź środek: wskaż pierścień BULL 25.':verify===2?'Sprawdź środek: wskaż sam środek BULL 50.':'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
  steps();
 }
 function markers(mark=pending?.point){
@@ -113,10 +113,10 @@ function layout(){
  stage.classList.toggle('cg-hide-cursor',!!live&&!matrix);
 }
 new ResizeObserver(layout).observe(stage);
-function resetCalibration(clearStored=false){points=[];matrix=null;crop=null;sourceVersion++;if(clearStored)clearSavedCalibration();clearBaseline('Wskaż cztery punkty na zewnętrznym brzegu podwójnego pierścienia: 20, 6, 3, 11.');markers();buttons();}
+function resetCalibration(clearStored=false){points=[];matrix=null;crop=null;verify=0;sourceVersion++;if(clearStored)clearSavedCalibration();clearBaseline('Wskaż cztery punkty na zewnętrznym brzegu podwójnego pierścienia: 20, 6, 3, 11.');markers();buttons();}
 function stopCamera(message='Kamera wyłączona.'){
  sourceVersion++;source.stop();clearTimeout(connectionTimer);connectionTimer=null;live=false;starting=false;gate.reset();video.pause();video.srcObject=null;video.hidden=true;$('empty').hidden=false;
- points=[];matrix=null;crop=null;frameSize='';rotation=0;zoom=1;pan=[0,0];reticle.hidden=true;clearBaseline(message);layout();
+ points=[];matrix=null;crop=null;verify=0;frameSize='';rotation=0;zoom=1;pan=[0,0];reticle.hidden=true;clearBaseline(message);layout();
 }
 async function devices(){
  try{const list=await navigator.mediaDevices.enumerateDevices();$('device').replaceChildren(new Option('Domyślna kamera',''));for(const c of cameraOptions(list,selection)){const option=new Option(c.disabled?`${c.label} — nie do tarczy`:c.label,c.id);option.disabled=c.disabled;$('device').append(option);}$('device').value=selection.id;}catch{status('Lista kamer niedostępna. Sprawdź uprawnienia przeglądarki.');}
@@ -193,9 +193,20 @@ function verifyProposal(frame,time){
 }
 function choosePoint(point){
  if(!ready())return;
+ if(matrix&&verify){
+  const field=fieldAt(project(matrix,point));
+  if(verify===1){
+   if(field.number===25&&field.multiplier===1){verify=2;status('BULL 25 — dobrze. Wskaż teraz sam środek BULL 50.');}
+   else status(`Ten punkt to ${field.label}, a nie BULL 25. Popraw kalibrację przyciskiem „Kalibruj ponownie”.`);
+  }else{
+   if(field.number===25&&field.multiplier===2){verify=0;status('Kalibracja sprawdzona: 25 i 50. Usuń lotki i zapamiętaj pustą tarczę.');}
+   else status(`Ten punkt to ${field.label}, a nie BULL 50. Popraw kalibrację przyciskiem „Kalibruj ponownie”.`);
+  }
+  buttons();return;
+ }
  if(matrix){if(!pending||$('correction').hidden)return;const field=fieldAt(project(matrix,point));pending.dart={number:field.number,multiplier:field.multiplier};pending.point=point;showField(field);markers();return;}
  points.push(point);
- if(points.length===4){try{matrix=calibrate(points);crop=calibrationCrop();saveCalibration();status('Kalibracja gotowa. Usuń lotki i zapamiętaj pustą tarczę.');}catch(e){points.pop();matrix=null;status(e.message);}}
+ if(points.length===4){try{matrix=calibrate(points);crop=calibrationCrop();saveCalibration();verify=1;status('Kalibracja wstępna gotowa. Sprawdź środek: wskaż pierścień BULL 25.');}catch(e){points.pop();matrix=null;status(e.message);}}
  markers();buttons();if(matrix)reticle.hidden=true;stage.classList.toggle('cg-hide-cursor',!!live&&!matrix);
 }
 stage.addEventListener('click',event=>{if(suppressClick){suppressClick=false;return;}if(!live)return;try{choosePoint(imagePoint(event.clientX,event.clientY,scene.getBoundingClientRect(),rotation));}catch(e){status(e.message);}});
