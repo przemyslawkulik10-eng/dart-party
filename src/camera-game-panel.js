@@ -15,7 +15,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';bar.hidden=true;
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.02';
+const VERSION='01.03';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -105,7 +105,7 @@ function buttons(){
  $('stop').disabled=!armed;
  $('confirm').disabled=!pending||!reviewFrame.stable||!fresh||!game||pending.revision!==game.revision;
  $('correct').disabled=!pending;
- $('guide').textContent=matrix?(verify?verifyGuide():observation.ready?(probing?'Test: połóż lotkę i przytrzymaj nieruchomo.':armed?'Czekam na nową lotkę.':'Puste tło zapamiętane. Sprawdź, czy kamera widzi lotkę.'):'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
+ $('guide').textContent=matrix?(verify?verifyGuide():observation.ready?(probing?'Test: połóż lotkę i przytrzymaj nieruchomo.':armed?'Czekam na nową lotkę.':autoMode?'Puste tło zapamiętane. Włącz automatyczne liczenie.':'Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”.'):'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
  steps();
 }
 function markers(mark=pending?.point){
@@ -275,7 +275,7 @@ $('device').onchange=()=>{selection={id:$('device').value,label:$('device').sele
 $('rotate').onclick=()=>{rotation=(rotation+90)%360;pan=[0,0];layout();saveCalibration();};
 $('plus').onclick=()=>{zoom=viewZoom(zoom+.25);layout();saveCalibration();};$('minus').onclick=()=>{zoom=viewZoom(zoom-.25);layout();saveCalibration();};
 $('calibrate').onclick=()=>resetCalibration(true);
-$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix||!game)throw new Error('Poczekaj na obraz i aktywną kolejkę.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;status('Puste tło zapamiętane. Możesz sprawdzić, czy kamera widzi lotkę; potem włącz odczyt.');buttons();}catch(e){status(e.message);}};
+$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix||!game)throw new Error('Poczekaj na obraz i aktywną kolejkę.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;status(autoMode?'Puste tło zapamiętane. Włącz automatyczne liczenie, a potem rzuć lotkę.':'Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”, a potem wstaw lotkę. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje.');buttons();}catch(e){status(e.message);}};
 $('probe').onclick=()=>{
  if(probing){probing=false;observation.pause();$('result').textContent='Brak odczytu';status('Test zatrzymany. Nic nie zapisano.');buttons();return;}
  if(!ready()||!matrix||!observation.ready||armed||pending)return;
