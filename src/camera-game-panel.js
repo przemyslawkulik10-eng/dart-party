@@ -12,10 +12,10 @@ import {createCameraReview} from './camera-game-adapter.js';
 // The camera lives outside #app: scoring re-renders must never replace its stream.
 const app=document.getElementById('app');
 const shell=document.createElement('div');shell.className='camera-game-shell';app.before(shell);shell.append(app);
-const bar=document.createElement('div');bar.className='camera-game-bar';bar.hidden=true;
+const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.08';
+const VERSION='01.09';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -28,7 +28,7 @@ panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERS
 <div class="cg-actions"><button type="button" data-cg="read" class="primary" disabled>Rozpoznaj lotkę</button></div>
 <div class="cg-actions"><button type="button" data-cg="stop" disabled>Zatrzymaj odczyt</button><button type="button" data-cg="confirm" class="primary" disabled>Zatwierdź lotkę</button><button type="button" data-cg="correct" disabled>Popraw</button></div>
 <div class="cg-correction" data-cg="correction" hidden><p>Wskaż grot na podglądzie albo wybierz rzeczywiste pole. Lotka, która wypadła, daje 0.</p><label>Pole<select data-cg="number"><option value="0">Pudło / lotka wypadła — 0</option>${Array.from({length:20},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}<option value="25">BULL</option></select></label><label>Mnożnik<select data-cg="multiple"><option value="1">Pojedyncza / BULL 25</option><option value="2">Podwójna / BULL 50</option><option value="3">Potrójna</option></select></label><button type="button" data-cg="correct-save">Użyj poprawki</button></div>
-<p class="cg-note">Kalibracja i widok zapisują się automatycznie — przetrwają zamknięcie karty. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje. Brak wykrycia nie oznacza 0. Po wyjęciu lotek zapamiętaj ponownie pustą tarczę. Wcześniej wpisaną lotkę, która wypadła, cofnij w grze. Klawiatura gry pozostaje dostępna.</p>`;
+<p class="cg-note">Kalibracja, widok i wybrana kamera zapisują się automatycznie — przetrwają zamknięcie karty. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje. Brak wykrycia nie oznacza 0. Po wyjęciu lotek zapamiętaj ponownie pustą tarczę. Wcześniej wpisaną lotkę, która wypadła, cofnij w grze. Klawiatura gry pozostaje dostępna.</p>`;
 shell.append(panel);
 const $=name=>panel.querySelector(`[data-cg="${name}"]`);
 // Physical validation is still outstanding: auto-write is available only in the
@@ -45,9 +45,8 @@ const actx=analysis.getContext('2d',{willReadFrequently:true});
 let observation=createCameraObservation(),emptyGray=null,points=[],matrix=null,crop=null,sourceVersion=0;
 let live=false,muted=false,starting=false,armed=false,probing=false,committing=false,pending=null,verify=0;
 let rotation=0,zoom=1,pan=[0,0],drag=null,suppressClick=false,connectionTimer=null,frameSize='',lastFrame=-1,lastRevision=null;
-let storage;try{storage=sessionStorage;}catch{}
 let longStorage;try{longStorage=localStorage;}catch{}
-let selection=readCameraSelection(storage);
+let selection=readCameraSelection(longStorage);
 const guides=['Wskaż zewnętrzny brzeg D20 (góra).','Wskaż zewnętrzny brzeg D6 (prawo).','Wskaż zewnętrzny brzeg D3 (dół).','Wskaż zewnętrzny brzeg D11 (lewo).'];
 const VERIFY=[null,
  {name:'S20',ok:f=>f.number===20&&f.multiplier===1,guide:'Etap 1/3 · pojedyncze: wskaż S20 (góra).'},
@@ -130,7 +129,17 @@ function stopCamera(message='Kamera wyłączona.'){
  points=[];matrix=null;crop=null;verify=0;frameSize='';rotation=0;zoom=1;pan=[0,0];reticle.hidden=true;clearBaseline(message);layout();
 }
 async function devices(){
- try{const list=await navigator.mediaDevices.enumerateDevices();$('device').replaceChildren(new Option('Domyślna kamera',''));for(const c of cameraOptions(list,selection)){const option=new Option(c.disabled?`${c.label} — nie do tarczy`:c.label,c.id);option.disabled=c.disabled;$('device').append(option);}$('device').value=selection.id;}catch{status('Lista kamer niedostępna. Sprawdź uprawnienia przeglądarki.');}
+ try{
+  let list=await navigator.mediaDevices.enumerateDevices();
+  // Bez zgody przeglądarka ukrywa nazwy kamer. Jednorazowa próba otwiera okno
+  // zgody, żeby lista pokazała realne źródła (FaceTime, iPhone) do wyboru.
+  if(!list.some(d=>d.kind==='videoinput'&&d.label)){
+   const probe=await navigator.mediaDevices.getUserMedia({video:true}).catch(()=>null);
+   probe?.getTracks().forEach(t=>t.stop());
+   list=await navigator.mediaDevices.enumerateDevices();
+  }
+  $('device').replaceChildren(new Option('Domyślna kamera',''));for(const c of cameraOptions(list,selection)){const option=new Option(c.disabled?`${c.label} — nie do tarczy`:c.label,c.id);option.disabled=c.disabled;$('device').append(option);}$('device').value=selection.id;
+ }catch{status('Lista kamer niedostępna. Sprawdź uprawnienia przeglądarki.');}
 }
 async function start(){
  stopCamera();if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){status('Kamera wymaga HTTPS i zgody przeglądarki.');return;}
@@ -139,7 +148,7 @@ async function start(){
  try{const stream=await source.start($('device').value);if(!stream||run!==sourceVersion)return;
   video.srcObject=stream;video.hidden=false;await video.play();if(run!==sourceVersion)return;
   clearTimeout(connectionTimer);connectionTimer=null;live=true;starting=false;$('empty').hidden=true;frameSize=`${video.videoWidth}x${video.videoHeight}`;
-  const track=stream.getVideoTracks()[0];muted=track.muted;selection={id:track.getSettings().deviceId||'',label:track.label};saveCameraSelection(storage,selection);gate.reset(video.currentTime,performance.now());restoreCalibration();layout();await devices();
+  const track=stream.getVideoTracks()[0];muted=track.muted;selection={id:track.getSettings().deviceId||'',label:track.label};saveCameraSelection(longStorage,selection);gate.reset(video.currentTime,performance.now());restoreCalibration();layout();await devices();
  }catch(e){if(run===sourceVersion)stopCamera(cameraError(e));}
 }
 function calibrationCrop(){
@@ -257,7 +266,7 @@ function updateReticle(clientX,clientY){
 stage.addEventListener('pointermove',e=>updateReticle(e.clientX,e.clientY));
 stage.addEventListener('pointerleave',()=>{reticle.hidden=true;});
 function syncGame(){
- const game=getCameraGame();bar.hidden=!game&&panel.hidden;
+ const game=getCameraGame();launch.textContent=game?'Kamera · odczytaj rzut':'Kamera · wybierz kamerę';
  $('context').textContent=game?`${game.label||'Bieżący gracz'} · ${Number.isFinite(game.score)?`zostało ${game.score} pkt`:(game.game==='bull-off'?'walka o start':game.game)}`:'Poczekaj na aktywną kolejkę gracza.';
  if(!committing&&lastRevision!==game?.revision){
   if(observation.ready||pending){
@@ -272,9 +281,11 @@ subscribeCameraGame(syncGame);
 // This also handles leaving a game for a screen which does not bind camera input.
 new MutationObserver(()=>{if(!getCameraGame()&&lastRevision!==null)syncGame();}).observe(app,{childList:true});
 launch.onclick=()=>{panel.hidden=false;shell.classList.add('camera-open');launch.setAttribute('aria-expanded','true');syncGame();layout();void devices();$('start').focus();};
-$('close').onclick=()=>{stopCamera();panel.hidden=true;shell.classList.remove('camera-open');launch.setAttribute('aria-expanded','false');bar.hidden=!getCameraGame();launch.focus();};
+$('close').onclick=()=>{stopCamera();panel.hidden=true;shell.classList.remove('camera-open');launch.setAttribute('aria-expanded','false');launch.focus();};
 $('start').onclick=start;$('devices').onclick=devices;
-$('device').onchange=()=>{selection={id:$('device').value,label:$('device').selectedOptions[0]?.textContent||''};saveCameraSelection(storage,selection);stopCamera('Źródło zmienione. Uruchom kamerę.');};
+$('device').onchange=()=>{selection={id:$('device').value,label:$('device').selectedOptions[0]?.textContent||''};saveCameraSelection(longStorage,selection);stopCamera('Źródło zmienione. Uruchom kamerę.');};
+// iPhone w Continuity pojawia się i znika w trakcie pracy — lista ma podążać za systemem.
+navigator.mediaDevices?.addEventListener?.('devicechange',()=>{if(!panel.hidden)void devices();});
 $('rotate').onclick=()=>{rotation=(rotation+90)%360;pan=[0,0];layout();saveCalibration();};
 $('plus').onclick=()=>{zoom=viewZoom(zoom+.25);layout();saveCalibration();};$('minus').onclick=()=>{zoom=viewZoom(zoom-.25);layout();saveCalibration();};
 $('calibrate').onclick=()=>resetCalibration(true);
