@@ -157,6 +157,14 @@ test('flicker below 12 reverted pixels on a kept dart is not a removal',()=>{
  assert.equal(detectDartChange(reference,current,current,config).status,'empty');
 });
 
+test('two fragments split by a thin gap form one dart instead of an ambiguous change',()=>{
+ // A dark shaft on a black segment or across a wire splits the change into
+ // pieces. A 3 px gap kept two components with 1 px dilation; 2 px bridges it.
+ const board=frame(),dart=line(line(frame(),20,34,50),38,52,50);
+ const result=detectDartChange(board,dart,dart,options);
+ assert.equal(result.status,'candidate');assert.equal(result.components,undefined);
+});
+
 test('large hands, multiple changes, clipping and lighting changes require another frame or review',()=>{
  const hand=frame();for(let y=10;y<70;y++)for(let x=10;x<70;x++)hand[y*width+x]=40;
  assert.equal(detectDartChange(empty,hand,hand,options).status,'ambiguous');

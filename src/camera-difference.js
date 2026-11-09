@@ -133,8 +133,10 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  if(changed<minChangedPixels)return {status:'empty',reason:'Brak wyraźnej nowej zmiany. To nie oznacza rzutu za zero.',changed};
  if(supportedChanged<minChangedPixels)return {status:'empty',reason:'Brak zwartej nowej zmiany — pojedyncze piksele szumu zignorowane. To nie oznacza rzutu za zero.',changed,supportedChanged};
  if(changed/count>maxChangeFraction)return {status:'ambiguous',reason:'Zbyt duża zmiana — możliwa ręka lub przesunięcie kamery.',changed};
+ // 2 px, nie 1: cienki grot na czarnym tle i lotka przecięta drutem dają dwie
+ // zmiany; szersze sklejenie łączy je w jedną lotkę, zanim policzymy komponenty.
  const expanded=new Uint8Array(count);
- for(let i=0;i<count;i++)if(mask[i]){const x=i%width,y=Math.floor(i/width);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<width&&yy>=0&&yy<height)expanded[yy*width+xx]=1;}}
+ for(let i=0;i<count;i++)if(mask[i]){const x=i%width,y=Math.floor(i/width);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<width&&yy>=0&&yy<height)expanded[yy*width+xx]=1;}}
  const components=[],queue=new Int32Array(count);
  for(let start=0;start<count;start++)if(expanded[start]){
   let read=0,write=1;queue[0]=start;expanded[start]=0;const pixels=[];
