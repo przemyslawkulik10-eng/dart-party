@@ -15,7 +15,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.09';
+const VERSION='01.10';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -43,19 +43,11 @@ const video=$('video'),stage=$('stage'),scene=$('scene'),gate=new CameraFrameGat
 const analysis=document.createElement('canvas');analysis.width=analysis.height=640;
 const actx=analysis.getContext('2d',{willReadFrequently:true});
 let observation=createCameraObservation(),emptyGray=null,points=[],matrix=null,crop=null,sourceVersion=0;
-let live=false,muted=false,starting=false,armed=false,probing=false,committing=false,pending=null,verify=0;
+let live=false,muted=false,starting=false,armed=false,probing=false,committing=false,pending=null;
 let rotation=0,zoom=1,pan=[0,0],drag=null,suppressClick=false,connectionTimer=null,frameSize='',lastFrame=-1,lastRevision=null;
 let longStorage;try{longStorage=localStorage;}catch{}
 let selection=readCameraSelection(longStorage);
 const guides=['Wskaż zewnętrzny brzeg D20 (góra).','Wskaż zewnętrzny brzeg D6 (prawo).','Wskaż zewnętrzny brzeg D3 (dół).','Wskaż zewnętrzny brzeg D11 (lewo).'];
-const VERIFY=[null,
- {name:'S20',ok:f=>f.number===20&&f.multiplier===1,guide:'Etap 1/3 · pojedyncze: wskaż S20 (góra).'},
- {name:'D20',ok:f=>f.number===20&&f.multiplier===2,guide:'Etap 2/3 · podwójne: wskaż D20 (góra).'},
- {name:'T20',ok:f=>f.number===20&&f.multiplier===3,guide:'Etap 3/3 · potrójne: wskaż T20 (góra).'},
- {name:'BULL 25',ok:f=>f.number===25&&f.multiplier===1,guide:'Sprawdź środek: wskaż pierścień BULL 25.'},
- {name:'BULL 50',ok:f=>f.number===25&&f.multiplier===2,guide:'Sprawdź środek: wskaż sam środek BULL 50.'}
-];
-function verifyGuide(){return VERIFY[verify]?.guide||'';}
 // Calibration survives tab close, history restore and browser restarts.
 const CAL_KEY='dart-camera-calibration-v1';
 function saveCalibration(){
@@ -88,9 +80,9 @@ function expireProposal(){
  clearProposal();observation.pause();lastFrame=-1;
  status('Odczyt wygasł. Ponownie sprawdzam lotkę na świeżym obrazie.');buttons();
 }
-function clearBaseline(message){armed=false;probing=false;verify=0;observation.invalidate();autoSession.invalidate();emptyPrevious=null;emptyGray=null;lastFrame=-1;clearProposal();if(message)status(message);buttons();}
+function clearBaseline(message){armed=false;probing=false;observation.invalidate();autoSession.invalidate();emptyPrevious=null;emptyGray=null;lastFrame=-1;clearProposal();if(message)status(message);buttons();}
 function steps(){
- const chips=$('steps').children,index=!live?0:!matrix||verify?1:!observation.ready?2:3;
+ const chips=$('steps').children,index=!live?0:!matrix?1:!observation.ready?2:3;
  for(let i=0;i<chips.length;i++)chips[i].classList.toggle('cg-step-active',i===index);
 }
 function buttons(){
@@ -104,7 +96,7 @@ function buttons(){
  $('stop').disabled=!armed;
  $('confirm').disabled=!pending||!reviewFrame.stable||!fresh||!game||pending.revision!==game.revision;
  $('correct').disabled=!pending;
- $('guide').textContent=matrix?(verify?verifyGuide():observation.ready?(probing?'Test: połóż lotkę i przytrzymaj nieruchomo.':armed?'Czekam na nową lotkę.':autoMode?'Puste tło zapamiętane. Włącz automatyczne liczenie.':'Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”.'):'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
+ $('guide').textContent=matrix?(observation.ready?(probing?'Test: połóż lotkę i przytrzymaj nieruchomo.':armed?'Czekam na nową lotkę.':autoMode?'Puste tło zapamiętane. Włącz automatyczne liczenie.':'Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”.'):'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
  steps();
 }
 function markers(mark=pending?.point){
@@ -123,10 +115,10 @@ function layout(){
  stage.classList.toggle('cg-hide-cursor',!!live&&!matrix);
 }
 new ResizeObserver(layout).observe(stage);
-function resetCalibration(clearStored=false){points=[];matrix=null;crop=null;verify=0;sourceVersion++;if(clearStored)clearSavedCalibration();clearBaseline('Wskaż cztery punkty na zewnętrznym brzegu podwójnego pierścienia: 20, 6, 3, 11.');markers();buttons();}
+function resetCalibration(clearStored=false){points=[];matrix=null;crop=null;sourceVersion++;if(clearStored)clearSavedCalibration();clearBaseline('Wskaż cztery punkty na zewnętrznym brzegu podwójnego pierścienia: 20, 6, 3, 11.');markers();buttons();}
 function stopCamera(message='Kamera wyłączona.'){
  sourceVersion++;source.stop();clearTimeout(connectionTimer);connectionTimer=null;live=false;starting=false;gate.reset();video.pause();video.srcObject=null;video.hidden=true;$('empty').hidden=false;
- points=[];matrix=null;crop=null;verify=0;frameSize='';rotation=0;zoom=1;pan=[0,0];reticle.hidden=true;clearBaseline(message);layout();
+ points=[];matrix=null;crop=null;frameSize='';rotation=0;zoom=1;pan=[0,0];reticle.hidden=true;clearBaseline(message);layout();
 }
 async function devices(){
  try{
@@ -233,18 +225,9 @@ function verifyProposal(frame,time){
 }
 function choosePoint(point){
  if(!ready())return;
- if(matrix&&verify){
-  const field=fieldAt(project(matrix,point)),step=VERIFY[verify];
-  if(step.ok(field)){
-   verify++;
-   if(verify>=VERIFY.length){verify=0;status('Kalibracja sprawdzona: S20, D20, T20, BULL 25 i 50. Usuń lotki i zapamiętaj pustą tarczę.');}
-   else status(`${step.name} — dobrze. ${verifyGuide()}`);
-  }else status(`Ten punkt to ${field.label}, a nie ${step.name}. Kliknij dokładniej; jeśli błąd się powtórzy, użyj „Kalibruj ponownie”.`);
-  buttons();return;
- }
  if(matrix){if(!pending||$('correction').hidden)return;const field=fieldAt(project(matrix,point));pending.dart={number:field.number,multiplier:field.multiplier};pending.point=point;showField(field);markers();return;}
  points.push(point);
- if(points.length===4){try{matrix=calibrate(points);crop=calibrationCrop();saveCalibration();verify=1;status('Kalibracja wstępna gotowa. '+verifyGuide());}catch(e){points.pop();matrix=null;status(e.message);}}
+ if(points.length===4){try{matrix=calibrate(points);crop=calibrationCrop();saveCalibration();status('Kalibracja gotowa. Usuń lotki i zapamiętaj pustą tarczę.');}catch(e){points.pop();matrix=null;status(e.message);}}
  markers();buttons();if(matrix)reticle.hidden=true;stage.classList.toggle('cg-hide-cursor',!!live&&!matrix);
 }
 stage.addEventListener('click',event=>{if(suppressClick){suppressClick=false;return;}if(!live)return;try{choosePoint(imagePoint(event.clientX,event.clientY,scene.getBoundingClientRect(),rotation));}catch(e){status(e.message);}});
