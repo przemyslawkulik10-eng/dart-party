@@ -15,7 +15,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';bar.hidden=true;
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.03';
+const VERSION='01.04';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -212,7 +212,7 @@ function probeObserve(frame,game){
 function verifyProposal(frame,time){
  const check=reviewFrame.check(frame,time);
  if(check.status==='removed'){
-  clearBaseline('Obraz zmienił się przed zatwierdzeniem. Sprawdź, czy lotka nie wypadła. Wcześniej wpisane rzuty możesz cofnąć w grze.');return false;
+  status('Obraz zmienił się — sprawdź, czy lotka nie wypadła. Propozycja czeka; zatwierdź dopiero, gdy tarcza będzie nieruchoma.');return false;
  }
  if(check.status==='empty')status('Obraz stabilny. Sprawdź zaznaczony grot i zatwierdź lotkę albo popraw pole.');
  else if(check.status==='unstable')status('Ruch w obrazie — zatwierdzenie wstrzymane. Poczekaj, aż tarcza będzie nieruchoma.');
