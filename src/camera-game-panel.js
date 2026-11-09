@@ -15,7 +15,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';bar.hidden=true;
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.04';
+const VERSION='01.05';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -255,7 +255,7 @@ stage.addEventListener('pointermove',e=>updateReticle(e.clientX,e.clientY));
 stage.addEventListener('pointerleave',()=>{reticle.hidden=true;});
 function syncGame(){
  const game=getCameraGame();bar.hidden=!game&&panel.hidden;
- $('context').textContent=game?`${game.label||'Bieżący gracz'} · ${game.game==='bull-off'?'walka o start':game.game}`:'Poczekaj na aktywną kolejkę gracza.';
+ $('context').textContent=game?`${game.label||'Bieżący gracz'} · ${Number.isFinite(game.score)?`zostało ${game.score} pkt`:(game.game==='bull-off'?'walka o start':game.game)}`:'Poczekaj na aktywną kolejkę gracza.';
  if(!committing&&lastRevision!==game?.revision){
   if(observation.ready||pending){
    probing=false;
