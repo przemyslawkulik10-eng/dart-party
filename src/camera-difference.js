@@ -128,7 +128,8 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  if(moving/count>maxMotionFraction)return {status:'unstable',reason:'Ruch w obrazie — poczekaj.',moving,rawMoving};
  // Reversion is not proof of removal, but cannot safely be treated as a new dart.
  // Detect it even if another object was added and the total changed area increased.
- if(reverted>=Math.max(3,Math.ceil(minChangedPixels/2)))return {status:'removed',reason:'Fragment obrazu wrócił do pustej tarczy — możliwe wyjęcie lub przesunięcie lotki. Nie zapisuj rzutu; sprawdź tarczę i ustaw nowe puste tło.',reverted,baselineChanged,changed};
+ // 12 px, nie 6: szum po re-encodingu dawał fałszywe „removed” na nieruchomej lotce.
+ if(reverted>=12)return {status:'removed',reason:'Fragment obrazu wrócił do pustej tarczy — możliwe wyjęcie lub przesunięcie lotki. Nie zapisuj rzutu; sprawdź tarczę i ustaw nowe puste tło.',reverted,baselineChanged,changed};
  if(changed<minChangedPixels)return {status:'empty',reason:'Brak wyraźnej nowej zmiany. To nie oznacza rzutu za zero.',changed};
  if(supportedChanged<minChangedPixels)return {status:'empty',reason:'Brak zwartej nowej zmiany — pojedyncze piksele szumu zignorowane. To nie oznacza rzutu za zero.',changed,supportedChanged};
  if(changed/count>maxChangeFraction)return {status:'ambiguous',reason:'Zbyt duża zmiana — możliwa ręka lub przesunięcie kamery.',changed};

@@ -147,6 +147,16 @@ test('a low-contrast dart returning close to empty is removed below the new-obje
  }
 });
 
+test('flicker below 12 reverted pixels on a kept dart is not a removal',()=>{
+ // A 3x3 patch flickering back to the empty board reverts 9 px. The old 6 px
+ // gate reported 'removed' on a stationary dart and blocked confirmation.
+ const board=frame(),reference=line(frame(),48,67,50),current=reference.slice();
+ for(let x=48;x<=50;x++)for(let dy=-1;dy<=1;dy++)current[(50+dy)*width+x]=180;
+ const config={width,height,emptyReference:board};
+ assert.equal(detectDartChange(board,reference,reference,config).status,'candidate');
+ assert.equal(detectDartChange(reference,current,current,config).status,'empty');
+});
+
 test('large hands, multiple changes, clipping and lighting changes require another frame or review',()=>{
  const hand=frame();for(let y=10;y<70;y++)for(let x=10;x<70;x++)hand[y*width+x]=40;
  assert.equal(detectDartChange(empty,hand,hand,options).status,'ambiguous');
