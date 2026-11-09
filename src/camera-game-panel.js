@@ -15,7 +15,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.10';
+const VERSION='01.11';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -31,13 +31,12 @@ panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERS
 <p class="cg-note">Kalibracja, widok i wybrana kamera zapisują się automatycznie — przetrwają zamknięcie karty. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje. Brak wykrycia nie oznacza 0. Po wyjęciu lotek zapamiętaj ponownie pustą tarczę. Wcześniej wpisaną lotkę, która wypadła, cofnij w grze. Klawiatura gry pozostaje dostępna.</p>`;
 shell.append(panel);
 const $=name=>panel.querySelector(`[data-cg="${name}"]`);
-// Physical validation is still outstanding: auto-write is available only in the
-// explicit local trial, never enabled by a query parameter on the public site.
-const autoMode=['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&new URLSearchParams(location.search).get('cameraAuto')==='1';
+// Automat na produkcji włączony decyzją Kapitana 09.11. ?cameraAuto=0 wyłącza go do prób.
+const autoMode=new URLSearchParams(location.search).get('cameraAuto')!=='0';
 const autoSession=createCameraAutoSession();let emptyPrevious=null,lastDiagnosticTime=-Infinity;
 if(autoMode){
- $('read').textContent='Włącz automatyczne liczenie';
- panel.querySelector('.cg-note').textContent='Lokalna próba automatu. Jedna lotka naraz. Jednoznaczny odczyt z kolejnych klatek zapisuje się bez kliknięcia. Niepewne trafienia zatrzymują zapis.';
+ $('read').textContent='Wznów automatyczne liczenie';
+ panel.querySelector('.cg-note').textContent='Automatyczne liczenie: jedna lotka naraz. Pewny odczyt z kolejnych klatek zapisuje się sam, bez kliknięcia. Po trzeciej lotce gra przechodzi do następnego gracza — wyjmij wtedy wszystkie lotki. Niepewne trafienia zatrzymują zapis.';
 }
 const video=$('video'),stage=$('stage'),scene=$('scene'),gate=new CameraFrameGate(),review=createCameraReview(),reviewFrame=createCameraReviewFrame();
 const analysis=document.createElement('canvas');analysis.width=analysis.height=640;
@@ -96,7 +95,7 @@ function buttons(){
  $('stop').disabled=!armed;
  $('confirm').disabled=!pending||!reviewFrame.stable||!fresh||!game||pending.revision!==game.revision;
  $('correct').disabled=!pending;
- $('guide').textContent=matrix?(observation.ready?(probing?'Test: połóż lotkę i przytrzymaj nieruchomo.':armed?'Czekam na nową lotkę.':autoMode?'Puste tło zapamiętane. Włącz automatyczne liczenie.':'Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”.'):'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
+ $('guide').textContent=matrix?(observation.ready?(probing?'Test: połóż lotkę i przytrzymaj nieruchomo.':armed?'Czekam na nową lotkę.':autoMode?'Puste tło zapamiętane. Automat liczy — rzucaj.':'Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”.'):'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
  steps();
 }
 function markers(mark=pending?.point){
@@ -188,9 +187,9 @@ function autoObserve(frame,game){
  try{
   applyCameraDart(dart,game.revision);
   observation.accept(found.id,{applied:true,contextKey:meta.contextKey});
-  autoSession.commit(decision.token,{applied:true});
+  const commit=autoSession.commit(decision.token,{applied:true});
   clearProposal();$('result').textContent=`Zapisano: ${field.label}`;markers(point);
-  status('Lotka zapisana automatycznie. Rzuć następną; po serii wyjmij wszystkie lotki.');
+  status(commit.acceptedDarts>=3?'Trzy lotki zapisane. Gra przełącza gracza — wyjmij lotki, żeby automat ruszył dalej.':'Lotka zapisana automatycznie. Rzuć następną.');
  }catch(e){
   // A storage failure can happen after a handler changed the score: never retry.
   clearBaseline(`Zapis automatyczny zatrzymany: ${e.message}`);
@@ -272,7 +271,7 @@ navigator.mediaDevices?.addEventListener?.('devicechange',()=>{if(!panel.hidden)
 $('rotate').onclick=()=>{rotation=(rotation+90)%360;pan=[0,0];layout();saveCalibration();};
 $('plus').onclick=()=>{zoom=viewZoom(zoom+.25);layout();saveCalibration();};$('minus').onclick=()=>{zoom=viewZoom(zoom-.25);layout();saveCalibration();};
 $('calibrate').onclick=()=>resetCalibration(true);
-$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix||!game)throw new Error('Poczekaj na obraz i aktywną kolejkę.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;status(autoMode?'Puste tło zapamiętane. Włącz automatyczne liczenie, a potem rzuć lotkę.':'Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”, a potem wstaw lotkę. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje.');buttons();}catch(e){status(e.message);}};
+$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix||!game)throw new Error('Poczekaj na obraz i aktywną kolejkę.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;if(autoMode){armed=true;status('Puste tło zapamiętane. Automat liczy — rzucaj jedną lotkę naraz.');}else status('Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”, a potem wstaw lotkę. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje.');buttons();}catch(e){status(e.message);}};
 $('probe').onclick=()=>{
  if(probing){probing=false;observation.pause();$('result').textContent='Brak odczytu';status('Test zatrzymany. Nic nie zapisano.');buttons();return;}
  if(!ready()||!matrix||!observation.ready||armed||pending)return;
