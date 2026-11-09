@@ -96,7 +96,7 @@ if(['localhost','127.0.0.1','[::1]'].includes(location.hostname)&&(query.get('ca
   });
   if(points.some(p=>p.some(v=>!Number.isFinite(v)||v<0||v>1)))throw Error('Znacznik kalibracji poza obrazem.');
   const sourceWidth=video.videoWidth,sourceHeight=video.videoHeight,xs=points.map(p=>p[0]*sourceWidth),ys=points.map(p=>p[1]*sourceHeight);
-  const size=Math.min(Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))*1.4,sourceWidth,sourceHeight);
+  const size=Math.min(Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))*2.0,sourceWidth,sourceHeight);
   if(size<100)throw Error('Brak obrazu lub tarcza zbyt mała do kadru detektora.');
   const crop={x:Math.max(0,Math.min(sourceWidth-size,(Math.min(...xs)+Math.max(...xs)-size)/2)),y:Math.max(0,Math.min(sourceHeight-size,(Math.min(...ys)+Math.max(...ys)-size)/2)),size};
   return {sourceWidth,sourceHeight,points,crop};

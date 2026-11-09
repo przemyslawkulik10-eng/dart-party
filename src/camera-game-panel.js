@@ -15,7 +15,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';bar.hidden=true;
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.07';
+const VERSION='01.08';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -144,7 +144,10 @@ async function start(){
 }
 function calibrationCrop(){
  const xs=points.map(p=>p[0]*video.videoWidth),ys=points.map(p=>p[1]*video.videoHeight);
- const size=Math.min(Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))*1.4,video.videoWidth,video.videoHeight);
+ // 2.0, nie 1.4: przy 1.4 lotka wbita w pierścień z numerami miała skrzydełko
+ // poza kadrem („Obiekt jest ucięty krawędzią obrazu”); zmierzone 259 mm od
+ // środka, 2.0 daje 340 mm zapasu aż do granic klatki kamery.
+ const size=Math.min(Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))*2.0,video.videoWidth,video.videoHeight);
  if(size<100)throw new Error('Tarcza za mała w obrazie. Ustaw kamerę bliżej.');
  return {x:Math.max(0,Math.min(video.videoWidth-size,(Math.min(...xs)+Math.max(...xs)-size)/2)),y:Math.max(0,Math.min(video.videoHeight-size,(Math.min(...ys)+Math.max(...ys)-size)/2)),size};
 }
