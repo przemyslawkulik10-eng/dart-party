@@ -37,6 +37,19 @@ test('input validation, rejected candidate and replaced candidate cannot be acce
 });
 
 
+test('a foreshortened round change keeps its metrics instead of crashing the snapshot',()=>{
+ // Real frames 09.11: a dart seen almost head-on arrives as a short, round
+ // change. Its metrics have no endpointWidthsPx; copying them threw and the
+ // panel disarmed the whole automatic read on the first such dart.
+ const gate=ready(),blob=empty();
+ for(let y=36;y<=45;y++)for(let x=55;x<=66;x++)blob[y*width+x]=40;
+ assert.equal(gate.observe(blob,meta(1)).status,'waiting');
+ const result=gate.observe(blob,meta(2));
+ assert.equal(result.status,'candidate');assert.ok(result.autoFallback);
+ assert.ok(result.autoMetrics.elongation<2);assert.equal(result.autoMetrics.endpointWidthsPx,undefined);
+ assert.ok(Math.abs(result.autoFallback.x-60.5/99)<.02);
+});
+
 test('two accepted objects falling out never become a new candidate, automatic zero or score correction',()=>{
  const gate=ready(),first=proposal(gate);gate.accept(first.id,{applied:true,contextKey:'game-1'});
  const both=dart();for(let x=55;x<=80;x++)for(let y=69;y<=71;y++)both[y*width+x]=40;

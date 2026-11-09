@@ -28,7 +28,7 @@ export function createCameraObservation({width=640,height=640,center=[.5,.5]}={}
   if(value.candidate)copy.candidate={...value.candidate};
   if(value.alternate)copy.alternate={...value.alternate};
   if(value.autoCandidate)copy.autoCandidate={...value.autoCandidate};
-  if(value.autoMetrics)copy.autoMetrics={...value.autoMetrics,endpointWidthsPx:[...value.autoMetrics.endpointWidthsPx]};
+  if(value.autoMetrics)copy.autoMetrics={...value.autoMetrics,...(Array.isArray(value.autoMetrics.endpointWidthsPx)?{endpointWidthsPx:[...value.autoMetrics.endpointWidthsPx]}:{})};
   if(value.candidates)copy.candidates=value.candidates.map(item=>({...item,candidate:{...item.candidate},alternate:{...item.alternate},autoCandidate:{...item.autoCandidate}}));
   return copy;
  }
