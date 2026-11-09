@@ -110,6 +110,7 @@ function layout(){
  pan=[Math.max(-cw*(zoom-1)/2,Math.min(cw*(zoom-1)/2,pan[0])),Math.max(-ch*(zoom-1)/2,Math.min(ch*(zoom-1)/2,pan[1]))];
  scene.style.transform=`translate(-50%,-50%) translate(${pan[0]}px,${pan[1]}px) rotate(${rotation}deg) scale(${zoom})`;
  $('zoom').textContent=`${Math.round(zoom*100)}%`;
+ stage.classList.toggle('cg-hide-cursor',!!live&&!matrix);
 }
 new ResizeObserver(layout).observe(stage);
 function resetCalibration(clearStored=false){points=[];matrix=null;crop=null;sourceVersion++;if(clearStored)clearSavedCalibration();clearBaseline('Wskaż cztery punkty na zewnętrznym brzegu podwójnego pierścienia: 20, 6, 3, 11.');markers();buttons();}
@@ -195,7 +196,7 @@ function choosePoint(point){
  if(matrix){if(!pending||$('correction').hidden)return;const field=fieldAt(project(matrix,point));pending.dart={number:field.number,multiplier:field.multiplier};pending.point=point;showField(field);markers();return;}
  points.push(point);
  if(points.length===4){try{matrix=calibrate(points);crop=calibrationCrop();saveCalibration();status('Kalibracja gotowa. Usuń lotki i zapamiętaj pustą tarczę.');}catch(e){points.pop();matrix=null;status(e.message);}}
- markers();buttons();if(matrix)reticle.hidden=true;
+ markers();buttons();if(matrix)reticle.hidden=true;stage.classList.toggle('cg-hide-cursor',!!live&&!matrix);
 }
 stage.addEventListener('click',event=>{if(suppressClick){suppressClick=false;return;}if(!live)return;try{choosePoint(imagePoint(event.clientX,event.clientY,scene.getBoundingClientRect(),rotation));}catch(e){status(e.message);}});
 stage.addEventListener('pointerdown',e=>{suppressClick=false;if(zoom>1&&e.button===0)drag={id:e.pointerId,x:e.clientX,y:e.clientY,pan:[...pan],moved:false};});
