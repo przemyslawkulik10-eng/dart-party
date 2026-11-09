@@ -222,3 +222,19 @@ test('two or three separated darts in one frame become a candidate series',()=>{
  const mixed=drawDart(blunt,75);
  assert.equal(detectDartChange(empty,mixed,mixed,{...options,maxChangeFraction:.25}).status,'ambiguous');
 });
+
+test('a dark flight does not hide a bright, sharp tip behind a shadow verdict',()=>{
+ // Real dart: silver tip and barrel over a black bed, dark flight and its soft
+ // shadow attached. The whole-dart strong fraction fell below 0.7 and rejected
+ // the dart; the scored tip end is high contrast and must decide.
+ const board=frame(),dart=frame();
+ for(let x=15;x<=85;x++){
+  const radius=x<30?(x<21?0:1):x<48?3:x<65?1:Math.max(2,Math.floor(11*(1-Math.abs(x-75)/11)));
+  for(let y=50-radius;y<=50+radius;y++)dart[y*width+x]=x<58?40:135;
+ }
+ const result=detectDartChange(board,dart,dart,options);
+ assert.equal(result.status,'candidate');assert.equal(result.autoEligible,true);
+ assert.ok(result.autoMetrics.tipStrongFraction>.9);
+ assert.ok(result.autoMetrics.strongFraction<.9);
+ assert.ok(result.autoCandidate.x<.2);
+});

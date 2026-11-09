@@ -33,26 +33,31 @@ function supportedCount(mask,width,height){
 // The caller still needs fresh temporal agreement, field-boundary checks and
 // real-device validation. Strong shadows/occlusion can mimic this silhouette.
 function assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,reference,current,lighting,threshold}){
- const length=hi-lo,bins=Array.from({length:10},()=>({min:Infinity,max:-Infinity,count:0}));
+ const length=hi-lo,bins=Array.from({length:10},()=>({min:Infinity,max:-Infinity,count:0,strong:0}));
  let strong=0;
  const strongThreshold=Math.min(254,Math.max(60,threshold*2));
  for(const [x,y] of pixels){
   const t=(x-mx)*ux+(y-my)*uy,s=-(x-mx)*uy+(y-my)*ux;
   const b=bins[Math.min(9,Math.max(0,Math.floor((t-lo)/length*10)))];
   b.min=Math.min(b.min,s);b.max=Math.max(b.max,s);b.count++;
-  if(Math.abs(current[y*width+x]-reference[y*width+x]-lighting)>=strongThreshold)strong++;
+  if(Math.abs(current[y*width+x]-reference[y*width+x]-lighting)>=strongThreshold){strong++;b.strong++;}
  }
  const widths=bins.map(b=>b.count?b.max-b.min+1:0);
  const median=values=>[...values].sort((a,b)=>a-b)[Math.floor(values.length/2)];
  const endWidths=[median(widths.slice(0,3)),median(widths.slice(7))];
  const narrow=endWidths[0]<=endWidths[1]?0:1,profile=narrow===0?widths:[...widths].reverse();
  const near=median(profile.slice(0,3)),shoulder=median(profile.slice(3,6)),far=endWidths[1-narrow];
- const metrics={lengthPx:length,endpointWidthsPx:endWidths,shoulderWidthPx:shoulder,widthRatio:far/Math.max(1,near),strongFraction:strong/pixels.length,supportPixels:pixels.length};
+ // The scored end must be sharp. A dark flight and its soft shadow attached to a
+ // bright tip diluted the whole-dart fraction below 0.7 and rejected real darts
+ // („Zbyt słaby kontrast” on a silver tip over a black bed).
+ const tipBins=narrow===0?[0,1,2]:[7,8,9];
+ const tipStrong=tipBins.reduce((sum,index)=>sum+bins[index].strong,0),tipCount=tipBins.reduce((sum,index)=>sum+bins[index].count,0);
+ const metrics={lengthPx:length,endpointWidthsPx:endWidths,shoulderWidthPx:shoulder,widthRatio:far/Math.max(1,near),strongFraction:strong/pixels.length,tipStrongFraction:tipCount?tipStrong/tipCount:0,supportPixels:pixels.length};
  const no=reason=>({autoEligible:false,autoCandidate:null,autoReason:reason,autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}});
  const margin=Math.max(4,Math.ceil(Math.min(width,height)*.01));
  if(length<Math.max(32,Math.min(width,height)*.05)||pixels.length<48||bins.some(b=>b.count<2))return no('Za mało szczegółów do niezależnego rozpoznania końca lotki.');
  if(pixels.some(([x,y])=>x<margin||y<margin||x>=width-margin||y>=height-margin))return no('Obiekt zbyt blisko brzegu kadru.');
- if(metrics.strongFraction<.7)return no('Zbyt słaby kontrast — możliwy cień.');
+ if(metrics.tipStrongFraction<.7)return no(`Zbyt słaby kontrast przy grocie — możliwy cień (${Math.round(metrics.tipStrongFraction*100)}%).`);
  if(metrics.widthRatio<2.5||near>Math.max(4,length*.08)||far<6)return no('Brak wyraźnej różnicy szerokości obu końców.');
  if(shoulder<near*1.3||profile[0]>profile[1]+1||profile[0]>near+1)return no('Brak dostatecznego zwężenia przy proponowanym grocie.');
  return {autoEligible:true,autoCandidate:{...endpoints[narrow]},autoReason:'Wąski, zwężający się koniec rozpoznany z kształtu; wymaga niezależnej kontroli stabilności i pola.',autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}};
