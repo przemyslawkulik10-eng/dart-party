@@ -41,3 +41,9 @@
 .cg-correction{border-top:1px solid #365f88;padding-top:10px;display:grid;gap:6px}
 .cg-note{color:#9db8d8;font-size:13px}
 @media(min-width:900px){#camera-game-panel{align-items:center}#camera-game-panel>*{width:min(1000px,100%)}}
+
+/* Szeroki ekran: kamera jest kolumną obok gry, nie zasłania planszy. */
+@media(min-width:900px){
+ .camera-game-shell.camera-open{margin-right:50vw}
+ #camera-game-panel{left:auto;right:0;top:0;bottom:0;width:50vw;border-left:1px solid #365f88}
+}
