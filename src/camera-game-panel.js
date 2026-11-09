@@ -15,7 +15,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.14';
+const VERSION='01.15';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -70,7 +70,9 @@ function restoreCalibration(){
 }
 const source=new CameraSource(navigator.mediaDevices,()=>stopCamera('Połączenie zakończone. Uruchom kamerę ponownie.'),value=>{muted=value;gate.reset(video.currentTime,performance.now());clearProposal();observation.pause();autoSession.pause();emptyPrevious=null;lastFrame=-1;buttons();});
 function status(text){if($('status').textContent!==text)$('status').textContent=text;}
-function ready(){return live&&gate.sample({time:video.currentTime,now:performance.now(),hidden:document.hidden,muted:muted||video.readyState<2});}
+// Flaga „muted” bywa prawdziwa mimo płynących klatek Continuity, więc o gotowości
+// decyduje wyłącznie świeżość klatek (gate sam wykrywa zastój po staleMs).
+function ready(){return live&&gate.sample({time:video.currentTime,now:performance.now(),hidden:document.hidden});}
 function key(game){return String(game.revision);}
 function clearProposal(){pending=null;reviewFrame.reset();review.clear();$('result').textContent='Brak odczytu';$('correction').hidden=true;markers();}
 function expireProposal(){
@@ -88,14 +90,14 @@ function buttons(){
  const game=getCameraGame(),fresh=ready();
  $('start').disabled=starting;$('calibrate').disabled=!live;
  for(const name of ['rotate','minus','plus'])$(name).disabled=!live;
- $('baseline').disabled=!game||!matrix||!fresh||probing;
+ $('baseline').disabled=!matrix||!fresh||probing;
  $('read').disabled=!game||!matrix||!fresh||!observation.ready||armed||probing;
  $('probe').textContent=probing?'Zatrzymaj test':'Sprawdź, czy widzę lotkę';
  $('probe').disabled=!probing&&(!game||!matrix||!fresh||!observation.ready||armed||!!pending);
  $('stop').disabled=!armed;
  $('confirm').disabled=!pending||!reviewFrame.stable||!fresh||!game||pending.revision!==game.revision;
  $('correct').disabled=!pending;
- $('guide').textContent=matrix?(observation.ready?(probing?'Test: połóż lotkę i przytrzymaj nieruchomo.':armed?'Czekam na nową lotkę.':autoMode?'Puste tło zapamiętane. Automat liczy — rzucaj.':'Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”.'):'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
+ $('guide').textContent=matrix?(observation.ready?(probing?'Test: połóż lotkę i przytrzymaj nieruchomo.':armed?'Czekam na nową lotkę.':autoMode?(game?'Puste tło zapamiętane. Automat liczy — rzucaj.':'Puste tło zapamiętane. Automat ruszy w meczu.'):'Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”.'):'Kalibracja gotowa. Przed rzutami zapamiętaj pustą tarczę.'):live?guides[points.length]:'Uruchom kamerę i wskaż cztery brzegi tarczy.';
  steps();
 }
 function markers(mark=pending?.point){
@@ -163,7 +165,7 @@ function calibrationCrop(){
  return {x:Math.max(0,Math.min(video.videoWidth-size,(Math.min(...xs)+Math.max(...xs)-size)/2)),y:Math.max(0,Math.min(video.videoHeight-size,(Math.min(...ys)+Math.max(...ys)-size)/2)),size};
 }
 function capture(){actx.drawImage(video,crop.x,crop.y,crop.size,crop.size,0,0,640,640);return toGray(actx.getImageData(0,0,640,640).data);}
-function metadata(game){return {time:video.currentTime,contextKey:key(game),sourceKey:`${sourceVersion}:${frameSize}:${JSON.stringify(points)}`};}
+function metadata(game){return {time:video.currentTime,contextKey:game?key(game):'panel-bez-gry',sourceKey:`${sourceVersion}:${frameSize}:${JSON.stringify(points)}`};}
 function autoTurnKey(game){return JSON.stringify([game.game,game.sessionId,game.player,game.phase,game.target]);}
 function autoObserve(frame,game){
  const meta=metadata(game);
@@ -234,7 +236,7 @@ function verifyProposal(frame,time){
  buttons();return check.status==='empty';
 }
 function choosePoint(point){
- if(!ready())return;
+ if(!ready()){status('Poczekaj na świeży obraz kamery — klatki jeszcze nie napływają.');return;}
  if(matrix){if(!pending||$('correction').hidden)return;const field=fieldAt(project(matrix,point));pending.dart={number:field.number,multiplier:field.multiplier};pending.point=point;showField(field);markers();return;}
  points.push(point);
  if(points.length===4){try{matrix=calibrate(points);crop=calibrationCrop();saveCalibration();status('Kalibracja gotowa. Usuń lotki i zapamiętaj pustą tarczę.');}catch(e){points.pop();matrix=null;status(e.message);}}
@@ -282,7 +284,7 @@ navigator.mediaDevices?.addEventListener?.('devicechange',()=>{if(!panel.hidden)
 $('rotate').onclick=()=>{rotation=(rotation+90)%360;pan=[0,0];layout();saveCalibration();};
 $('plus').onclick=()=>{zoom=viewZoom(zoom+.25);layout();saveCalibration();};$('minus').onclick=()=>{zoom=viewZoom(zoom-.25);layout();saveCalibration();};
 $('calibrate').onclick=()=>resetCalibration(true);
-$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix||!game)throw new Error('Poczekaj na obraz i aktywną kolejkę.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;if(autoMode){armed=true;status('Puste tło zapamiętane. Automat liczy — rzucaj jedną lotkę naraz.');}else status('Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”, a potem wstaw lotkę. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje.');buttons();}catch(e){status(e.message);}};
+$('baseline').onclick=()=>{try{const game=getCameraGame();if(!ready()||!matrix)throw new Error('Poczekaj na świeży obraz kamery.');clearBaseline();emptyGray=capture();observation.setEmpty(emptyGray,metadata(game));lastFrame=video.currentTime;if(autoMode){armed=true;status(game?'Puste tło zapamiętane. Automat liczy — rzucaj jedną lotkę naraz.':'Puste tło zapamiętane. Automat ruszy po rozpoczęciu meczu.');}else status('Puste tło zapamiętane. Naciśnij „Rozpoznaj lotkę”, a potem wstaw lotkę. Test „Sprawdź, czy widzę lotkę” nic nie zapisuje.');buttons();}catch(e){status(e.message);}};
 $('probe').onclick=()=>{
  if(probing){probing=false;observation.pause();$('result').textContent='Brak odczytu';status('Test zatrzymany. Nic nie zapisano.');buttons();return;}
  if(!ready()||!matrix||!observation.ready||armed||pending)return;
