@@ -238,3 +238,21 @@ test('a dark flight does not hide a bright, sharp tip behind a shadow verdict',(
  assert.ok(result.autoMetrics.strongFraction<.9);
  assert.ok(result.autoCandidate.x<.2);
 });
+
+test('a turn of darts split by wires is bridged back into individual darts',()=>{
+ // Each dart crossing a wire arrives as two pieces: four components for two
+ // darts. The same 2-px bridge is applied again until at most three pieces
+ // remain, so a real turn is not rejected as "more than three changes".
+ function splitDart(f,cy){
+  for(let x=15;x<=85;x++){
+   if(x>=50&&x<=54)continue;
+   const radius=x<30?(x<21?0:1):x<48?3:x<65?1:Math.max(2,Math.floor(11*(1-Math.abs(x-75)/11)));
+   for(let y=cy-radius;y<=cy+radius;y++)f[y*width+x]=40;
+  }
+  return f;
+ }
+ const both=splitDart(splitDart(frame(),25),75);
+ const result=detectDartChange(empty,both,both,{...options,maxChangeFraction:.25});
+ assert.equal(result.status,'candidates');assert.equal(result.candidates.length,2);
+ for(const item of result.candidates)assert.equal(item.autoEligible,true);
+});

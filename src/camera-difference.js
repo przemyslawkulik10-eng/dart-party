@@ -140,15 +140,30 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  if(changed/count>maxChangeFraction)return {status:'ambiguous',reason:'Zbyt duża zmiana — możliwa ręka lub przesunięcie kamery.',changed};
  // 2 px, nie 1: cienki grot na czarnym tle i lotka przecięta drutem dają dwie
  // zmiany; szersze sklejenie łączy je w jedną lotkę, zanim policzymy komponenty.
- const expanded=new Uint8Array(count);
- for(let i=0;i<count;i++)if(mask[i]){const x=i%width,y=Math.floor(i/width);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<width&&yy>=0&&yy<height)expanded[yy*width+xx]=1;}}
- const components=[],queue=new Int32Array(count);
- for(let start=0;start<count;start++)if(expanded[start]){
-  let read=0,write=1;queue[0]=start;expanded[start]=0;const pixels=[];
-  while(read<write){const i=queue[read++],x=i%width,y=Math.floor(i/width);if(mask[i])pixels.push([x,y]);
-   for(const [xx,yy] of [[x-1,y],[x+1,y],[x,y-1],[x,y+1]])if(xx>=0&&xx<width&&yy>=0&&yy<height){const n=yy*width+xx;if(expanded[n]){expanded[n]=0;queue[write++]=n;}}
+ const expandOnce=source=>{
+  const out=new Uint8Array(count);
+  for(let i=0;i<count;i++)if(source[i]){const x=i%width,y=Math.floor(i/width);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<width&&yy>=0&&yy<height)out[yy*width+xx]=1;}}
+  return out;
+ };
+ const collect=expanded=>{
+  const work=expanded.slice(),queue=new Int32Array(count),found=[];
+  for(let start=0;start<count;start++)if(work[start]){
+   let read=0,write=1;queue[0]=start;work[start]=0;const pixels=[];
+   while(read<write){const i=queue[read++],x=i%width,y=Math.floor(i/width);if(mask[i])pixels.push([x,y]);
+    for(const [xx,yy] of [[x-1,y],[x+1,y],[x,y-1],[x,y+1]])if(xx>=0&&xx<width&&yy>=0&&yy<height){const n=yy*width+xx;if(work[n]){work[n]=0;queue[write++]=n;}}
+   }
+   if(pixels.length>=minChangedPixels)found.push(pixels);
   }
-  if(pixels.length>=minChangedPixels)components.push(pixels);
+  return found;
+ };
+ let expanded=expandOnce(mask),components=collect(expanded);
+ // A whole turn can add three darts; wires and low-contrast beds split a single
+ // dart into pieces, so a real three-dart frame can produce more than three
+ // components. Keep applying the same 2-px bridge until at most three pieces
+ // remain. Different darts stay separate; a wrongly merged pair already fails
+ // the shape gate above, so this cannot silently score half a dart.
+ for(let pass=0;pass<3&&components.length>3;pass++){
+  expanded=expandOnce(expanded);components=collect(expanded);
  }
  // Each component is read on its own. One turn can add up to three darts before
  // the next frame, so two or three shaped, unambiguous components are legitimate
@@ -173,7 +188,7 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
   if(read.reason)return {status:'ambiguous',reason:read.reason,changed};
   return {status:'candidate',candidate:{...read.shape.tip},alternate:{...read.shape.tipAlternate},changed,requiresReview:true,...read.shape,reason:proposal};
  }
- if(components.length>3)return {status:'ambiguous',reason:'Więcej niż trzy zmiany naraz — usuń lotki i odczytaj kolejkę ponownie.',components:components.length,changed};
+ if(components.length>3)return {status:'ambiguous',reason:`Więcej niż trzy zmiany naraz (${components.length}) — usuń lotki i odczytaj kolejkę ponownie.`,components:components.length,changed};
  const reads=components.map(analyzeComponent),bad=reads.find(read=>read.reason);
  if(bad)return {status:'ambiguous',reason:bad.reason,components:components.length,changed};
  // A series is saved only when every piece is eligible on its own; a hand,
