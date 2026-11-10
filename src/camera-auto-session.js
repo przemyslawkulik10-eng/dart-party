@@ -62,7 +62,7 @@ export function createCameraAutoSession({minFrames=3,minStableMs=700,maxTipDista
   for(const entry of entries){
    const entryPoint=entry&&entry.point,entryField=entry&&entry.field;
    const validPoint=entryPoint&&Number.isFinite(entryPoint.x)&&Number.isFinite(entryPoint.y)&&entryPoint.x>=0&&entryPoint.x<=1&&entryPoint.y>=0&&entryPoint.y<=1;
-   if(entry?.autoEligible!==true||!validPoint||!validDart(entryField)||entryField.number===0||entryField.nearWire!==false)return blocked('Propozycja wymaga ręcznego sprawdzenia grotu.');
+   if(!validPoint||!validDart(entryField)||entryField.number===0)return blocked('Propozycja wymaga ręcznego sprawdzenia grotu.');
    normalized.push({point:{x:entryPoint.x,y:entryPoint.y},dart:{number:entryField.number,multiplier:entryField.multiplier}});
   }
   const similar=(a,b)=>a.dart.number===b.dart.number&&a.dart.multiplier===b.dart.multiplier&&

@@ -62,9 +62,9 @@ function assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,re
  const margin=Math.max(4,Math.ceil(Math.min(width,height)*.01));
  if(length<Math.max(32,Math.min(width,height)*.05)||pixels.length<48||bins.some(b=>b.count<2))return no('Za mało szczegółów do niezależnego rozpoznania końca lotki.');
  if(pixels.some(([x,y])=>x<margin||y<margin||x>=width-margin||y>=height-margin))return no('Obiekt zbyt blisko brzegu kadru.');
- if(metrics.tipStrongFraction<.7)return no(`Zbyt słaby kontrast przy grocie — możliwy cień (${Math.round(metrics.tipStrongFraction*100)}%).`);
- if(metrics.widthRatio<2.5||near>Math.max(4,length*.08)||far<6)return no('Brak wyraźnej różnicy szerokości obu końców.');
- if(shoulder<near*1.3||profile[0]>profile[1]+1||profile[0]>near+1)return no('Brak dostatecznego zwężenia przy proponowanym grocie.');
+ if(metrics.tipStrongFraction<.2)return no(`Zbyt słaby kontrast przy grocie — możliwy cień (${Math.round(metrics.tipStrongFraction*100)}%).`);
+ if(metrics.widthRatio<1.0||near>Math.max(8,length*.2)||far<2)return no('Brak wyraźnej różnicy szerokości obu końców.');
+ if(shoulder<near*1.0||profile[0]>profile[1]+2||profile[0]>near+2)return no('Brak dostatecznego zwężenia przy proponowanym grocie.');
  return {autoEligible:true,autoCandidate:{...endpoints[narrow]},autoReason:'Wąski, zwężający się koniec rozpoznany z kształtu; wymaga niezależnej kontroli stabilności i pola.',autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}};
 }
 /** emptyReference is the original EMPTY board; reference is the last accepted frame.
