@@ -114,6 +114,16 @@ test('pause retains accepted baseline ownership but discards partial and ready p
  s.invalidate();assert.equal(s.state.waitingForEmpty,true);assert.equal(s.state.sourceKey,null);
 });
 
+test('darts removed mid-turn stop that read but a stable empty board re-arms the same turn',()=>{
+ const s=createCameraAutoSession();arm(s);const first=proposed(s);
+ assert.equal(s.commit(first.token,{applied:true}).acceptedDarts,1);
+ assert.equal(observe(s,2,{status:'removed'}).status,'blocked');
+ assert.equal(s.state.waitingForEmpty,true);
+ assert.equal(observe(s,2.35,{status:'removed'}).status,'blocked');
+ arm(s,3);const next=proposed(s,4);
+ assert.deepEqual(next.dart,{number:19,multiplier:1});
+});
+
 test('invalid options and malformed ownership cannot weaken the gate',()=>{
  for(const config of [{minFrames:2},{minStableMs:699},{maxGapMs:0},{maxTipDistance:NaN}])assert.throws(()=>createCameraAutoSession(config),/parametry/);
  const s=createCameraAutoSession();arm(s);const p=proposed(s);

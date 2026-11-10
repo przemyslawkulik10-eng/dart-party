@@ -141,7 +141,10 @@ const ctx=canvas.getContext('2d');const darts=[],autoDarts=[];let timer=null;
 const cameraQuery=new URLSearchParams(location.search),autoFixture=cameraQuery.get('camera')==='1'&&cameraQuery.get('cameraAuto')==='1';
 // Idealized tapered silhouettes for automatic-path QA ONLY. These are not
 // recordings and cannot establish real-camera recognition accuracy.
-const autoShapes={t20:{x:320,y:187,angle:-Math.PI/2,label:'T20'},s19:{x:294,y:400,angle:Math.atan2(55,-18),label:'S19'},s18:{x:370,y:251,angle:Math.atan2(-69,50),label:'S18'}};
+const autoShapes={t20:{x:320,y:187,angle:-Math.PI/2,label:'T20'},s19:{x:294,y:400,angle:Math.atan2(55,-18),label:'S19'},s18:{x:370,y:251,angle:Math.atan2(-69,50),label:'S18'},
+ s20a:{x:314,y:146,angle:-Math.PI/2,label:'S20 #1'},s20b:{x:320,y:142,angle:-Math.PI/2-0.04,label:'S20 #2'},s20c:{x:327,y:148,angle:-Math.PI/2+0.04,label:'S20 #3'},
+ s20d:{x:308,y:150,angle:-Math.PI/2,label:'S20 szer. #1'},s20e:{x:323,y:140,angle:-Math.PI/2-0.05,label:'S20 szer. #2'},s20f:{x:337,y:152,angle:-Math.PI/2+0.05,label:'S20 szer. #3'},
+ s20g:{x:312,y:148,angle:-Math.PI/2+0.25,label:'S20 wach. #1'},s20h:{x:320,y:140,angle:-Math.PI/2,label:'S20 wach. #2'},s20i:{x:330,y:150,angle:-Math.PI/2-0.25,label:'S20 wach. #3'}};
 function drawTaperedDart(shape){
  ctx.save();ctx.translate(shape.x,shape.y);ctx.rotate(shape.angle);ctx.fillStyle='#282828';
  for(let x=0;x<=70;x++){
@@ -169,7 +172,7 @@ const qa=document.createElement('aside');qa.id='camera-qa-controls';qa.style.css
 qa.innerHTML='<strong>QA — syntetyczna kamera, tylko pamięć</strong><p>Kalibracja: niebieskie krzyżyki 20 → 6 → 3 → 11. Po zapamiętaniu pustego tła i uruchomieniu odczytu dodaj linię.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="qa-empty">QA: pusta tarcza</button><button id="qa-t20">QA: dodaj T20</button><button id="qa-s19">QA: dodaj S19</button></div><output id="camera-qa-context"></output><p id="camera-qa-frame">Pusta tarcza syntetyczna</p>';
 if(autoFixture){
  const autoControls=document.createElement('div');autoControls.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
- autoControls.innerHTML='<button id="qa-auto-t20">QA AUTO: grot T20</button><button id="qa-auto-s19">QA AUTO: grot S19</button><button id="qa-auto-s18">QA AUTO: grot S18</button>';
+ for(const [key,shape]of Object.entries(autoShapes)){const button=document.createElement('button');button.id='qa-auto-'+key;button.textContent='QA AUTO: grot '+shape.label;autoControls.append(button);}
  qa.append(autoControls);
 }
 document.body.prepend(qa);
