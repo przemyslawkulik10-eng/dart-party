@@ -258,7 +258,7 @@ function autoObserve(frame,game){
  const entries=seriesEntries(found);
  const read=pointField(found.autoCandidate||found.autoFallback,found.alternate);
  const point=read?.point??null,field=read?.field??null;
- const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:found.autoEligible===true||!!found.autoFallback,point:point?{x:point[0],y:point[1]}:null,field,darts:entries});
+ const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:found.autoEligible===true,point:point?{x:point[0],y:point[1]}:null,field,darts:entries});
  if(decision.status==='armed'){
   // The original empty reference was matched on several fresh frames. This is
   // safe to reset after the previous player's darts have actually been removed.
