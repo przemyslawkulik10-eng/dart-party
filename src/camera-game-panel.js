@@ -8,9 +8,6 @@ import {createCameraReviewFrame} from './camera-review-frame.js';
 import {createCameraObservation} from './camera-observation.js';
 import {getCameraGame,subscribeCameraGame,applyCameraDart} from './camera-game-session.js';
 import {createCameraReview} from './camera-game-adapter.js';
-import {automaticReadFromDetection} from './camera-auto-read.js';
-import {createCameraSeriesTracker} from './camera-series-tracker.js';
-import {applyCameraSeries} from './camera-series-write.js';
 import {dartLabel} from './engine.js';
 
 // The camera lives outside #app: scoring re-renders must never replace its stream.
@@ -37,7 +34,7 @@ shell.append(panel);
 const $=name=>panel.querySelector(`[data-cg="${name}"]`);
 // Automat na produkcji włączony decyzją Kapitana 09.11. ?cameraAuto=0 wyłącza go do prób.
 const autoMode=new URLSearchParams(location.search).get('cameraAuto')!=='0';
-const autoSession=createCameraAutoSession(),seriesTracker=createCameraSeriesTracker();let emptyPrevious=null,lastDiagnosticTime=-Infinity,autoWarning='';
+const autoSession=createCameraAutoSession();let emptyPrevious=null,lastDiagnosticTime=-Infinity,autoWarning='';
 if(autoMode){
  $('read').textContent='Wznów automatyczne liczenie';
  panel.querySelector('.cg-note').textContent='Automatyczne liczenie: cała kolejka do trzech lotek. Pewny odczyt z kolejnych klatek zapisuje się sam, bez kliknięcia. Po trzeciej lotce gra przechodzi do następnego gracza — wyjmij wtedy wszystkie lotki. Niepewne trafienia zatrzymują zapis. Wcześniej wpisaną lotkę, która wypadła, cofnij w grze.';
@@ -68,11 +65,11 @@ function restoreCalibration(){
   if(points.length!==4)throw new Error('zły zapis');
   matrix=calibrate(points);crop=calibrationCrop();
   rotation=((Number(saved.rotation)||0)%360+360)%360;zoom=viewZoom(Number(saved.zoom)||1);pan=[0,0];
-  clearProposal();observation.invalidate();autoSession.invalidate();seriesTracker.clear();emptyPrevious=null;emptyGray=null;lastFrame=-1;
+  clearProposal();observation.invalidate();autoSession.invalidate();emptyPrevious=null;emptyGray=null;lastFrame=-1;
   status('Kalibracja przywrócona z zapisu. Po wyjęciu lotek zapamiętaj pustą tarczę.');
  }catch{resetCalibration();}
 }
-const source=new CameraSource(navigator.mediaDevices,()=>stopCamera('Połączenie zakończone. Uruchom kamerę ponownie.'),value=>{muted=value;gate.reset(video.currentTime,performance.now());clearProposal();observation.pause();autoSession.pause();seriesTracker.clear();emptyPrevious=null;lastFrame=-1;buttons();});
+const source=new CameraSource(navigator.mediaDevices,()=>stopCamera('Połączenie zakończone. Uruchom kamerę ponownie.'),value=>{muted=value;gate.reset(video.currentTime,performance.now());clearProposal();observation.pause();autoSession.pause();emptyPrevious=null;lastFrame=-1;buttons();});
 function status(text){if($('status').textContent!==text)$('status').textContent=text;}
 // Flaga „muted” bywa prawdziwa mimo płynących klatek Continuity, więc o gotowości
 // decyduje wyłącznie świeżość klatek (gate sam wykrywa zastój po staleMs).
@@ -85,7 +82,7 @@ function expireProposal(){
  clearProposal();observation.pause();lastFrame=-1;
  status('Odczyt wygasł. Ponownie sprawdzam lotkę na świeżym obrazie.');buttons();
 }
-function clearBaseline(message){armed=false;probing=false;autoWarning='';retryRead=null;observation.invalidate();autoSession.invalidate();seriesTracker.clear();emptyPrevious=null;emptyGray=null;lastFrame=-1;clearProposal();if(message)status(message);buttons();}
+function clearBaseline(message){armed=false;probing=false;autoWarning='';retryRead=null;observation.invalidate();autoSession.invalidate();emptyPrevious=null;emptyGray=null;lastFrame=-1;clearProposal();if(message)status(message);buttons();}
 function steps(){
  const chips=$('steps').children,index=!live?0:!matrix?1:!observation.ready?2:3;
  for(let i=0;i<chips.length;i++)chips[i].classList.toggle('cg-step-active',i===index);
@@ -195,56 +192,54 @@ function autoTurnKey(game){
   ?[game.game,game.sessionId,game.turn]
   :[game.game,game.sessionId,game.player,game.phase,game.target]);
 }
-function fieldReadContext(){return {readField:point=>fieldAt(project(matrix,point)),crop,videoWidth:video.videoWidth,videoHeight:video.videoHeight};}
-function seriesDarts(decision){return Array.isArray(decision.darts)&&decision.darts.length?decision.darts:[decision.dart];}
-function sameSeriesDarts(left,right){
- const a=seriesDarts(left),b=seriesDarts(right);
- return a.length===b.length&&a.every((dart,index)=>dart.number===b[index].number&&dart.multiplier===b[index].multiplier);
+function pointField(tip,alternate){
+ const read=value=>{
+  if(!value)return null;
+  const point=[(crop.x+value.x*crop.size)/video.videoWidth,(crop.y+value.y*crop.size)/video.videoHeight];
+  return {point,field:fieldAt(project(matrix,point))};
+ };
+ const primary=read(tip),other=read(alternate);
+ return primary?.field.number===0&&other&&other.field.number!==0&&!other.field.nearWire?other:primary;
 }
-function autoReadOwnership(game){
- return {sourceKey:metadata(game).sourceKey,turnKey:autoTurnKey(game),game:game.game,sessionId:game.sessionId,player:game.player,phase:game.phase,target:game.target,turn:game.turn};
+function seriesEntries(found){
+ // Every detected component goes through calibration to its own board field.
+ if(found.status!=='candidates')return null;
+ return found.candidates.map(item=>{
+  const read=pointField(item.autoCandidate||item.autoFallback,item.alternate);
+  return {point:read?.point??null,field:read?.field??null,autoEligible:item.autoEligible===true};
+ });
 }
-function ownsAutoRead(expected){
- const current=getCameraGame();
- return !!current&&expected.sourceKey===metadata(current).sourceKey&&expected.turnKey===autoTurnKey(current)&&
-  expected.game===current.game&&expected.sessionId===current.sessionId&&expected.player===current.player&&
-  expected.phase===current.phase&&expected.target===current.target&&expected.turn===current.turn;
-}
-function commitRead(found,decision,read){
- const darts=seriesDarts(decision),ownership=autoReadOwnership(getCameraGame());
+function commitRead(found,decision,current,point,entries){
+ const darts=Array.isArray(decision.darts)&&decision.darts.length?decision.darts:[decision.dart];
+ const labels=[];
  committing=true;
  try{
-  applyCameraSeries({
-   darts,
-   ownership:{isCurrent:game=>ownership.sourceKey===metadata(game).sourceKey&&ownership.turnKey===autoTurnKey(game)&&
-    ownership.game===game.game&&ownership.sessionId===game.sessionId&&ownership.player===game.player&&
-    ownership.phase===game.phase&&ownership.target===game.target&&ownership.turn===game.turn},
-   getGame:getCameraGame,
-   isFresh:()=>ready(),
-   toInput:(raw,active)=>active.game==='cricket'&&active.twentyLocked&&raw.number===20?{number:0,multiplier:1}:raw,
-   apply:(dart,revision)=>applyCameraDart(dart,revision)
-  });
+  for(const raw of darts){
+   const active=getCameraGame();
+   if(!ready()||!active)throw new Error('Kolejka zmieniła się w trakcie zapisu serii.');
+   const dart=active.game==='cricket'&&active.twentyLocked&&raw.number===20?{number:0,multiplier:1}:raw;
+   applyCameraDart(dart,active.revision);
+   labels.push(dartLabel(dart));
+  }
   observation.accept(found.id,{applied:true,contextKey:found.contextKey});
-  const commit=autoSession.commit(decision.token,{applied:true});seriesTracker.commit(darts);autoWarning='';
-  clearProposal();$('result').textContent=`Zapisano: ${darts.map(dartLabel).join(' · ')}`;
-  markers(read.previewEntries.length?read.previewEntries.map(item=>item.point):null);
+  const commit=autoSession.commit(decision.token,{applied:true});autoWarning='';
+  clearProposal();$('result').textContent=`Zapisano: ${labels.join(' · ')}`;
+  if(entries)markers(entries.map(entry=>entry.point).filter(Boolean));else markers(point);
   status(commit.acceptedDarts>=3?'Trzy lotki zapisane. Gra przełącza gracza — wyjmij lotki, żeby automat ruszył dalej.':`Zapisano ${darts.length} ${darts.length===1?'lotkę':'lotki'} automatycznie. Rzuć następną.`);
  }catch(e){
-  const confirmed=e.confirmedCount??0,attempted=e.attemptedCount??confirmed+1;
-  const outcome=e.uncertain===true
-   ?`Próba zapisu lotki ${attempted} jest niepewna. Nie powtarzam jej automatycznie — sprawdź wynik na klawiaturze.`
-   :confirmed?`Potwierdzono ${confirmed} z ${darts.length} lotek. Pozostałe ${darts.length-confirmed} nie zostały zapisane.`
-   :'Nie zapisano żadnej lotki.';
-  clearBaseline(`${outcome} Zapis automatyczny zatrzymany: ${e.message}`);
+  // A storage failure can happen after a handler changed the score: never retry.
+  const saved=darts.length-labels.length;
+  clearBaseline(`${saved?`Zapisano ${saved} z ${darts.length} lotek. `:''}Zapis automatyczny zatrzymany: ${e.message}`);
  }finally{committing=false;lastRevision=getCameraGame()?.revision??null;syncGame();}
 }
 function autoObserve(frame,game){
+ const meta=metadata(game);
  if(retryRead){
   const current=getCameraGame();
-  if(!current||current.revision!==retryRead.gameRevision){retryRead=null;autoSession.invalidate();seriesTracker.clear();status('Kolejka zmieniła się. Czekam na pustą tarczę.');return;}
+  if(!current||current.revision!==retryRead.gameRevision){retryRead=null;autoSession.invalidate();status('Kolejka zmieniła się. Czekam na pustą tarczę.');return;}
+  if(!ready()){status('Odczyt gotowy — czekam na świeżą klatkę kamery.');return;}
+  const saved=retryRead;retryRead=null;commitRead(saved.found,saved.decision,current,saved.point,saved.entries);return;
  }
- const expectedRead=retryRead;retryRead=null;
- const meta=metadata(game);
  const emptyCheck=detectDartChange(emptyGray,frame,emptyPrevious,{width:640,height:640,emptyReference:emptyGray});
  emptyPrevious=frame;
  const found=observation.observe(frame,meta),emptyBoard=emptyCheck.status==='empty';
@@ -256,42 +251,36 @@ function autoObserve(frame,game){
   // Darts left the board before the turn finished. Keep the empty reference and
   // the ticker: once the original empty board is stable again the auto re-arms,
   // so the next turn is not lost. Warn once about the possibly missing score.
-  autoSession.invalidate();observation.pause();seriesTracker.clear();retryRead=null;
+  autoSession.invalidate();observation.pause();retryRead=null;
   autoWarning='Lotka zniknęła w trakcie kolejki. Sprawdź wcześniej zapisane trafienie i cofnij je, jeśli lotka wypadła. Automat wznowi się po stabilnie pustej tarczy.';
   status(autoWarning);return;
  }
- const read=automaticReadFromDetection(found,fieldReadContext());
- const verifiedEntries=read.entries?read.entries.filter(entry=>entry.autoEligible):null;
- const tracked=seriesTracker.observe(verifiedEntries||(!read.autoEligible||!read.point?[]:[{point:read.point,field:read.field,autoEligible:read.autoEligible}]),meta.time);
- const entries=tracked.entries.length?tracked.entries:null;
- const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:read.autoEligible&&entries?.length<=1,point:entries?null:read.point,field:entries?null:read.field,darts:entries,orderKnown:tracked.orderKnown});
+ const entries=seriesEntries(found);
+ const read=pointField(found.autoCandidate||found.autoFallback,found.alternate);
+ const point=read?.point??null,field=read?.field??null;
+ const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:found.autoEligible===true||!!found.autoFallback,point:point?{x:point[0],y:point[1]}:null,field,darts:entries});
  if(decision.status==='armed'){
   // The original empty reference was matched on several fresh frames. This is
   // safe to reset after the previous player's darts have actually been removed.
   observation.setEmpty(frame,meta);clearProposal();
  }
  if(decision.status!=='ready'){
-  const preview=read.previewEntries.map(item=>item.field).filter(value=>value&&value.number!==0);
-  if(preview.length)showField(preview[0]);
-  if(read.previewEntries.length)markers(read.previewEntries.map(item=>item.point));
+  const preview=entries?entries.map(entry=>entry.field).filter(value=>value&&value.number!==0):[];
+  if(entries){if(preview.length)showField(preview[0]);markers(entries.map(entry=>entry.point).filter(Boolean));}
+  else if(field){showField(field);markers(point);}
   const blockedRead=decision.status==='blocked'&&(found.status==='candidate'||found.status==='candidates');
-  status(autoWarning||(blockedRead?'Automat nie jest pewny tej lotki. Wpisz ją ręcznie w grze i wyjmij lotki — automat wznowi się po stabilnie pustej tarczy.':found.status==='candidate'&&found.autoEligible!==true&&found.autoFallback?'Mam punkt podglądu, ale nie zweryfikowany grot. Wpisz lotkę ręcznie.':decision.status==='blocked'&&found.status!=='candidate'?found.reason||decision.reason:decision.reason));
+  status(autoWarning||(blockedRead?'Automat nie jest pewny tej lotki. Wpisz ją ręcznie w grze i wyjmij lotki — automat wznowi się po stabilnie pustej tarczy.':found.status==='candidate'&&found.autoEligible!==true&&!found.autoFallback?found.autoReason:decision.status==='blocked'&&found.status!=='candidate'?found.reason||decision.reason:decision.reason));
   return;
  }
  // All gates use this fresh capture. Recheck the owner just before the write.
  const current=getCameraGame();
- if(!current||current.revision!==game.revision){autoSession.invalidate();seriesTracker.clear();retryRead=null;status('Kolejka zmieniła się. Czekam na pustą tarczę.');return;}
- if(expectedRead&&!sameSeriesDarts(expectedRead,decision)){
-  autoSession.invalidate();seriesTracker.clear();status('Kandydat zmienił się po wznowieniu obrazu. Nic nie zapisano.');return;
- }
+ if(!current||current.revision!==game.revision){autoSession.invalidate();status('Kolejka zmieniła się. Czekam na pustą tarczę.');return;}
  if(!ready()){
-  // A frozen frame must not preserve an old write. Retire the token and require a
-  // fresh, identical proposal before any game mutation.
-  retryRead={darts:seriesDarts(decision),gameRevision:current.revision};
-  autoSession.pause();observation.pause();seriesTracker.clear();emptyPrevious=null;lastFrame=-1;
+  // A frozen frame must not kill a verified read: retry on the next fresh tick.
+  retryRead={found,decision,gameRevision:current.revision,point,entries};
   status('Odczyt gotowy — czekam na świeżą klatkę kamery.');return;
  }
- commitRead(found,decision,read);
+ commitRead(found,decision,current,point,entries);
 }
 function showField(field){$('result').textContent=`Do sprawdzenia: ${field.label}${field.nearWire?' · blisko drutu':''}`;}
 function probeObserve(frame,game){
@@ -351,7 +340,7 @@ function syncGame(){
  if(!committing&&lastRevision!==game?.revision){
   if(observation.ready||pending){
    probing=false;
-   if(autoMode){autoWarning='';retryRead=null;clearProposal();observation.pause();autoSession.invalidate();seriesTracker.clear();emptyPrevious=null;lastFrame=-1;status('Kolejka zmieniła się. Czekam na stabilną pustą tarczę.');}
+   if(autoMode){autoWarning='';retryRead=null;clearProposal();observation.pause();autoSession.invalidate();emptyPrevious=null;lastFrame=-1;status('Kolejka zmieniła się. Czekam na stabilną pustą tarczę.');}
    else clearBaseline('Stan gry zmienił się. Usuń lotki i zapamiętaj pustą tarczę przed kolejnym odczytem.');
   }
  }
@@ -395,7 +384,7 @@ video.addEventListener('resize',()=>{if(!live||!video.videoWidth||!video.videoHe
 // Auto keeps reading while the tab is hidden: the player watches the board and
 // is not expected to keep the game window in front. Fresh frames stay the only
 // readiness gate, so a suspended stream can never produce a score.
-document.addEventListener('visibilitychange',()=>{gate.reset(video.currentTime,performance.now());probing=false;retryRead=null;clearProposal();observation.pause();if(!autoMode)autoSession.pause();seriesTracker.clear();emptyPrevious=null;lastFrame=-1;buttons();if(!document.hidden&&live)void video.play().catch(()=>status('Naciśnij „Uruchom kamerę”, aby odzyskać obraz.'));});
+document.addEventListener('visibilitychange',()=>{gate.reset(video.currentTime,performance.now());probing=false;retryRead=null;clearProposal();observation.pause();if(!autoMode)autoSession.pause();emptyPrevious=null;lastFrame=-1;buttons();if(!document.hidden&&live)void video.play().catch(()=>status('Naciśnij „Uruchom kamerę”, aby odzyskać obraz.'));});
 const ticker=setInterval(()=>{
  if(panel.hidden)return;
  buttons();if(!live)return;

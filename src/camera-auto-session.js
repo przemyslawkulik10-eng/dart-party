@@ -20,7 +20,7 @@ export function createCameraAutoSession({minFrames=3,minStableMs=700,maxTipDista
  const blocked=message=>{pause(message);return {status:'blocked',reason:message};};
  const stable=(run,time)=>run.frames>=minFrames&&(time-run.started)*1000>=minStableMs-1e-6;
  function observe(value={}){
-  const {time,sourceKey,contextKey,turnKey,status,point,field,autoEligible=false,emptyBoard=false,turnComplete=false,darts,orderKnown=true}=value;
+  const {time,sourceKey,contextKey,turnKey,status,point,field,autoEligible=false,emptyBoard=false,turnComplete=false,darts}=value;
   if(!Number.isFinite(time)||time<0||!text(sourceKey)||!text(contextKey)||!text(turnKey)){
    invalidate('Brak tożsamości świeżej klatki lub kolejki.');throw Error(reason);
   }
@@ -55,8 +55,6 @@ export function createCameraAutoSession({minFrames=3,minStableMs=700,maxTipDista
   // the entire series, so nothing is half-saved.
   const entries=Array.isArray(darts)&&darts.length?darts:[{point,field,autoEligible}];
   if(entries.length>3||(status==='candidates'&&entries.length<2)||(status==='candidate'&&entries.length!==1))return blocked('Brak jednoznacznego zestawu lotek.');
-  if(entries.length>1&&orderKnown!==true)return blocked('Kolejność lotek we wspólnym kadrze nie jest znana. Wstrzymuję zapis, żeby nie ułożyć historii od nowa.');
-  if(entries.length>1&&entries.some(entry=>!Number.isFinite(entry.appearedAt)))return blocked('Kolejność lotek w serii nie ma potwierdzonego czasu pojawienia.');
   // A turn holds exactly three darts. A series that would exceed it cannot be
   // split safely, so the whole read restarts from a verified empty board.
   if(acceptedDarts+entries.length>3){invalidate('Seria przekracza trzy lotki kolejki. Potrzebna stabilna pusta tarcza.');return {status:'blocked',reason};}
@@ -64,12 +62,16 @@ export function createCameraAutoSession({minFrames=3,minStableMs=700,maxTipDista
   for(const entry of entries){
    const entryPoint=entry&&entry.point,entryField=entry&&entry.field;
    const validPoint=entryPoint&&Number.isFinite(entryPoint.x)&&Number.isFinite(entryPoint.y)&&entryPoint.x>=0&&entryPoint.x<=1&&entryPoint.y>=0&&entryPoint.y<=1;
-   if(!validPoint||!validDart(entryField)||entryField.number===0)return blocked('Propozycja wymaga ręcznego sprawdzenia grotu.');
-   normalized.push({point:{x:entryPoint.x,y:entryPoint.y},dart:{number:entryField.number,multiplier:entryField.multiplier},appearedAt:Number.isFinite(entry.appearedAt)?entry.appearedAt:null});
+   if(entry?.autoEligible!==true||!validPoint||!validDart(entryField)||entryField.number===0||entryField.nearWire!==false)return blocked('Propozycja wymaga ręcznego sprawdzenia grotu.');
+   normalized.push({point:{x:entryPoint.x,y:entryPoint.y},dart:{number:entryField.number,multiplier:entryField.multiplier}});
   }
   const similar=(a,b)=>a.dart.number===b.dart.number&&a.dart.multiplier===b.dart.multiplier&&
    Math.hypot(a.point.x-b.point.x,a.point.y-b.point.y)<=maxTipDistance;
-  const same=candidate&&candidate.items.length===normalized.length&&normalized.every((item,index)=>similar(candidate.items[index],item));
+  const same=candidate&&candidate.items.length===normalized.length&&(()=>{
+   const old=[...candidate.items];
+   for(const item of normalized){const index=old.findIndex(value=>similar(value,item));if(index<0)return false;old.splice(index,1);}
+   return true;
+  })();
   if(!same){dropCandidate();candidate={started:time,frames:0,items:normalized};}
   candidate.frames++;
   if(pending)return {status:'awaiting-commit',reason:'Odczyt czeka na wynik zapisu.'};
