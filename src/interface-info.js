@@ -1,5 +1,5 @@
-export const APP_VERSION='V 01.22';
-export const APP_UPDATED='09.11.2026';
+export const APP_VERSION='V 01.23';
+export const APP_UPDATED='10.11.2026';
 // Count recorded darts, not multipliers; undone darts are absent from events.
 export function mostUsedField(events){
  const counts=new Map();let last=0;

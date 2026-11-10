@@ -16,7 +16,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.22';
+const VERSION='01.23';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -144,6 +144,23 @@ async function devices(){
   }
   $('device').replaceChildren(new Option('Domyślna kamera',''));for(const c of cameraOptions(list,selection)){const option=new Option(c.disabled?`${c.label} — nie do tarczy`:c.label,c.id);option.disabled=c.disabled;$('device').append(option);}$('device').value=selection.id;
  }catch{status('Lista kamer niedostępna. Sprawdź uprawnienia przeglądarki.');}
+}
+let listProbe=null;
+async function unlockCameraList(){
+ // Safari ukrywa kamerę Continuity w enumerateDevices, dopóki strona nie
+ // uzyska dostępu do kamery. Wymuszamy jedną próbę przy otwieraniu panelu.
+ if(!navigator.mediaDevices?.getUserMedia||live||starting)return false;
+ if(listProbe)return listProbe;
+ listProbe=(async()=>{
+  const list=await navigator.mediaDevices.enumerateDevices();
+  if(list.some(d=>d.kind==='videoinput'&&/warzywko|przemek|iphone/i.test(d.label)))return false;
+  const probe=await navigator.mediaDevices.getUserMedia({video:true}).catch(()=>null);
+  probe?.getTracks().forEach(t=>t.stop());
+  if(!probe)status('Brak zgody na kamerę. Zezwól na kamerę dla tej aplikacji.');
+  await devices();
+  return !!probe;
+ })().finally(()=>{listProbe=null;});
+ return listProbe;
 }
 async function start(){
  stopCamera();if(!navigator.mediaDevices?.getUserMedia||!isSecureContext){status('Kamera wymaga HTTPS i zgody przeglądarki.');return;}
@@ -299,7 +316,7 @@ function syncGame(){
 subscribeCameraGame(syncGame);
 // This also handles leaving a game for a screen which does not bind camera input.
 new MutationObserver(()=>{if(!getCameraGame()&&lastRevision!==null)syncGame();}).observe(app,{childList:true});
-launch.onclick=()=>{panel.hidden=false;shell.classList.add('camera-open');launch.setAttribute('aria-expanded','true');syncGame();layout();void devices();$('start').focus();};
+launch.onclick=()=>{panel.hidden=false;shell.classList.add('camera-open');launch.setAttribute('aria-expanded','true');syncGame();layout();void devices();void unlockCameraList();$('start').focus();};
 $('close').onclick=()=>{stopCamera();panel.hidden=true;shell.classList.remove('camera-open');launch.setAttribute('aria-expanded','false');launch.focus();};
 $('start').onclick=start;$('devices').onclick=devices;
 $('device').onchange=()=>{selection={id:$('device').value,label:$('device').selectedOptions[0]?.textContent||''};saveCameraSelection(longStorage,selection);stopCamera('Źródło zmienione. Uruchom kamerę.');};
