@@ -97,7 +97,7 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  };
  let rawMoving=0,changed=0,supportedChanged=0,reverted=0,baselineChanged=0;
  const rawMask=new Uint8Array(count),mask=new Uint8Array(count),motionMask=new Uint8Array(count),baselineMask=new Uint8Array(count),addedMask=new Uint8Array(count),revertedMask=new Uint8Array(count);
- const bridgeRadius=2,bridgePasses=3;
+ const bridgeRadius=5,bridgePasses=5;
  const expandOnce=source=>{
   const out=new Uint8Array(count);
   for(let i=0;i<count;i++)if(source[i]){const x=i%width,y=Math.floor(i/width);for(let dy=-bridgeRadius;dy<=bridgeRadius;dy++)for(let dx=-bridgeRadius;dx<=bridgeRadius;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<width&&yy>=0&&yy<height)out[yy*width+xx]=1;}}
