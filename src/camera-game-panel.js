@@ -16,7 +16,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.23';
+const VERSION='01.24';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -73,7 +73,7 @@ const source=new CameraSource(navigator.mediaDevices,()=>stopCamera('Połączeni
 function status(text){if($('status').textContent!==text)$('status').textContent=text;}
 // Flaga „muted” bywa prawdziwa mimo płynących klatek Continuity, więc o gotowości
 // decyduje wyłącznie świeżość klatek (gate sam wykrywa zastój po staleMs).
-function ready(){return live&&gate.sample({time:video.currentTime,now:performance.now(),hidden:document.hidden});}
+function ready(){return live&&gate.sample({time:video.currentTime,now:performance.now()});}
 function key(game){return String(game.revision);}
 function clearProposal(){pending=null;reviewFrame.reset();review.clear();$('result').textContent='Brak odczytu';$('correction').hidden=true;markers();}
 function expireProposal(){
@@ -185,7 +185,13 @@ function calibrationCrop(){
 }
 function capture(){actx.drawImage(video,crop.x,crop.y,crop.size,crop.size,0,0,640,640);return toGray(actx.getImageData(0,0,640,640).data);}
 function metadata(game){return {time:video.currentTime,contextKey:game?key(game):'panel-bez-gry',sourceKey:`${sourceVersion}:${frameSize}:${JSON.stringify(points)}`};}
-function autoTurnKey(game){return JSON.stringify([game.game,game.sessionId,game.player,game.phase,game.target]);}
+function autoTurnKey(game){
+ // A game may pass an explicit turn id for rounds that keep the same player
+ // (training, Cyferki, JDC). Without it, odd solo turns never re-arm the auto.
+ return JSON.stringify(game.turn!==undefined&&game.turn!==null
+  ?[game.game,game.sessionId,game.turn]
+  :[game.game,game.sessionId,game.player,game.phase,game.target]);
+}
 function seriesEntries(found){
  // Every detected component goes through calibration to its own board field.
  if(found.status!=='candidates')return null;
@@ -348,10 +354,13 @@ $('confirm').onclick=()=>{
  finally{committing=false;lastRevision=getCameraGame()?.revision??null;syncGame();}
 };
 video.addEventListener('resize',()=>{if(!live||!video.videoWidth||!video.videoHeight)return;const size=`${video.videoWidth}x${video.videoHeight}`;if(size!==frameSize){frameSize=size;resetCalibration();layout();}});
-document.addEventListener('visibilitychange',()=>{gate.reset(video.currentTime,performance.now());probing=false;clearProposal();observation.pause();autoSession.pause();emptyPrevious=null;lastFrame=-1;buttons();if(document.hidden)status('Odczyt wstrzymany, gdy strona jest w tle.');else if(live)void video.play().catch(()=>status('Naciśnij „Uruchom kamerę”, aby odzyskać obraz.'));});
+// Auto keeps reading while the tab is hidden: the player watches the board and
+// is not expected to keep the game window in front. Fresh frames stay the only
+// readiness gate, so a suspended stream can never produce a score.
+document.addEventListener('visibilitychange',()=>{gate.reset(video.currentTime,performance.now());probing=false;clearProposal();observation.pause();if(!autoMode)autoSession.pause();emptyPrevious=null;lastFrame=-1;buttons();if(!document.hidden&&live)void video.play().catch(()=>status('Naciśnij „Uruchom kamerę”, aby odzyskać obraz.'));});
 const ticker=setInterval(()=>{
  if(panel.hidden)return;
- buttons();if(!live||document.hidden)return;
+ buttons();if(!live)return;
  if(!armed&&!probing)return;
  const game=getCameraGame();if(!game||!ready()){
   if(pending)clearProposal();

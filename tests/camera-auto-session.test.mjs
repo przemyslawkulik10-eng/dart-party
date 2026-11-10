@@ -138,6 +138,30 @@ test('a whole turn seen at once is ready only when every dart stays stable',()=>
  const commit=s.commit(ready.token,{applied:true});
  assert.equal(commit.acceptedDarts,3);assert.equal(commit.waitingForEmpty,true);
 });
+test('a series that would exceed the three darts of one turn restarts from empty',()=>{
+ const s=createCameraAutoSession();arm(s);
+ s.commit(proposed(s,1).token,{applied:true});
+ s.commit(proposed(s,2,{contextKey:'revision-2'}).token,{applied:true});
+ assert.equal(s.state.acceptedDarts,2);
+ const extra=[
+  {point:{x:.2,y:.2},field:{number:20,multiplier:1,nearWire:false},autoEligible:true},
+  {point:{x:.5,y:.5},field:{number:19,multiplier:1,nearWire:false},autoEligible:true}];
+ assert.equal(observe(s,3,{status:'candidates',darts:extra}).status,'blocked');
+ assert.equal(s.state.acceptedDarts,0);assert.equal(s.state.waitingForEmpty,true);
+ assert.equal(observe(s,3.35,{status:'candidates',darts:extra}).status,'waiting-empty');
+});
+test('two darts thrown between frames finish a turn that already has one dart',()=>{
+ const s=createCameraAutoSession();arm(s);
+ s.commit(proposed(s,1).token,{applied:true});
+ const extra=[
+  {point:{x:.2,y:.2},field:{number:20,multiplier:1,nearWire:false},autoEligible:true},
+  {point:{x:.5,y:.5},field:{number:19,multiplier:1,nearWire:false},autoEligible:true}];
+ let ready;
+ for(const time of [2,2.35,2.7]){const result=observe(s,time,{status:'candidates',darts:extra,contextKey:'revision-2'});if(result.status==='ready')ready=result;}
+ assert.ok(ready);assert.equal(ready.darts.length,2);
+ const commit=s.commit(ready.token,{applied:true});
+ assert.equal(commit.acceptedDarts,3);assert.equal(commit.waitingForEmpty,true);
+});
 test('one ineligible dart blocks the entire series',()=>{
  const s=createCameraAutoSession();arm(s);
  const darts=[

@@ -15,9 +15,9 @@ export function createCameraGameSession({onListenerError=error=>console.error('B
  function bindCameraGame(value){
   if(value===null){binding=null;sequence++;notify();return null;}
   if(!value||typeof value.owner!=='object'||value.owner===null||typeof value.apply!=='function'||value.apply.constructor?.name==='AsyncFunction')throw new Error('Nieprawidłowe powiązanie kamery z grą.');
-  const {owner,game,sessionId,player,label='',target,phase,twentyLocked=false,blocked=false,score=null,apply}=value;
+  const {owner,game,sessionId,player,label='',target,phase,turn,twentyLocked=false,blocked=false,score=null,apply}=value;
   cameraContextKey({game,sessionId,player,revision:sequence+1});
-  binding={owner,game,sessionId,player,label,target,phase,twentyLocked:!!twentyLocked,blocked:!!blocked,score:Number.isFinite(score)?score:null,apply,account:getAccount(),revision:++sequence};
+  binding={owner,game,sessionId,player,label,target,phase,turn,twentyLocked:!!twentyLocked,blocked:!!blocked,score:Number.isFinite(score)?score:null,apply,account:getAccount(),revision:++sequence};
   notify();return getCameraGame();
  }
  function applyCameraDart(dart,expectedRevision){

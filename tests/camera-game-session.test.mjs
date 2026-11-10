@@ -32,6 +32,13 @@ test('handler failures propagate and cannot replay partially applied work; async
  const b=s.bindCameraGame(config(()=>Promise.resolve()));assert.throws(()=>s.applyCameraDart(dart,b.revision),/synchroniczny/);
  const c=s.bindCameraGame(config(()=>false));assert.throws(()=>s.applyCameraDart(dart,c.revision),/nie przyjęła/);
 });
+test('binding exposes the explicit turn id used by solo rounds',()=>{
+ const s=createCameraGameSession(),owner={isConnected:true};
+ const a=s.bindCameraGame({...config(()=>{}),owner,turn:'leg-1:visit-4'});
+ assert.equal(s.getCameraGame().turn,'leg-1:visit-4');
+ const b=s.bindCameraGame({...config(()=>{}),owner,turn:'leg-1:visit-5'});
+ assert.equal(s.getCameraGame().turn,'leg-1:visit-5');assert.ok(b.revision>a.revision);
+});
 test('subscription exposes immutable context without callback and unsubscribes',()=>{
  const s=createCameraGameSession(),events=[];const off=s.subscribeCameraGame(c=>events.push(c));
  const a=s.bindCameraGame(config(()=>{}));assert.equal(events[0],null);assert.equal(events[1].revision,a.revision);assert.equal(events[1].apply,undefined);assert.ok(Object.isFrozen(events[1]));
@@ -42,7 +49,7 @@ test('actual JDC camera hook fills the first empty draft slot and preserves exis
  const {readFileSync}=await import('node:fs'),{default:vm}=await import('node:vm');
  const source=readFileSync(new URL('../src/jdc-ui.js',import.meta.url),'utf8'),s=createCameraGameSession(),owner={isConnected:true};
  const existing={number:10,multiplier:2};let next;
- const ctx=vm.createContext({bindCameraGame:s.bindCameraGame,$:()=>owner,current:{id:'jdc-1',profileId:'p1',name:'A',endedAt:null,draft:[existing,null]},disposed:false,targets:[{},{},{}],setDraft:value=>{next=value;}});
+ const ctx=vm.createContext({bindCameraGame:s.bindCameraGame,$:()=>owner,current:{id:'jdc-1',profileId:'p1',name:'A',endedAt:null,draft:[existing,null],darts:[]},disposed:false,targets:[{},{},{}],setDraft:value=>{next=value;}});
  vm.runInContext(source.slice(source.indexOf('  bindCameraGame('),source.indexOf('\n }\n function result')),ctx);
  s.applyCameraDart({number:7,multiplier:1},s.getCameraGame().revision);
  assert.equal(next[0],existing);assert.deepEqual({...next[1]},{number:7,multiplier:1});assert.equal(next[2],null);

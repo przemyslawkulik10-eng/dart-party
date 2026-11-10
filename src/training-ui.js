@@ -80,7 +80,7 @@ export function mountTraining(root,{onExit,toast,names=[],initialName='',initial
   $('#training-finish').onclick=()=>safely(()=>{store(finishTraining(current));result(true);});
   $('#training-home').onclick=()=>safely(()=>{store(pauseTraining(current));home();});
   if(!paused)timer=setInterval(()=>{if(disposed)return;const left=remainingTime(current);$('#training-clock').textContent=clock(left);if(!left){stop();safely(()=>{store(finishTraining(current));result(true);});}},500);
-  bindCameraGame({owner:$('#training-repeat'),game:'sector-20',sessionId:current.id,player:current.profileId||current.name,label:current.name,target:current.target,blocked:disposed||paused||awaitingNext||current.endedAt!==null,apply:dart=>recordHit(dart.number,dart.multiplier)});
+  bindCameraGame({owner:$('#training-repeat'),game:'sector-20',sessionId:current.id,player:current.profileId||current.name,label:current.name,target:current.target,turn:Math.floor(current.darts.length/3),blocked:disposed||paused||awaitingNext||current.endedAt!==null,apply:dart=>recordHit(dart.number,dart.multiplier)});
  }
  function result(announce=false){
   updateActivity(current.id,false);

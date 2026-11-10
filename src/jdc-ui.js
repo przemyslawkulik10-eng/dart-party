@@ -78,7 +78,7 @@ export function mountJdc(root,{onExit,toast,names=[],initialName='',initialProfi
   $('#jdc-undo').onclick=()=>safe(()=>{const ps=pair();if(ps){const previous=previousPlayer(ps);if(!previous)return;current=previous;}const count=current.darts.length%3||3;store({...current,draft:[],darts:current.darts.slice(0,-count),endedAt:null});game();speakTraining('Cofnięto kolejkę. '+current.name+'. '+roundPrompt(current));});
   $('#jdc-save').onclick=home;
   $('#jdc-coach').onchange=e=>safe(()=>{store({...current,coachEnabled:e.target.checked});game();});
-  bindCameraGame({owner:$('#jdc-repeat'),game:'jdc',sessionId:current.id,player:current.profileId||current.name,label:current.name,blocked:disposed||current.endedAt!==null,apply:dart=>{
+  bindCameraGame({owner:$('#jdc-repeat'),game:'jdc',sessionId:current.id,player:current.profileId||current.name,label:current.name,turn:Math.floor(current.darts.length/3),blocked:disposed||current.endedAt!==null,apply:dart=>{
    if(disposed||current.endedAt!==null)throw new Error('Próba JDC nie jest aktywna.');
    const pending=current.draft||[],slot=targets.findIndex((_,i)=>!pending[i]);
    if(slot<0)throw new Error('Kolejka JDC jest już uzupełniona.');

@@ -55,6 +55,9 @@ export function createCameraAutoSession({minFrames=3,minStableMs=700,maxTipDista
   // the entire series, so nothing is half-saved.
   const entries=Array.isArray(darts)&&darts.length?darts:[{point,field,autoEligible}];
   if(entries.length>3||(status==='candidates'&&entries.length<2)||(status==='candidate'&&entries.length!==1))return blocked('Brak jednoznacznego zestawu lotek.');
+  // A turn holds exactly three darts. A series that would exceed it cannot be
+  // split safely, so the whole read restarts from a verified empty board.
+  if(acceptedDarts+entries.length>3){invalidate('Seria przekracza trzy lotki kolejki. Potrzebna stabilna pusta tarcza.');return {status:'blocked',reason};}
   const normalized=[];
   for(const entry of entries){
    const entryPoint=entry&&entry.point,entryField=entry&&entry.field;

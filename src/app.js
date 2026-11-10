@@ -321,7 +321,7 @@ function renderGame() {
   if($('#next'))$('#next').onclick=()=>{try{update(nextPlayer(match));announcePlayer();}catch(e){toast(e.message);}};
   scheduleAutoNext(state);
   if(!won)cheerForMaciek(state);
-  bindCameraGame({owner:$('#app').firstElementChild,game:match.mode,sessionId:match.id,player:state.current,label:player.name,score:player.score,blocked,twentyLocked,apply:({number,multiplier:m})=>{if(!hit(number,m))throw new Error(storageError?'Wynik zmienił się na ekranie, ale nie został zapisany. Nie dodawaj tej lotki ponownie.':'Nie zapisano rzutu. Sprawdź komunikat gry.');}});
+  bindCameraGame({owner:$('#app').firstElementChild,game:match.mode,sessionId:match.id,player:state.current,label:player.name,score:player.score,turn:`${state.leg}:${state.visits.length}`,blocked,twentyLocked,apply:({number,multiplier:m})=>{if(!hit(number,m))throw new Error(storageError?'Wynik zmienił się na ekranie, ale nie został zapisany. Nie dodawaj tej lotki ponownie.':'Nie zapisano rzutu. Sprawdź komunikat gry.');}});
 }
 function cheerForMaciek(state){
   if(state.players[state.current].name.trim().toLocaleLowerCase('pl-PL')!=='maciek')return;
