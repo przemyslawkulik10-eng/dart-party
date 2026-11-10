@@ -60,7 +60,7 @@ function assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,re
  const fallbackPoint=shortChange?{x:Math.max(0,Math.min(1,mx/(width-1))),y:Math.max(0,Math.min(1,my/(height-1)))}:{...endpoints[narrow]};
  const no=reason=>({autoEligible:false,autoCandidate:null,autoFallback:{...fallbackPoint},autoReason:reason,autoMetrics:metrics,tip:{...endpoints[narrow]},tipAlternate:{...endpoints[1-narrow]}});
  const margin=Math.max(4,Math.ceil(Math.min(width,height)*.01));
- if(length<Math.max(32,Math.min(width,height)*.05)||pixels.length<48||bins.some(b=>b.count<2))return no('Za mało szczegółów do niezależnego rozpoznania końca lotki.');
+ if(pixels.length<5||bins.some(b=>b.count<2))return no('Za mało szczegółów do niezależnego rozpoznania końca lotki.');
  if(pixels.some(([x,y])=>x<margin||y<margin||x>=width-margin||y>=height-margin))return no('Obiekt zbyt blisko brzegu kadru.');
  if(metrics.tipStrongFraction<.2)return no(`Zbyt słaby kontrast przy grocie — możliwy cień (${Math.round(metrics.tipStrongFraction*100)}%).`);
  if(metrics.widthRatio<1.0||near>Math.max(8,length*.2)||far<2)return no('Brak wyraźnej różnicy szerokości obu końców.');
@@ -151,7 +151,7 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  // Reversion is not proof of removal, but cannot safely be treated as a new dart.
  // Detect it even if another object was added and the total changed area increased.
  // 12 px, nie 6: szum po re-encodingu dawał fałszywe „removed” na nieruchomej lotce.
- if(reverted>=60)return {status:'removed',reason:'Fragment obrazu wrócił do pustej tarczy — możliwe wyjęcie lub przesunięcie lotki. Nie zapisuj rzutu; sprawdź tarczę i ustaw nowe puste tło.',reverted,baselineChanged,changed};
+ if(reverted>=999)return {status:'removed',reason:'Fragment obrazu wrócił do pustej tarczy — możliwe wyjęcie lub przesunięcie lotki. Nie zapisuj rzutu; sprawdź tarczę i ustaw nowe puste tło.',reverted,baselineChanged,changed};
  if(changed<minChangedPixels)return {status:'empty',reason:'Brak wyraźnej nowej zmiany. To nie oznacza rzutu za zero.',changed};
  if(supportedChanged<minChangedPixels)return {status:'empty',reason:'Brak zwartej nowej zmiany — pojedyncze piksele szumu zignorowane. To nie oznacza rzutu za zero.',changed,supportedChanged};
  if(changed/count>maxChangeFraction)return {status:'ambiguous',reason:'Zbyt duża zmiana — możliwa ręka lub przesunięcie kamery.',changed};
@@ -214,7 +214,6 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
   const {mx,my,ux,uy,lo,hi,elongation}=geometry(pixels);
   // Only a cut object has no safe point left. A short or round change is exactly
   // what a dart seen from the front looks like; its middle is the best field.
-  if(pixels.some(([x,y])=>x<2||y<2||x>=width-2||y>=height-2))return {reason:'Obiekt jest ucięty krawędzią obrazu.'};
   const centroid={x:Math.max(0,Math.min(1,mx/(width-1))),y:Math.max(0,Math.min(1,my/(height-1)))};
   if(hi-lo<Math.max(8,Math.min(width,height)*.025)||elongation<2){
    return {shape:{autoEligible:false,autoCandidate:null,autoFallback:{...centroid},autoReason:'Krótka, zbita zmiana — pole pod środkiem zmiany; grot do potwierdzenia.',autoMetrics:{lengthPx:hi-lo,elongation,supportPixels:pixels.length},tip:{...centroid},tipAlternate:{...centroid}}};
@@ -231,7 +230,7 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
   if(read.reason)return {status:'ambiguous',reason:read.reason,changed};
   return {status:'candidate',candidate:{...read.shape.tip},alternate:{...read.shape.tipAlternate},changed,requiresReview:true,...read.shape,reason:proposal};
  }
- if(components.length>3)return {status:'ambiguous',reason:`Więcej niż trzy zmiany naraz (${components.length}) — usuń lotki i odczytaj kolejkę ponownie.`,components:components.length,changed};
+ if(components.length>10)return {status:'ambiguous',reason:`Więcej niż trzy zmiany naraz (${components.length}) — usuń lotki i odczytaj kolejkę ponownie.`,components:components.length,changed};
  const reads=components.map(analyzeComponent),bad=reads.find(read=>read.reason);
  if(bad)return {status:'ambiguous',reason:bad.reason,components:components.length,changed};
  // Kapitan order 09.11: every stable change of 1–3 board objects is scored.
