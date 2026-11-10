@@ -11,7 +11,7 @@ export function automaticReadFromDetection(found,context){
  const preview=value=>readFieldFromCrop(value,context);
  const entry=item=>{
   const verified=!!(item?.autoCandidate||item?.autoFallback);
-  const read=preview(item?.autoCandidate||item?.autoFallback);
+  const read=verified?preview(item.autoCandidate):preview(item.autoFallback);
   return {
    point:read?.point??null,
    field:read?.field??null,
