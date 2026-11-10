@@ -133,6 +133,15 @@ test('one removed dart, multiple removals and partial removals cannot become new
  assert.equal(detectDartChange(one,moved,moved,options).status,'removed');
 });
 
+test('a touching new dart occludes old pixels instead of reporting a removal',()=>{
+ const one=line(frame(),55,80,50),current=one.slice();
+ for(let x=55;x<=60;x++)for(let dy=-1;dy<=1;dy++)current[(50+dy)*width+x]=180;
+ line(current,55,60,53);
+ const result=detectDartChange(one,current,current,options);
+ assert.equal(result.status,'candidate');assert.equal(result.reverted,undefined);
+ assert.ok(result.autoFallback);
+});
+
 test('a low-contrast dart returning close to empty is removed below the new-object threshold',()=>{
  // The dart differs by 31 from the board; local sensor noise after removal
  // leaves a difference of 1, so its return delta is only 30 (not > threshold).
@@ -163,6 +172,15 @@ test('two fragments split by a thin gap form one dart instead of an ambiguous ch
  const board=frame(),dart=line(line(frame(),20,34,50),38,52,50);
  const result=detectDartChange(board,dart,dart,options);
  assert.equal(result.status,'candidate');assert.equal(result.components,undefined);
+});
+
+test('collinear fragments join across occlusion without merging separated darts',()=>{
+ const dart=line(line(frame(),15,40,50),50,85,50);
+ const result=detectDartChange(empty,dart,dart,options);
+ assert.equal(result.status,'candidate');assert.equal(result.candidates,undefined);
+ const separated=line(line(frame(),15,40,25),50,85,75);
+ const pair=detectDartChange(empty,separated,separated,options);
+ assert.equal(pair.status,'candidates');assert.equal(pair.candidates.length,2);
 });
 
 test('large hands, multiple changes, clipping and lighting changes require another frame or review',()=>{

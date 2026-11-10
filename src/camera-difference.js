@@ -96,13 +96,22 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
   return Math.round(sum/n);
  };
  let rawMoving=0,changed=0,supportedChanged=0,reverted=0,baselineChanged=0;
- const rawMask=new Uint8Array(count),mask=new Uint8Array(count),motionMask=new Uint8Array(count),baselineMask=new Uint8Array(count);
+ const rawMask=new Uint8Array(count),mask=new Uint8Array(count),motionMask=new Uint8Array(count),baselineMask=new Uint8Array(count),addedMask=new Uint8Array(count),revertedMask=new Uint8Array(count);
+ const bridgeRadius=2,bridgePasses=3;
+ const expandOnce=source=>{
+  const out=new Uint8Array(count);
+  for(let i=0;i<count;i++)if(source[i]){const x=i%width,y=Math.floor(i/width);for(let dy=-bridgeRadius;dy<=bridgeRadius;dy++)for(let dx=-bridgeRadius;dx<=bridgeRadius;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<width&&yy>=0&&yy<height)out[yy*width+xx]=1;}}
+  return out;
+ };
  for(let i=0;i<count;i++){
   if(Math.abs(current[i]-previous[i]-motionShift)>motionThreshold){motionMask[i]=1;rawMoving++;}
   if(Math.abs(current[i]-reference[i]-lighting)>threshold){
    rawMask[i]=1;changed++;
    const x=i%width,y=(i/width)|0;
-   if(Math.abs(mean3(current,x,y)-mean3(reference,x,y)-lighting)>threshold*2/3)mask[i]=1;
+   if(Math.abs(mean3(current,x,y)-mean3(reference,x,y)-lighting)>threshold*2/3){
+    mask[i]=1;
+    if(Math.abs(current[i]-emptyReference[i]-emptyCurrentShift)>threshold)addedMask[i]=1;
+   }
   }
   if(Math.abs(reference[i]-emptyReference[i]-emptyBaselineShift)>threshold)baselineMask[i]=1;
  }
@@ -131,9 +140,12 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
    // a one-level crossing is noise, but a low-contrast dart can disappear with
    // a change just BELOW the threshold that originally detected that dart.
    const returnThreshold=threshold/2;
-   if(Math.abs(current[i]-reference[i]-lighting)>returnThreshold&&Math.abs(current[i]-emptyReference[i]-emptyCurrentShift)<=returnThreshold)reverted++;
+   if(Math.abs(current[i]-reference[i]-lighting)>returnThreshold&&Math.abs(current[i]-emptyReference[i]-emptyCurrentShift)<=returnThreshold)revertedMask[i]=1;
   }
  }
+ // A touching new dart can hide old pixels; only uncovered returns prove removal.
+ const addedArea=expandOnce(addedMask);
+ for(let i=0;i<count;i++)if(revertedMask[i]&&!addedArea[i])reverted++;
  const moving=rawMoving/count>maxMotionFraction?supportedCount(motionMask,width,height):rawMoving;
  if(moving/count>maxMotionFraction)return {status:'unstable',reason:'Ruch w obrazie — poczekaj.',moving,rawMoving};
  // Reversion is not proof of removal, but cannot safely be treated as a new dart.
@@ -145,11 +157,6 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  if(changed/count>maxChangeFraction)return {status:'ambiguous',reason:'Zbyt duża zmiana — możliwa ręka lub przesunięcie kamery.',changed};
  // 2 px, nie 1: cienki grot na czarnym tle i lotka przecięta drutem dają dwie
  // zmiany; szersze sklejenie łączy je w jedną lotkę, zanim policzymy komponenty.
- const expandOnce=source=>{
-  const out=new Uint8Array(count);
-  for(let i=0;i<count;i++)if(source[i]){const x=i%width,y=Math.floor(i/width);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<width&&yy>=0&&yy<height)out[yy*width+xx]=1;}}
-  return out;
- };
  const collect=expanded=>{
   const work=expanded.slice(),queue=new Int32Array(count),found=[];
   for(let start=0;start<count;start++)if(work[start]){
@@ -167,18 +174,44 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  // components. Keep applying the same 2-px bridge until at most three pieces
  // remain. Different darts stay separate; a wrongly merged pair already fails
  // the shape gate above, so this cannot silently score half a dart.
- for(let pass=0;pass<3&&components.length>3;pass++){
+ for(let pass=0;pass<bridgePasses&&components.length>3;pass++){
   expanded=expandOnce(expanded);components=collect(expanded);
  }
- // Each component is read on its own. One turn can add up to three darts before
- // the next frame, so two or three shaped, unambiguous components are legitimate
- // candidates; one bad piece still rejects the whole frame.
- function analyzeComponent(pixels){
+ const geometry=pixels=>{
   let mx=0,my=0;for(const [x,y] of pixels){mx+=x;my+=y;}mx/=pixels.length;my/=pixels.length;
   let xx=0,yy=0,xy=0;for(const [x,y] of pixels){xx+=(x-mx)**2;yy+=(y-my)**2;xy+=(x-mx)*(y-my);}
   const angle=.5*Math.atan2(2*xy,xx-yy),ux=Math.cos(angle),uy=Math.sin(angle);let lo=Infinity,hi=-Infinity;
   for(const [x,y] of pixels){const t=(x-mx)*ux+(y-my)*uy;lo=Math.min(lo,t);hi=Math.max(hi,t);}
   const trace=xx+yy,delta=Math.hypot(xx-yy,2*xy),elongation=(trace+delta)/Math.max(1,trace-delta);
+  return {mx,my,ux,uy,lo,hi,length:hi-lo,elongation};
+ };
+ // A touching dart can hide the middle of the next silhouette. Join only a
+ // short fragment lying on the longer piece's axis and within the same bridge
+ // distance; full darts and pieces beside that axis remain separate candidates.
+ let merged=true;
+ while(merged&&components.length>1){
+  merged=false;
+  const shapes=components.map(geometry),shortLimit=Math.max(32,Math.min(width,height)*.05);
+  outer:for(let a=0;a<components.length;a++)for(let b=a+1;b<components.length;b++){
+   const first=shapes[a],second=shapes[b],long=first.length>=second.length?first:second,short=long===first?second:first;
+   if(short.length>=shortLimit)continue;
+   const dx=short.mx-long.mx,dy=short.my-long.my,lateral=Math.abs(-dx*long.uy+dy*long.ux);
+   const shortIndex=long===first?b:a;
+   let lo=Infinity,hi=-Infinity,sideLo=Infinity,sideHi=-Infinity;
+   for(const [x,y] of components[shortIndex]){const t=(x-long.mx)*long.ux+(y-long.my)*long.uy,s=-(x-long.mx)*long.uy+(y-long.my)*long.ux;lo=Math.min(lo,t);hi=Math.max(hi,t);sideLo=Math.min(sideLo,s);sideHi=Math.max(sideHi,s);}
+   const gap=Math.max(0,long.lo-hi,lo-long.hi),shortWidth=sideHi-sideLo+1;
+   if(lateral>Math.max(bridgeRadius*2,shortWidth)||gap>bridgeRadius*2*bridgePasses)continue;
+   const combined=[...components[a],...components[b]];
+   components=components.filter((_,index)=>index!==a&&index!==b);
+   components.push(combined);
+   merged=true;break outer;
+  }
+ }
+ // Each component is read on its own. One turn can add up to three darts before
+ // the next frame, so two or three shaped, unambiguous components are legitimate
+ // candidates; one bad piece still rejects the whole frame.
+ function analyzeComponent(pixels){
+  const {mx,my,ux,uy,lo,hi,elongation}=geometry(pixels);
   // Only a cut object has no safe point left. A short or round change is exactly
   // what a dart seen from the front looks like; its middle is the best field.
   if(pixels.some(([x,y])=>x<2||y<2||x>=width-2||y>=height-2))return {reason:'Obiekt jest ucięty krawędzią obrazu.'};

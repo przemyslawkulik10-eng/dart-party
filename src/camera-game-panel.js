@@ -16,7 +16,7 @@ const shell=document.createElement('div');shell.className='camera-game-shell';ap
 const bar=document.createElement('div');bar.className='camera-game-bar';
 bar.innerHTML='<button type="button" class="primary" aria-expanded="false" aria-controls="camera-game-panel">Kamera · odczytaj rzut</button><span>Klawiatura pozostaje dostępna.</span>';
 shell.before(bar);const launch=bar.querySelector('button');
-const VERSION='01.25';
+const VERSION='01.26';
 const panel=document.createElement('section');panel.id='camera-game-panel';panel.hidden=true;panel.setAttribute('aria-label','Kamera — odczyt rzutu');
 panel.innerHTML=`<div class="cg-top"><h2>Kamera <span class="cg-version">v${VERSION}</span></h2><label class="cg-source"><span>Kamera</span><select data-cg="device"><option value="">Domyślna kamera</option></select></label><button type="button" data-cg="devices">Odśwież listę</button><button type="button" data-cg="close" aria-label="Zamknij kamerę">×</button></div>
 <ol class="cg-steps" data-cg="steps"><li>1 · Źródło</li><li>2 · Kalibracja</li><li>3 · Pusta tarcza</li><li>4 · Odczyt</li></ol>
@@ -192,13 +192,21 @@ function autoTurnKey(game){
   ?[game.game,game.sessionId,game.turn]
   :[game.game,game.sessionId,game.player,game.phase,game.target]);
 }
+function pointField(tip,alternate){
+ const read=value=>{
+  if(!value)return null;
+  const point=[(crop.x+value.x*crop.size)/video.videoWidth,(crop.y+value.y*crop.size)/video.videoHeight];
+  return {point,field:fieldAt(project(matrix,point))};
+ };
+ const primary=read(tip),other=read(alternate);
+ return primary?.field.number===0&&other&&other.field.number!==0&&!other.field.nearWire?other:primary;
+}
 function seriesEntries(found){
  // Every detected component goes through calibration to its own board field.
  if(found.status!=='candidates')return null;
  return found.candidates.map(item=>{
-  const tip=item.autoCandidate;
-  const point=tip?[(crop.x+tip.x*crop.size)/video.videoWidth,(crop.y+tip.y*crop.size)/video.videoHeight]:null;
-  return {point,field:point?fieldAt(project(matrix,point)):null,autoEligible:item.autoEligible===true};
+  const read=pointField(item.autoCandidate||item.autoFallback,item.alternate);
+  return {point:read?.point??null,field:read?.field??null,autoEligible:item.autoEligible===true};
  });
 }
 function commitRead(found,decision,current,point,entries){
@@ -248,10 +256,9 @@ function autoObserve(frame,game){
   status(autoWarning);return;
  }
  const entries=seriesEntries(found);
- const tip=found.autoCandidate||found.autoFallback;
- const point=tip?[(crop.x+tip.x*crop.size)/video.videoWidth,(crop.y+tip.y*crop.size)/video.videoHeight]:null;
- const field=point?fieldAt(project(matrix,point)):null;
- const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:found.autoEligible===true||!!found.autoFallback,point:tip,field,darts:entries});
+ const read=pointField(found.autoCandidate||found.autoFallback,found.alternate);
+ const point=read?.point??null,field=read?.field??null;
+ const decision=autoSession.observe({...meta,turnKey:autoTurnKey(game),status:emptyBoard?'empty':found.status,emptyBoard,autoEligible:found.autoEligible===true||!!found.autoFallback,point:point?{x:point[0],y:point[1]}:null,field,darts:entries});
  if(decision.status==='armed'){
   // The original empty reference was matched on several fresh frames. This is
   // safe to reset after the previous player's darts have actually been removed.
