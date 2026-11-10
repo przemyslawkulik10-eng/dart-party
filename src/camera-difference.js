@@ -71,14 +71,14 @@ function assessEndpointShape(pixels,{width,height,mx,my,ux,uy,lo,hi,endpoints,re
  * previous must be a distinct, fresh capture. Caller owns frame identity/readiness.
  * Never replace either reference automatically from an unreviewed candidate.
  */
-export function detectDartChange(reference,current,previous,{width,height,emptyReference,threshold=30,motionThreshold=15,maxMotionFraction=.002,maxChangeFraction=.08,minChangedPixels=12,center=[.5,.5]}={}){
+export function detectDartChange(reference,current,previous,{width,height,emptyReference,threshold=30,motionThreshold=15,maxMotionFraction=.002,maxChangeFraction=.20,minChangedPixels=12,center=[.5,.5]}={}){
  const count=width*height;
  if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<16||height<16||count>4e6)throw new Error('Nieprawidłowy rozmiar klatki.');
  for(const a of [reference,current,emptyReference,...(previous==null?[]:[previous])])if(!bytes(a)||a.length!==count)throw new Error('Nieprawidłowa klatka szarości. Wymagane jest także początkowe tło pustej tarczy.');
  if(!finiteRange(threshold,1,254)||!finiteRange(motionThreshold,1,254)||!finiteRange(maxMotionFraction,0,.1)||!finiteRange(maxChangeFraction,0,.25)||maxChangeFraction===0||!Number.isSafeInteger(minChangedPixels)||minChangedPixels<3||minChangedPixels>count||!Array.isArray(center)||center.length!==2||!finiteRange(center[0],0,1)||!finiteRange(center[1],0,1))throw new Error('Nieprawidłowe parametry detektora zmian.');
  if(previous==null)return {status:'waiting',reason:'Potrzebne dwie kolejne nieruchome klatki.'};
  const lighting=shiftBetween(reference,current),motionShift=shiftBetween(previous,current),emptyCurrentShift=shiftBetween(emptyReference,current),emptyBaselineShift=shiftBetween(emptyReference,reference);
- if(Math.abs(lighting)>35||Math.abs(motionShift)>15||Math.abs(emptyCurrentShift)>35||Math.abs(emptyBaselineShift)>35)return {status:'lighting',reason:'Zmiana oświetlenia — sprawdź obraz i ustaw nowe puste tło.',lighting};
+ if(Math.abs(lighting)>60||Math.abs(motionShift)>40||Math.abs(emptyCurrentShift)>35||Math.abs(emptyBaselineShift)>35)return {status:'lighting',reason:'Zmiana oświetlenia — sprawdź obraz i ustaw nowe puste tło.',lighting};
  // A real phone camera re-encodes and slightly refocuses between the empty
  // reference and the throw. On a physical board that produced 76 one-pixel
  // noise clusters plus the dart. The blur only CONFIRMS a change: a pixel must
@@ -151,7 +151,7 @@ export function detectDartChange(reference,current,previous,{width,height,emptyR
  // Reversion is not proof of removal, but cannot safely be treated as a new dart.
  // Detect it even if another object was added and the total changed area increased.
  // 12 px, nie 6: szum po re-encodingu dawał fałszywe „removed” na nieruchomej lotce.
- if(reverted>=12)return {status:'removed',reason:'Fragment obrazu wrócił do pustej tarczy — możliwe wyjęcie lub przesunięcie lotki. Nie zapisuj rzutu; sprawdź tarczę i ustaw nowe puste tło.',reverted,baselineChanged,changed};
+ if(reverted>=60)return {status:'removed',reason:'Fragment obrazu wrócił do pustej tarczy — możliwe wyjęcie lub przesunięcie lotki. Nie zapisuj rzutu; sprawdź tarczę i ustaw nowe puste tło.',reverted,baselineChanged,changed};
  if(changed<minChangedPixels)return {status:'empty',reason:'Brak wyraźnej nowej zmiany. To nie oznacza rzutu za zero.',changed};
  if(supportedChanged<minChangedPixels)return {status:'empty',reason:'Brak zwartej nowej zmiany — pojedyncze piksele szumu zignorowane. To nie oznacza rzutu za zero.',changed,supportedChanged};
  if(changed/count>maxChangeFraction)return {status:'ambiguous',reason:'Zbyt duża zmiana — możliwa ręka lub przesunięcie kamery.',changed};
